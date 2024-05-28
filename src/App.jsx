@@ -15,7 +15,7 @@ import * as OBC from "openbim-components";
 // import DashBoard from './scenes/dashboard/dashBoard';
 import Sidebar from './scenes/global/sideBar';
 // import LandingPage from './scenes/landingPage/landingPage';
-// import Topbar from "./scenes/global/topBar"
+import Topbar from "./scenes/global/topBar"
 // import ElementTable from './scenes/elementTable';
 import SetUpIfcComponents from "./components/setUpIfcComponents.ts";
 
@@ -54,11 +54,12 @@ const handleComponentsLoad = (newComponents) => {
         <BrowserRouter>
           <div style={{ display: 'flex', height: '100%' }}> {/* Flex container */}
             <Sidebar />           
-            {/* <main>
+            <main>
+            <Topbar />           
               <Routes>
                 <Route />
               </Routes>
-            </main> */}
+            </main>
           </div>
       </BrowserRouter>
     </ThemeProvider>
