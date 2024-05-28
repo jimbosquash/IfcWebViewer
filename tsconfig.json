@@ -8,7 +8,7 @@
 
     /* Bundler mode */
     "jsx": "react-jsx",
-    "moduleResolution": "node16", // vite sets to "bundle" which is new and vs code sees it as error
+    "moduleResolution": "node", // vite sets to "bundle" which is new and vs code sees it as error
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,

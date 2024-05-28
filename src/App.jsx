@@ -13,7 +13,7 @@ import * as OBC from "openbim-components";
 // import ViewerFiber from './scenes/viewer/viewerFiber';
 // import ViewerSpeckle from './components/viewers/viewerSpeckle.jsx';
 // import DashBoard from './scenes/dashboard/dashBoard';
-// import Sidebar from './scenes/global/sideBar';
+import Sidebar from './scenes/global/sideBar';
 // import LandingPage from './scenes/landingPage/landingPage';
 // import Topbar from "./scenes/global/topBar"
 // import ElementTable from './scenes/elementTable';
@@ -53,7 +53,7 @@ const handleComponentsLoad = (newComponents) => {
         <CssBaseline/>
         <BrowserRouter>
           <div style={{ display: 'flex', height: '100%' }}> {/* Flex container */}
-            {/* <Sidebar />            */}
+            <Sidebar />           
             {/* <main>
               <Routes>
                 <Route />

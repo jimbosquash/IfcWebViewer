@@ -3,7 +3,7 @@
     "composite": true,
     "skipLibCheck": true,
     "module": "ESNext",
-    "moduleResolution": "node16", // vite sets to "bundle" which is new and vs code sees it as error
+    "moduleResolution": "node", // vite sets to "bundle" which is new and vs code sees it as error
     "allowSyntheticDefaultImports": true,
     "strict": true
   },
