@@ -15,6 +15,13 @@
     // "emitDeclarationOnly": true,
     // "allowImportingTsExtensions": true,
 
+    "esModuleInterop": true, // Added to ensure compatibility with CommonJS modules
+    "allowSyntheticDefaultImports": true, // Allow default imports from modules with no default export
+    "forceConsistentCasingInFileNames": true, // Ensure consistent casing in file names
+    "allowJs": true, // Allow JavaScript files to be imported
+    "checkJs": false, // Skip type checking of JavaScript files
+
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
