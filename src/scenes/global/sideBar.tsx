@@ -9,7 +9,7 @@ import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 
 import Group from "@mui/icons-material/Group";
 import Cable from "@mui/icons-material/Cable";
-import Visibility from "@mui/icons-material/visibility";
+import Visibility from "@mui/icons-material/Visibility";
 // import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 // import Celebration from "@mui/icons-material/Celebration";
 // import InsertChart from "@mui/icons-material/InsertChart";
