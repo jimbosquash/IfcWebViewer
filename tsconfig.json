@@ -7,12 +7,13 @@
     "skipLibCheck": true,
 
     /* Bundler mode */
-    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "moduleResolution": "node16", // vite sets to "bundle" which is new and vs code sees it as error
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "allowImportingTsExtensions": true,
-    "jsx": "react-jsx",
+    // "emitDeclarationOnly": true,
+    // "allowImportingTsExtensions": true,
 
     /* Linting */
     "strict": true,
