@@ -10,7 +10,7 @@ import * as OBC from "openbim-components";
 
 // import Viewer from './components/viewers/viewerMini.tsx';
 // import ViewerFun from './components/viewers/viewerFun';
-// import ViewerFiber from './scenes/viewer/viewerFiber';
+import ViewerFiber from './scenes/viewer/viewerFiber';
 // import ViewerSpeckle from './components/viewers/viewerSpeckle.jsx';
 // import DashBoard from './scenes/dashboard/dashBoard';
 import Sidebar from './scenes/global/sideBar';
@@ -54,10 +54,10 @@ const handleComponentsLoad = (newComponents) => {
         <BrowserRouter>
           <div style={{ display: 'flex', height: '100%' }}> {/* Flex container */}
             {/* <Sidebar />            */}
-            <main>
+            <main style={{flex: 1, padding: "0"}}>
             <Topbar onIfcFileLoad={handleIFCLoad} />           
               <Routes>
-                <Route />
+              <Route path='/viewerFiber' element={<ViewerFiber ifcModel={ifcFile} components={components}/>} />
               </Routes>
             </main>
           </div>

@@ -65,8 +65,8 @@ const Topbar: React.FC<topbarProps> = ({onIfcFileLoad}) => {
     useEffect(() => {},[fileName])
 
     return (
-        <Box display="flex" justifyContent="space-between" p={2}>
-            <Box>
+        <Box component={"div"} display="flex" justifyContent="space-between" p={2}>
+            <Box component={"div"}>
                 <UploadIfcButton setFileName={setFileName} onIfcFileLoad={handleIFCLoad} /> 
             </Box>
             <Typography
@@ -75,7 +75,7 @@ const Topbar: React.FC<topbarProps> = ({onIfcFileLoad}) => {
             sx={{color: colors.grey[100]}}>
             {fileName}
           </Typography>
-            <Box display="flex" justifyContent="space-between" p={1}>
+            <Box component={"div"} display="flex" justifyContent="space-between" p={1}>
                 <div>
                 <IconButton onClick={colorMode.toggleColorMode}>
                 {theme.palette.mode === "dark" ?(<DarkModeOutlinedIcon/>) : (<LightModeOutlinedIcon/>)}
@@ -95,7 +95,7 @@ const Topbar: React.FC<topbarProps> = ({onIfcFileLoad}) => {
             selected={selected}
             setSelected={setSelected}
             />          
-            <Box mt="20px">
+            <Box component={"div"} mt="20px">
           
         </Box>
             

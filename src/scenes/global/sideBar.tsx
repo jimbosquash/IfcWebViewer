@@ -48,7 +48,7 @@ const Sidebar = () => {
   const [selected, setSelected] = useState("dashboard");
 console.log(selected)
   return (
-    <Box
+    <Box component={"div"}
       sx={{
         "& .pro-sidebar-inner": {
           background: `${colors.primary[400]} !important`,
@@ -79,7 +79,7 @@ console.log(selected)
             }}
           >
             {!isCollapsed && (
-              <Box
+              <Box component={"div"}
                 display="flex"
                 justifyContent="space-between"
                 alignItems="center"
@@ -96,7 +96,7 @@ console.log(selected)
           </MenuItem>
 
           {!isCollapsed && (
-            <Box mb="25px">
+            <Box component={"div"} mb="25px">
             </Box>
           )}
 
@@ -110,7 +110,7 @@ console.log(selected)
             />
             </Box> */}
 
-<Box paddingLeft={isCollapsed ? undefined : "10%"}>
+<Box component={"div"} paddingLeft={isCollapsed ? undefined : "10%"}>
             <Item
               title="Dashboard"
               to="/dashboard"
@@ -120,7 +120,7 @@ console.log(selected)
             />
           </Box>
 
-          <Box paddingLeft={isCollapsed ? undefined : "10%"}>
+          <Box component={"div"} paddingLeft={isCollapsed ? undefined : "10%"}>
             <Item
               title="OpenBim"
               to="/viewerOpenBim"
@@ -130,7 +130,7 @@ console.log(selected)
             />
           </Box>
 
-          <Box paddingLeft={isCollapsed ? undefined : "10%"}>
+          <Box component={"div"} paddingLeft={isCollapsed ? undefined : "10%"}>
             <Item
               title="Fiber"
               to="/viewerFiber"
@@ -139,7 +139,7 @@ console.log(selected)
               setSelected={setSelected}
             />
           </Box>
-          <Box paddingLeft={isCollapsed ? undefined : "10%"}>
+          <Box component={"div"} paddingLeft={isCollapsed ? undefined : "10%"}>
             <Item
               title="Speckle"
               to="/viewerSpeckle"
