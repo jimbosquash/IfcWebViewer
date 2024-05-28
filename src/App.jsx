@@ -53,9 +53,9 @@ const handleComponentsLoad = (newComponents) => {
         <CssBaseline/>
         <BrowserRouter>
           <div style={{ display: 'flex', height: '100%' }}> {/* Flex container */}
-            <Sidebar />           
+            {/* <Sidebar />            */}
             <main>
-            <Topbar />           
+            <Topbar onIfcFileLoad={handleIFCLoad} />           
               <Routes>
                 <Route />
               </Routes>

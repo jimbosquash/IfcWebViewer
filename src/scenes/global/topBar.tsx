@@ -46,7 +46,7 @@ const RoutingButton : React.FC<routerButtonProps> = ({ title, to, icon, selected
 
 interface topbarProps {
     // onComponentsSet: ; // this should take component to manage top level better
-    onIfcFileLoad: (ifcModel: FRAGS.FragmentsGroup) => void;
+    onIfcFileLoad: (ifcModel: any) => void;
 }
 
 const Topbar: React.FC<topbarProps> = ({onIfcFileLoad}) => {
@@ -57,7 +57,8 @@ const Topbar: React.FC<topbarProps> = ({onIfcFileLoad}) => {
     const [selected, setSelected] = useState<string>("dashboard");
 
 
-    const handleIFCLoad = (ifcModel: FRAGS.FragmentsGroup) => {
+    const handleIFCLoad = (ifcModel: FRAGS.FragmentsGroup | undefined) => {
+        console.log("I am a bloddy function")
         onIfcFileLoad(ifcModel)
     }
 
@@ -65,7 +66,7 @@ const Topbar: React.FC<topbarProps> = ({onIfcFileLoad}) => {
 
     return (
         <Box display="flex" justifyContent="space-between" p={2}>
-            <Box display="flex">
+            <Box>
                 <UploadIfcButton setFileName={setFileName} onIfcFileLoad={handleIFCLoad} /> 
             </Box>
             <Typography
@@ -74,10 +75,12 @@ const Topbar: React.FC<topbarProps> = ({onIfcFileLoad}) => {
             sx={{color: colors.grey[100]}}>
             {fileName}
           </Typography>
-            <Box display="flex">
-            <IconButton onClick={colorMode.toggleColorMode}>
+            <Box display="flex" justifyContent="space-between" p={1}>
+                <div>
+                <IconButton onClick={colorMode.toggleColorMode}>
                 {theme.palette.mode === "dark" ?(<DarkModeOutlinedIcon/>) : (<LightModeOutlinedIcon/>)}
             </IconButton>
+                </div>
             <RoutingButton 
             title="Dashboard"
             to="/dashboard"
@@ -91,7 +94,7 @@ const Topbar: React.FC<topbarProps> = ({onIfcFileLoad}) => {
             icon={<HomeOutlinedIcon />}
             selected={selected}
             setSelected={setSelected}
-            />
+            />          
             <Box mt="20px">
           
         </Box>

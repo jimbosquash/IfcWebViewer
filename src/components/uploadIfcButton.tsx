@@ -21,7 +21,7 @@ async function readIfcFile(file: File, containerRef : React.RefObject<HTMLElemen
 
 
   interface UploadIfcButtonProps {
-      onIfcFileLoad: (model: any) => void;
+      onIfcFileLoad: (model: FRAGS.FragmentsGroup | undefined) => void;
       setFileName: (name: string) => void;
   }
   
@@ -34,10 +34,11 @@ async function readIfcFile(file: File, containerRef : React.RefObject<HTMLElemen
           const file = event.target.files ? event.target.files[0] : null;
           if (file) {
               console.log("Start loading IFC file:", file.name);
-              const loadedModel = await readIfcFile(file, containerRef); 
+              const model = await readIfcFile(file, containerRef); 
+              console.log(model)
               console.log(onIfcFileLoad)
               if(onIfcFileLoad)
-                onIfcFileLoad(loadedModel);
+                onIfcFileLoad(model);
               setFileName(file.name)
           }
       };
