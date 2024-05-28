@@ -6,19 +6,18 @@ import "react-pro-sidebar/dist/css/styles.css";
 import { tokens } from "../../theme.js";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
-import Celebration from "@mui/icons-material/Celebration";
-import InsertChart from "@mui/icons-material/InsertChart";
 
 import Group from "@mui/icons-material/Group";
 import Cable from "@mui/icons-material/Cable";
 import Visibility from "@mui/icons-material/visibility";
-import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-
+// import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+// import Celebration from "@mui/icons-material/Celebration";
+// import InsertChart from "@mui/icons-material/InsertChart";
 
 interface ItemProps {
   title: string;
   to: string;
-  icon: React.ReactNode;
+  icon: any;
   selected: string;
   setSelected: (title: string) => void;
 
