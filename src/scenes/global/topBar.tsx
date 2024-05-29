@@ -90,7 +90,7 @@ const Topbar: React.FC<topbarProps> = ({onIfcFileLoad}) => {
             />
             <RoutingButton 
             title="Viewer"
-            to="/viewerFiber"
+            to="/viewer"
             icon={<HomeOutlinedIcon />}
             selected={selected}
             setSelected={setSelected}

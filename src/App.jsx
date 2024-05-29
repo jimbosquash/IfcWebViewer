@@ -14,10 +14,12 @@ import ViewerFiber from './scenes/viewer/viewerFiber';
 // import ViewerSpeckle from './components/viewers/viewerSpeckle.jsx';
 // import DashBoard from './scenes/dashboard/dashBoard';
 import Sidebar from './scenes/global/sideBar';
-// import LandingPage from './scenes/landingPage/landingPage';
 import Topbar from "./scenes/global/topBar"
 // import ElementTable from './scenes/elementTable';
 import SetUpIfcComponents from "./components/setUpIfcComponents.ts";
+import LandingPage from './scenes/landingPage/landingPage';
+import Layout from './scenes/global/Layout';
+
 
 
 function App() {
@@ -47,17 +49,21 @@ const handleComponentsLoad = (newComponents) => {
   setComponents(newComponents);
 }
 
+// landing page
+// main app page
+
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline/>
         <BrowserRouter>
           <div style={{ display: 'flex', height: '100%' }}> {/* Flex container */}
-            {/* <Sidebar />            */}
             <main style={{flex: 1, padding: "0"}}>
-            <Topbar onIfcFileLoad={handleIFCLoad} />           
               <Routes>
-              <Route path='/viewerFiber' element={<ViewerFiber ifcModel={ifcFile} components={components}/>} />
+                {/* <Route path='/' element={<LandingPage/>} /> */}
+                <Route path='/*' element={<Layout onIfcFileLoad={handleIFCLoad}/>} >
+                  <Route path='' element={<ViewerFiber ifcModel={ifcFile} components={components}/>} />
+                </Route>
               </Routes>
             </main>
           </div>
@@ -68,20 +74,3 @@ const handleComponentsLoad = (newComponents) => {
 }
 
 export default App
-
-
-// <main style={{ flex: 1, paddingLeft: '0px' }}> {/* Main content area */}
-//               <Topbar onIfcFileLoad={handleIFCLoad} onComponentsSet={handleComponentsLoad}/>
-//               <Routes>
-//                 {/* <Route path='/' element={<LandingPage/>} /> */}
-//                 {/* <Route path='/' element={<DashBoard  loadedIfcModel={ifcFile} />} /> */}
-//                 <Route path='/dashboard' element={<DashBoard  loadedIfcModel={ifcFile} />} />
-//                 <Route path='/table' element={<ElementTable />} />
-//                 <Route path='/viewerOpenBim' element={<Viewer />} />
-//                 <Route path='/viewerFiber' element={<ViewerFiber ifcModel={ifcFile} components={components}/>} />
-//                 <Route path='/' element={<ViewerFiber ifcModel={ifcFile} components={components}/>} />
-//                 <Route path='/viewerFun' element={<ViewerFun />} />
-//                 <Route path='/viewerSpeckle' element={<ViewerSpeckle />} />
-//                 {/* <Route path='/barChart' element={<Bar />} /> */}
-//               </Routes>
-//             </main>
