@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, InputBase, Typography, useTheme } from "@mui/material";
+import { Box, IconButton, Typography, useTheme, Snackbar, Alert } from "@mui/material";
 import {useContext, useState, useEffect} from "react"
 import { ColorModeContext, tokens } from "../../theme";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
@@ -55,11 +55,20 @@ const Topbar: React.FC<topbarProps> = ({onIfcFileLoad}) => {
     const colorMode = useContext(ColorModeContext);
     const [fileName, setFileName] = useState<string>("");
     const [selected, setSelected] = useState<string>("dashboard");
+    const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
+
 
 
     const handleIFCLoad = (ifcModel: FRAGS.FragmentsGroup | undefined) => {
-        console.log("I am a bloddy function")
         onIfcFileLoad(ifcModel)
+        setSnackbarOpen(true);
+    }
+
+    const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
+        if(reason === 'clickaway') {
+            return;
+        }
+        setSnackbarOpen(false)
     }
 
     useEffect(() => {},[fileName])
@@ -79,29 +88,35 @@ const Topbar: React.FC<topbarProps> = ({onIfcFileLoad}) => {
                 <div>
                 <IconButton onClick={colorMode.toggleColorMode}>
                 {theme.palette.mode === "dark" ?(<DarkModeOutlinedIcon/>) : (<LightModeOutlinedIcon/>)}
-            </IconButton>
+                </IconButton>
                 </div>
-            <RoutingButton 
-            title="Dashboard"
-            to="/dashboard"
-            icon={<InsertChart />}
-            selected={selected}
-            setSelected={setSelected}
-            />
-            <RoutingButton 
-            title="Viewer"
-            to="/"
-            icon={<HomeOutlinedIcon />}
-            selected={selected}
-            setSelected={setSelected}
-            />          
-            <Box component={"div"} mt="20px">
-          
-        </Box>
-            
+                <RoutingButton 
+                title="Dashboard"
+                to="/dashboard"
+                icon={<InsertChart />}
+                selected={selected}
+                setSelected={setSelected}
+                />
+                <RoutingButton 
+                title="Viewer"
+                to="/"
+                icon={<HomeOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+                />          
             </Box>
             
-
+            <Snackbar 
+                open={snackbarOpen}
+                autoHideDuration={5000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+                >
+                    <Alert onClose={handleCloseSnackbar} severity='success' sx={{width: '100%'}}>
+                    {fileName} loaded successfully!
+                    </Alert>
+            </Snackbar>
+            
         </Box>
     )
 }
