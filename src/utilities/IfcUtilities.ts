@@ -1,6 +1,6 @@
 
-import * as OBC from "openbim-components";
-import * as FRAGS from "bim-fragment";
+import * as OBC from "@thatopen/components";
+import * as FRAGS from "@thatopen/fragments";
 import * as WEBIFC from "web-ifc";
 
 
@@ -132,11 +132,12 @@ export async function GetBuildingElements(loadedModel : FRAGS.FragmentsGroup, co
         console.log('compoenets not set, getBuildingELements exiting')
         return [];
     }
-    const propsProcessor = components.tools.get(OBC.IfcPropertiesProcessor);
+    const propsProcessor = components.get(OBC.FragmentsManager);
     const foundElements: buildingElement[] = [];
     await OBC.IfcPropertiesUtils.getRelationMap(loadedModel,WEBIFC.IFCRELDEFINESBYPROPERTIES,(async (propertySetID, _relatedElementsIDs) => { 
 
-        var element = await propsProcessor.getProperties(loadedModel,_relatedElementsIDs.toString());
+        OBC.IfcPropertiesUtils.get(loadedModel,_relatedElementsIDs.toString())
+        var element = await propsProcessor.selectedModel(loadedModel,_relatedElementsIDs.toString());
         if(element && element[0])
             {
                 console.log("element", element[0].Name)

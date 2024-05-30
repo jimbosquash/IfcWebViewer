@@ -1,21 +1,33 @@
 import {Button, useTheme} from "@mui/material";
 import React, { useRef } from "react";
 import UploadOutlinedIcon from "@mui/icons-material/UploadOutlined";
-import * as OBC from "openbim-components";
-import * as FRAGS from "bim-fragment";
+import * as OBC from "@thatopen/components";
+import * as FRAGS from "@thatopen/fragments";
 import {tokens} from "../theme"
 import SetUpIfcComponents from "./setUpIfcComponents";
 
 
-async function readIfcFile(file: File, containerRef : React.RefObject<HTMLElement | undefined>) : Promise<FRAGS.FragmentsGroup | undefined> {
+async function LoadIfcFile(file: File, containerRef : React.RefObject<HTMLElement | undefined>) : Promise<FRAGS.FragmentsGroup | undefined> {
+    
+    //todo move all this to ifc loader utils
+
     const components = SetUpIfcComponents(containerRef);
     //components.uiEnabled = false;
-    let fragmentLoader = components.tools.get(OBC.FragmentIfcLoader);
-    fragmentLoader.settings.webIfc.COORDINATE_TO_ORIGIN = true;
+    const fragments = components.get(OBC.FragmentsManager);
+    const fragmentIfcLoader = components.get(OBC.IfcLoader);
 
-    const loadedModel = await fragmentLoader.components.tools.get(OBC.FragmentIfcLoader).load(new Uint8Array(await file.arrayBuffer()));
-    components.tools.get(OBC.IfcPropertiesProcessor).process(loadedModel);
+    await fragmentIfcLoader.setup();
+
+    fragmentIfcLoader.settings.webIfc.COORDINATE_TO_ORIGIN = true;
+    fragmentIfcLoader.settings.webIfc.OPTIMIZE_PROFILES = true;
+
+    const loadedModel = await fragmentIfcLoader.load(new Uint8Array(await file.arrayBuffer()));
+    loadedModel.name = file.name;
     //console.log(foundElements);
+    //world.scene.three.add(model);
+        // for (const mesh of model.children) {
+        //   culler.add(mesh as any);
+        // }
     return loadedModel;
   }
 
@@ -34,8 +46,8 @@ async function readIfcFile(file: File, containerRef : React.RefObject<HTMLElemen
           const file = event.target.files ? event.target.files[0] : null;
           if (file) {
               console.log("Start loading IFC file:", file.name);
-              const model = await readIfcFile(file, containerRef); 
-              console.log(model)
+              const model = await LoadIfcFile(file, containerRef); 
+              //console.log(model)
               console.log(onIfcFileLoad)
               if(onIfcFileLoad)
                 onIfcFileLoad(model);

@@ -31,6 +31,9 @@ const points = [
 
 export default function SpinnningBox() {
     const cube = useRef();
+    const [hovered, setHovered] = useState(false);
+    const [selected, setSelected] = useState(false);
+
     useFrame((state,delta) => {
         cube.current.rotation.y += delta * 0.2;
 
@@ -38,27 +41,27 @@ export default function SpinnningBox() {
         for(const point of points)
         {
             const screenPos = point.position.clone();
-            // screenPos.project(camera);
         }
-
-
     })
 
     const eventHandler = (event) => {
         console.log("the event occured")
         // cube.current.material.color.set(green);
-        cube.current.wireframe = !cube.current.wireframe;
+        //cube.current.wireframe = !cube.current.wireframe;
+        setSelected(!selected)
         console.log(cube.current.wireframe)
     }
     
     return<>
     <OrbitControls/>
-    <mesh ref={cube} onClick={eventHandler}>
+    <mesh  ref={cube} onClick={eventHandler} 
+    onPointerOver={(event) => {setHovered(true);console.log('hover')}}
+    onPointerOut={(event) => {setHovered(false)}}>
         <Html> 
             <FloatingButton parentMesh={cube}/>
         </Html>
         <boxGeometry/>
-        <meshNormalMaterial/>
+        <meshBasicMaterial color={ hovered ? 'hotpink' : 'orange'} wireframe={selected}/>
     </mesh>
     </>
 }

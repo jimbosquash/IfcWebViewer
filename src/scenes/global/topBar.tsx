@@ -9,7 +9,7 @@ import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import InsertChart from "@mui/icons-material/InsertChart";
 import { Link } from "react-router-dom";
 import React from "react";
-import * as FRAGS from "bim-fragment";
+import * as FRAGS from "@thatopen/fragments";
 
 
 

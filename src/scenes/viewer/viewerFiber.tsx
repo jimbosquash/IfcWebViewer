@@ -1,17 +1,19 @@
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls, Grid, GizmoViewport,GizmoViewcube , GizmoHelper } from '@react-three/drei'
 import '../../styles.css'
-import {useEffect, useState} from 'react'
-import LoadModel from '../../utilities/modelLoader';
-import * as FRAGS from "bim-fragment";
+import { useEffect, useRef, useState} from 'react'
+import {InteractableModel, LoadModel} from '../../utilities/modelLoader';
+import * as FRAGS from "@thatopen/fragments";
 import { buildingElement, GetBuildingElements } from '../../utilities/IfcUtilities';
-// import DraggableDataGrid from '../../components/draggabeDataGrid';
-// import DraggablePanel from '../../components/draggablePanel';
 import { tokens } from '../../theme';
 import { Button, ButtonGroup, useTheme } from '@mui/material';
-import * as OBC from "openbim-components";
+import * as OBC from "@thatopen/components";
+import * as THREE from "three";
+import FloatingButtonGroup from './floatingButtonGroup';
 
-// import FloatingButtonGroup from './floatingButtonGroup';
+//todo
+// 1. get fragment hit in selection and set visibility based on selection 
+
 
 interface ViewerProps {
     ifcModel: FRAGS.FragmentsGroup;
@@ -25,7 +27,7 @@ export const ViewerFiber: React.FC<ViewerProps> = ({ifcModel, components}) => {
     const [buildingElements, setBuildingElements] = useState<buildingElement[]>([]);
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
-
+    const [component, setComponents] = useState<OBC.Components>();
 
     useEffect(() => {
         const fetchBuildingElements = async () => {
@@ -43,6 +45,9 @@ export const ViewerFiber: React.FC<ViewerProps> = ({ifcModel, components}) => {
                     setLoading(false)
                 }
             }
+            if(components)
+                setComponents(components);
+        
         };
 
         fetchBuildingElements();
@@ -54,6 +59,25 @@ export const ViewerFiber: React.FC<ViewerProps> = ({ifcModel, components}) => {
         //set data for table
     }, [buildingElements])
 
+
+    const handleSelect = (selected: THREE.Intersection[]) => {
+        selected.forEach(mesh => {
+            console.log('Selected objects:', mesh.object);
+            if(mesh.object instanceof FRAGS.FragmentMesh && mesh.object.material[0] instanceof THREE.MeshStandardMaterial)
+            {
+                mesh.object.fragment.setVisibility(true);
+                // console.log('Frag', mesh.object);
+                // //var oldColor = child.instanceColor.array;
+                // const material = mesh.object.material[0];
+                // material.wireframe = !material.wireframe;
+                //             //material.color = new THREE.Color(oldColor[0],oldColor[1],oldColor[2]);
+
+            }
+            //mesh.object.visible = false;//material.color.set( 'hotPink')
+        })
+      };
+    
+
     if(loading) return <div>Loading...</div>;
 //dampingFactor={0.08} rotateSpeed={0.3} zoomSpeed={0.9} panSpeed={0.4}
     return (
@@ -61,7 +85,7 @@ export const ViewerFiber: React.FC<ViewerProps> = ({ifcModel, components}) => {
         {/* <DraggablePanel>
             <DraggableDataGrid data={buildingElements}/>
         </DraggablePanel> */}
-        {/* <FloatingButtonGroup/> */}
+        <FloatingButtonGroup/>
         <Canvas
         // ref={containerRef}
         shadows
@@ -71,12 +95,13 @@ export const ViewerFiber: React.FC<ViewerProps> = ({ifcModel, components}) => {
             far: 200,
             position: [ - 4, 3, 6 ]
         } }>
+            <RaycasterComponent onSelect={handleSelect}/>
             <GizmoHelper alignment="top-right" margin={[80, 50]}>
                 <GizmoViewcube color={colors.primary[400]} textColor={colors.grey[100]} strokeColor={colors.grey[100]}/>
             </GizmoHelper>            
             <OrbitControls makeDefault dampingFactor={0.08}/>
             <directionalLight castShadow position={ [ 1, 2, 3 ] } intensity={ 4.5 } />
-            <ambientLight intensity={ 3.5 } />
+            <ambientLight intensity={ 6.5 } />
             <LoadModel ifcModel={fragGroup}></LoadModel>
             {/* <HandleIFC containerRef={containerRef} path={"../resources/small.frag"} propertiesPath={"../resources/small.json"} name={"TestFrag"} /> */}
             <Grid 
@@ -89,5 +114,51 @@ export const ViewerFiber: React.FC<ViewerProps> = ({ifcModel, components}) => {
     </>
       );
 }
+
+interface RayCasterProps {
+    onSelect: (selected : THREE.Intersection[]) => void;
+}
+
+const RaycasterComponent: React.FC<RayCasterProps> = ({onSelect}) => {
+    const { gl, scene, camera } = useThree();
+    const raycaster = useRef(new THREE.Raycaster());
+    const mouse = useRef(new THREE.Vector2());
+    const hitPoint = useRef();
+
+    const handleMouseMove = (event: any) => {
+        // Calculate mouse position in normalized device coordinates (-1 to +1) for both components
+        // mouse.current.x = (event.clientX / window.innerWidth) * 2 - 1;
+        // mouse.current.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        const rect = gl.domElement.getBoundingClientRect();
+    mouse.current.x = (event.clientX / rect.width) * 2 -1;
+    mouse.current.y = -(event.clientY / rect.height) * 2 + 1;
+    };
+
+    const handleClick = () => {
+        raycaster.current.setFromCamera(mouse.current, camera);
+        const intersects = raycaster.current.intersectObjects(scene.children, true);
+
+        if (intersects.length > 0) {
+            onSelect(intersects);
+            return new THREE.SphereGeometry(15, 32, 16);
+        }
+    };
+
+    useEffect(() => {
+        gl.domElement.addEventListener('mousemove', handleMouseMove);
+        gl.domElement.addEventListener('click', handleClick);
+
+        return () => {
+            gl.domElement.removeEventListener('mousemove', handleMouseMove);
+            gl.domElement.removeEventListener('click', handleClick);
+        };
+    }, [gl.domElement]);
+
+    return (<>
+        <mesh>
+        </mesh>
+    </>);
+};
 
 export default ViewerFiber;
