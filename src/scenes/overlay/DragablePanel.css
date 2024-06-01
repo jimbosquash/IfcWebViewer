@@ -1,0 +1,29 @@
+.draggable-panel {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    padding: 20px;
+    width: 300px;
+  }
+  
+  .panel-header {
+    cursor: grab;
+    padding: 12px;
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .box-element {
+    background-color: #e0e0e0;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+  }
+  

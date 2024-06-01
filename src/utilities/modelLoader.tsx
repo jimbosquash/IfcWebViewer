@@ -10,7 +10,7 @@ interface LoadModelProps {
 
 // model was already loaded by user button and now jut applying it to the 3js fiber scene
 export const LoadModel: React.FC<LoadModelProps> = ({ifcModel}) => {
-    console.log("loading begins: ",ifcModel)
+    //console.log("loading begins: ",ifcModel)
     const setTempModel = () => {
         //console.log("temp model being set")
         const geometry = new THREE.BoxGeometry()

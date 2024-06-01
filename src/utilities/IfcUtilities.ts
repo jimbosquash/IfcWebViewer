@@ -132,46 +132,52 @@ export async function GetBuildingElements(loadedModel : FRAGS.FragmentsGroup, co
         console.log('compoenets not set, getBuildingELements exiting')
         return [];
     }
-    const propsProcessor = components.get(OBC.FragmentsManager);
+    // this process attempting example https://github.com/ThatOpen/engine_components/blob/318f4dd9ebecb95e50759eb41f290df57c008fb3/packages/core/src/ifc/IfcRelationsIndexer/index.ts#L235
+    // const propsProcessor = components.get(OBC.FragmentsManager);
+    // const indexer = components.get(OBC.IfcRelationsIndexer);
+    // await indexer.process(loadedModel);
+    // console.log("indexer",indexer)
+
     const foundElements: buildingElement[] = [];
+    const elements = loadedModel.getLocalProperties();
     await OBC.IfcPropertiesUtils.getRelationMap(loadedModel,WEBIFC.IFCRELDEFINESBYPROPERTIES,(async (propertySetID, _relatedElementsIDs) => { 
 
-        OBC.IfcPropertiesUtils.get(loadedModel,_relatedElementsIDs.toString())
-        var element = await propsProcessor.selectedModel(loadedModel,_relatedElementsIDs.toString());
-        if(element && element[0])
+        _relatedElementsIDs.forEach(reltingElement => {
+            if(elements)
             {
-                console.log("element", element[0].Name)
+                const element = elements[reltingElement]
+                //console.log("element related",element)
 
                 const newElement : buildingElement = {
-                    expressID: element[0].expressID,
-                    GlobalID: element[0].GlobalId.value,
-                    type: element[0].type,
-                    name: element[0].Name.value,
-                    properties: []
-                };                
+                                expressID: element.expressID,
+                                GlobalID: element.GlobalId.value,
+                                type: element.type,
+                                name: element.Name.value,
+                                properties: []
+                            };   
+                            
                 OBC.IfcPropertiesUtils.getPsetProps(loadedModel,propertySetID,(async (propertyId) => {
-                    var property = await propsProcessor.getProperties(loadedModel,propertyId.toString());
-                    if(property)
-                    {
-                        newElement.properties.push({
-                            name: property[0].Name.value,
-                            value: property[0].NominalValue.value})
-                    }
+                    const property = elements[propertyId];
+                    if(!property)
+                        return;
 
-                    if (property) {
-                        const propertyName = property[0].Name?.value;
-                        const propertyValue = property[0].NominalValue?.value;
-                        if (propertyName) {
-                          newElement.properties.push({ name: propertyName, value: propertyValue });
-                        }
+                    newElement.properties.push({
+                        name: property.Name.value,
+                        value: property.NominalValue.value})
+                
+                    // const propertyName = property.Name?.value;
+                    // const propertyValue = property.NominalValue?.value;
+                    // if (propertyName) {
+                    //     newElement.properties.push({ name: propertyName, value: propertyValue });
+                    // }
 
-                        // if(propertyName && propertyName.toLowerCase === "name")
-                        //     {newElement.name = propertyValue;}
-
-                    }
+                    // if(propertyName && propertyName.toLowerCase === "name")
+                    //     {newElement.name = propertyValue;}
                 }))
                 foundElements.push(newElement)
             }
+        })
     } ))
+    //console.log("building Elements",foundElements)
     return foundElements;
 }
