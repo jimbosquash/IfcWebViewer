@@ -12,6 +12,63 @@ export interface buildingElement {
     properties: {name: string, value: string}[]
 }
 
+interface taskOverviewProps {
+    buildingElements: buildingElement[];
+    ifcModel : FRAGS.FragmentsGroup;
+    components: OBC.Components;
+
+}
+
+export function GetFragmentsFromExpressIds(expressIds: number[],fragments: OBC.FragmentsManager,ifcModel : FRAGS.FragmentsGroup) : Map<FRAGS.Fragment,number[]>
+{
+
+
+    const elementTypeIds = ifcModel.getFragmentMap(expressIds);    
+    const elementTypesFragment = getFragmentsByKeys(fragments.list,Object.keys(elementTypeIds))
+    console.log("element types of task",elementTypesFragment)
+
+    const result = getOverlappingMap(elementTypesFragment,expressIds);
+    return result;
+    for(const elementType of elementTypesFragment)
+    {
+      const overlappingArray = expressIds.filter(id1 => elementType.ids.has(id1));
+      console.log('instance ids to set state', expressIds, "element type ids:",elementType.ids)
+      //elementType.setVisibility(visibility[buildingStep],overlappingArray)
+    }
+
+    // retrun a record key = elementType, and value is a collection of expressIds that are found in the overlapping array
+
+
+
+    function getFragmentsByKeys(
+        fragmentMap: Map<string, FRAGS.Fragment>,
+        keys: string[]
+      ): FRAGS.Fragment[] {
+        
+        return keys.reduce<FRAGS.Fragment[]>((result, key) => {
+          const fragment = fragmentMap.get(key);
+          if (fragment) {
+            result.push(fragment);
+          }
+          return result;
+        }, []);
+      }
+
+      function getOverlappingMap(elementTypesFragment: FRAGS.Fragment[], expressIds: number[]): Map<FRAGS.Fragment, number[]> {
+        const overlappingMap = new Map<FRAGS.Fragment, number[]>();
+      
+        for (const elementType of elementTypesFragment) {
+          const overlappingArray = expressIds.filter(id1 => elementType.ids.has(id1));
+          console.log('instance ids to set state', expressIds, 'element type ids:', elementType.ids);
+          
+          overlappingMap.set(elementType,overlappingArray);
+        }
+      
+        return overlappingMap;
+      }
+
+}
+
 
 
 export function getStationBarChartArray(elements: buildingElement[]) : any[]
