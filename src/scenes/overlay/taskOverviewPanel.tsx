@@ -67,8 +67,18 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
         padding: '10px',
         width: "300px",
         margin: '10px 0',
-        borderRadius: '4px',
+        borderRadius: '12px',
         cursor: 'pointer',
+      };
+
+      const HeaderBoxStyle = {
+        backgroundColor: colors.primary[400],
+        // border: '1px solid #ccc',
+        padding: '10px',
+        width: "300px",
+        margin: '20px',
+        borderRadius: '8px',
+        cursor: 'grab',
       };
 
     return(<>
@@ -85,9 +95,21 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
             // border: '1px solid #ccc'
 
             }}>
-        <div className="panel-header" style={{ cursor: 'grab', padding: '5px'}}>
-            <h3 > Task List</h3>
-        </div>
+        <Box component="div" 
+            className="panel-header"
+            width='100%' 
+            style={HeaderBoxStyle} 
+            display="flex" 
+            alignItems="right"
+            justifyContent='space-between'>
+            <Typography noWrap
+              variant="h6" 
+              sx={{ flexGrow: 1 }} 
+            > Task / station List</Typography>
+              <IconButton size="small" sx={{ marginLeft: '16px' }} >
+                {visibility[0] ? <VisibilityOffOutlinedIcon/> : <VisibilityOutlinedIcon/>} 
+              </IconButton>
+            </Box>
         <div>
         <Box
           component="div"
@@ -96,42 +118,46 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
           padding="0px"
           maxWidth="80vw"
           maxHeight={"70vh"}
-          boxShadow= '0 0 10px rgba(0, 0, 0, 0.1)'
+          // boxShadow= '0 0 10px rgba(0, 0, 0, 0.1)'
           overflow="auto"
         >
 
           {Object.keys(taskGroups).length > 1 &&  Object.keys(taskGroups).map((buildingStep) => (
             <Box component="div" 
               width='100%' 
-              style={TaskBoxStyle} 
+              style={{
+                // backgroundColor: colors.primary[400],
+                border: '1px solid #ccc',
+                padding: '10px',
+                width: "300px",
+                margin: '10px 0',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                // '&:hover': {backgroundColor: theme.palette.primary[300]},
+              }} 
               display="flex" 
               alignItems="right"
               justifyContent='space-between'>
               <Typography noWrap
+              maxWidth={'150px'}
                 variant="h6" 
                 sx={{ flexGrow: 1 }} 
               >{buildingStep}</Typography>
               <Typography 
-              color={colors.grey[300]}
+              color={colors.primary[300]}
                  noWrap
                 variant="body1" 
                 sx={{ marginLeft: '16px' }}
                 >count : {taskGroups[buildingStep].length}
               </Typography>
-              <IconButton size="small" sx={{ marginLeft: '16px' }} onClick={() => toggleVisibility(buildingStep)}>
+              <IconButton size="small" sx={{ marginLeft: '16px', color: colors.grey[300] }} onClick={() => toggleVisibility(buildingStep)}>
                 {visibility[buildingStep] ? <VisibilityOffOutlinedIcon/> : <VisibilityOutlinedIcon/>} 
               </IconButton>
-              {/* <Button
-                variant="contained"
-                color="primary"
-                onClick={() => toggleVisibility(buildingStep)}
-              >
-                {visibility[buildingStep] ? 'hide' : 'show'} Geometry
-              </Button> */}
             </Box>
           ))}
         </Box>
         </div>
+        
         </div>        
     </Draggable>
     </>)

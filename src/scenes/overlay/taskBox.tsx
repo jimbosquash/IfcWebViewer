@@ -1,4 +1,4 @@
-import { Box, Typography, useTheme } from "@mui/material";
+import { Box, styled, Typography, useTheme, Theme } from "@mui/material";
 import { tokens } from "../../theme";
 
 interface TaskBoxProps {
@@ -36,5 +36,20 @@ const TaskBox: React.FC<TaskBoxProps> = ( {title, subtitle, icon} ) => {
     </Box>
     )
 }
+
+const TaskBox2 = styled(Box)(( colors: any ) => ({
+  backgroundColor: colors.grey[100],
+  border: '1px solid #ccc',
+  padding: '10px',
+  width: '300px',
+  margin: '10px 0',
+  borderRadius: '12px',
+  cursor: 'pointer',
+  '&:hover': {
+    borderColor: colors.grey[100],
+    // Or to remove the border completely on hover:
+    // border: 'none',
+  },
+}));
 
 export default TaskBox;
