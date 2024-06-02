@@ -8,12 +8,15 @@ import TocIcon from "@mui/icons-material/Toc";
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import { useEffect, useState } from "react";
+import * as FRAGS from '@thatopen/fragments';
 
 interface taskOverviewProps {
     buildingElements: buildingElement[];
+    ifcModel : FRAGS.FragmentsGroup;
+
 }
 
-const TaskOverViewPanel: React.FC<taskOverviewProps> = ({buildingElements}) => {
+const TaskOverViewPanel: React.FC<taskOverviewProps> = ({ifcModel, buildingElements}) => {
     const theme = useTheme();
     const [enabled, setEnabled] = useState<boolean>(false);
     const colors = tokens(theme.palette.mode);
@@ -21,17 +24,35 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({buildingElements}) => {
     const [visibility, setVisibility] = useState<{ [key: string]: boolean }>({});
 
 
-    const toggleVisibility = (buildingStep: string) => {
+    const toggleVisibility = async (buildingStep: string) => {
       setVisibility((prevVisibility) => ({
         ...prevVisibility,
         [buildingStep]: !prevVisibility[buildingStep],
       }));
+      
+      // Assuming ifcModel and taskGroups are available in this scope
+      console.log("model", ifcModel);
+      console.log("task set to active", taskGroups[buildingStep]);
+
+      for (const element of taskGroups[buildingStep]) {
+        try {
+          const properties = await ifcModel.getProperties(element.expressID);
+          console.log("element found", properties);
+          console.log("element found fragmap", ifcModel.children);
+          ifcModel.children.forEach((child) => {child.visible = !child.visible })
+
+
+          //properties.
+        } catch (error) {
+          console.error("Error fetching properties for element", element.expressID, error);
+        }
+      }
     };
 
     useEffect(() => {
       const groupElements = () => {
         return buildingElements.reduce((acc, element) => {
-          const buildingStep = element.properties.find(prop => prop.name === 'BuildingStep')?.value || 'Unknown';
+          const buildingStep = element.properties.find(prop => prop.name === 'Station')?.value || 'Unknown'; //BuildingStep
           if (!acc[buildingStep]) {
             acc[buildingStep] = [];
           }

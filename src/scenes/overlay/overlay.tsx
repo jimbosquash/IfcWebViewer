@@ -27,7 +27,7 @@ const Overlay: React.FC<OverlayProps> = ({ifcModel, components, buildingElements
 
     return (
         <>
-            <FloatingButtonGroup buildingElements={buildingElements}/>
+            <FloatingButtonGroup ifcModel={ifcModel} buildingElements={buildingElements}/>
         </>
     )
 

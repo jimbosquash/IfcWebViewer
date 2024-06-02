@@ -9,14 +9,17 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import TaskOverViewPanel from "../overlay/taskOverviewPanel";
 import { buildingElement } from "../../utilities/IfcUtilities";
+import * as FRAGS from '@thatopen/fragments';
 
 
 
 interface taskOverviewProps {
   buildingElements: buildingElement[];
+  ifcModel : FRAGS.FragmentsGroup;
+
 }
   
-  const FloatingButtonGroup:React.FC<taskOverviewProps> = ({buildingElements}) => {
+  const FloatingButtonGroup:React.FC<taskOverviewProps> = ({ifcModel, buildingElements}) => {
     const [isPanelVisible, setIsPanelVisible] = useState(false);
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
@@ -68,7 +71,7 @@ interface taskOverviewProps {
           </div>
         </Draggable>
         {isPanelVisible && (
-          <TaskOverViewPanel buildingElements={buildingElements}/> )}
+          <TaskOverViewPanel ifcModel={ifcModel} buildingElements={buildingElements}/> )}
       </>
     );
   };
