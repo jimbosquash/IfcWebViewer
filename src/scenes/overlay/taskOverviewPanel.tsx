@@ -24,7 +24,40 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
     const colors = tokens(theme.palette.mode);
     const [taskGroups, setTaskGroups] = useState<{[key: string]: buildingElement[]}>({});
     const [visibility, setVisibility] = useState<{ [key: string]: boolean }>({});
+    const [sortingType, setSortingStyle] = useState<string>("BuildingStep");
+    // isolatye mode = turns everything to hidden
 
+
+    const changeSrtType = () => {
+      if(sortingType === "BuildingStep")
+        setSortingStyle("Station")
+      else
+        setSortingStyle("BuildingStep")
+
+        console.log("sort style", sortingType)
+
+
+    }
+
+    const hideAll = async () => {
+      const fragments = components.get(OBC.FragmentsManager);
+      const exporessIds = Object.values(taskGroups).flat().map((e) => {return e.expressID})
+      //const taskFragments = GetFragmentsFromExpressIds(exporessIds,fragments,ifcModel);
+      for(const group of Object.keys(visibility))
+      {
+        console.log("here",group)
+
+        setVisibility(() => ({[group]: true}));        
+
+        if(visibility[group])
+        {
+          console.log("here")
+
+          //visibility[group] = false;
+
+        }
+      }
+    }
 
     const toggleVisibility = async (buildingStep: string) => {
       setVisibility((prevVisibility) => ({
@@ -47,7 +80,7 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
     useEffect(() => {
       const groupElements = () => {
         return buildingElements.reduce((acc, element) => {
-          const buildingStep = element.properties.find(prop => prop.name === 'Station')?.value || 'Unknown'; //BuildingStep | station
+          const buildingStep = element.properties.find(prop => prop.name === sortingType)?.value || 'Unknown'; //BuildingStep | station
           if (!acc[buildingStep]) {
             acc[buildingStep] = [];
           }
@@ -57,7 +90,7 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
       };
   
       setTaskGroups(groupElements());
-    }, [buildingElements]);
+    }, [buildingElements,sortingType]);
     
     
 
@@ -105,9 +138,9 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
             <Typography noWrap
               variant="h6" 
               sx={{ flexGrow: 1 }} 
-            > Task / station List</Typography>
-              <IconButton size="small" sx={{ marginLeft: '16px' }} >
-                {visibility[0] ? <VisibilityOffOutlinedIcon/> : <VisibilityOutlinedIcon/>} 
+            > {sortingType} List</Typography>
+              <IconButton size="small" sx={{ marginLeft: '16px' }} onClick={changeSrtType}>
+              { sortingType === "buildingStep" ? <TocIcon/> : <TocIcon/>}
               </IconButton>
             </Box>
         <div>
