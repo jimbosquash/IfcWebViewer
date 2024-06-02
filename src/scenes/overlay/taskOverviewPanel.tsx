@@ -1,10 +1,13 @@
-import { Box, useTheme,styled } from "@mui/material";
+import { Box, useTheme,styled, Typography, Button, IconButton } from "@mui/material";
 // import { styled } from "@mui/system";
 import Draggable from "react-draggable";
 import { tokens } from "../../theme";
 import { buildingElement } from "../../utilities/IfcUtilities";
 import TaskBox from "./taskBox";
 import TocIcon from "@mui/icons-material/Toc";
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import { useEffect, useState } from "react";
 
 interface taskOverviewProps {
     buildingElements: buildingElement[];
@@ -12,20 +15,35 @@ interface taskOverviewProps {
 
 const TaskOverViewPanel: React.FC<taskOverviewProps> = ({buildingElements}) => {
     const theme = useTheme();
-    const colors = tokens(theme.palette.mode);   
+    const [enabled, setEnabled] = useState<boolean>(false);
+    const colors = tokens(theme.palette.mode);
+    const [taskGroups, setTaskGroups] = useState<{[key: string]: buildingElement[]}>({});
+    const [visibility, setVisibility] = useState<{ [key: string]: boolean }>({});
+
+
+    const toggleVisibility = (buildingStep: string) => {
+      setVisibility((prevVisibility) => ({
+        ...prevVisibility,
+        [buildingStep]: !prevVisibility[buildingStep],
+      }));
+    };
+
+    useEffect(() => {
+      const groupElements = () => {
+        return buildingElements.reduce((acc, element) => {
+          const buildingStep = element.properties.find(prop => prop.name === 'BuildingStep')?.value || 'Unknown';
+          if (!acc[buildingStep]) {
+            acc[buildingStep] = [];
+          }
+          acc[buildingStep].push(element);
+          return acc;
+        }, {} as { [key: string]: buildingElement[] });
+      };
+  
+      setTaskGroups(groupElements());
+    }, [buildingElements]);
     
-    const DraggablePanelContainer = ({
-        position: 'fixed',
-        top: '50%',
-        left: 0,
-        transform: 'translateY(-50%)',
-        backgroundColor: '',
-        // border: '1px solid #ccc',
-        // boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-        zIndex: 1000,
-        padding: '20px',
-        width: '300px',
-      });
+    
 
       const TaskBoxStyle = {
         backgroundColor: colors.primary[400],
@@ -35,7 +53,6 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({buildingElements}) => {
         margin: '10px 0',
         borderRadius: '4px',
         cursor: 'pointer',
-        // textAlign: 'center',
       };
 
     return(<>
@@ -47,30 +64,56 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({buildingElements}) => {
             left: 0,
             transform: 'translateY(-50%)',
             zIndex: 500,
-            padding: '20px',
+            padding: '10px',
             width:350,
+            // border: '1px solid #ccc'
+
             }}>
-        <div className="panel-header" style={{ cursor: 'grab', padding: '12px'}}>
-            <h3 > Building Elements</h3>
+        <div className="panel-header" style={{ cursor: 'grab', padding: '5px'}}>
+            <h3 > Task List</h3>
         </div>
         <div>
         <Box
           component="div"
           m="20px"
           width="100%"
+          padding="0px"
           maxWidth="80vw"
-          overflow="hidden"
+          maxHeight={"70vh"}
+          boxShadow= '0 0 10px rgba(0, 0, 0, 0.1)'
+          overflow="auto"
         >
-        {/* <TaskBox title="Ceiling" subtitle="HVAC" icon={TocIcon}/> */}
-          <Box component="div" style={TaskBoxStyle}>
-            Ceiling Secondary Beams
-          </Box>
-          <Box component="div" style={TaskBoxStyle}>
-            Ceiling - Hvac Instillation
-          </Box>
-          <Box component="div" style={TaskBoxStyle}>
-            Ceiling - Insulation
-          </Box>
+
+          {Object.keys(taskGroups).length > 1 &&  Object.keys(taskGroups).map((buildingStep) => (
+            <Box component="div" 
+              width='100%' 
+              style={TaskBoxStyle} 
+              display="flex" 
+              alignItems="right"
+              justifyContent='space-between'>
+              <Typography noWrap
+                variant="h6" 
+                sx={{ flexGrow: 1 }} 
+              >{buildingStep}</Typography>
+              <Typography 
+              color={colors.grey[300]}
+                 noWrap
+                variant="body1" 
+                sx={{ marginLeft: '16px' }}
+                >count : {taskGroups[buildingStep].length}
+              </Typography>
+              <IconButton size="small" sx={{ marginLeft: '16px' }} onClick={() => toggleVisibility(buildingStep)}>
+                {visibility[buildingStep] ? <VisibilityOffOutlinedIcon/> : <VisibilityOutlinedIcon/>} 
+              </IconButton>
+              {/* <Button
+                variant="contained"
+                color="primary"
+                onClick={() => toggleVisibility(buildingStep)}
+              >
+                {visibility[buildingStep] ? 'hide' : 'show'} Geometry
+              </Button> */}
+            </Box>
+          ))}
         </Box>
         </div>
         </div>        

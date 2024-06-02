@@ -45,6 +45,7 @@ export const ViewerFiber: React.FC<ViewerProps> = ({ifcModel, components}) => {
                 try{
                     const newBuildingElements = await GetBuildingElements(ifcModel,components);
                     setBuildingElements(newBuildingElements);
+                    console.log(newBuildingElements)
                     console.log(newBuildingElements.length," building elements found and set")
                  } catch (error) {
                     console.error("Error fetching building elements",error)
@@ -98,7 +99,7 @@ export const ViewerFiber: React.FC<ViewerProps> = ({ifcModel, components}) => {
         } }
         >
             {/* <CameraControler ifcModel={fragGroup} />? */}
-            <OrbitControls /> 
+            <OrbitControls makeDefault /> 
 
             <RaycasterComponent onSelect={handleSelect}/>           
             <directionalLight castShadow position={ [ 1, 2, 3 ] } intensity={ 4.5 } />

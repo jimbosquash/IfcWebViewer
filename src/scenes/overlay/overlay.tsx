@@ -21,27 +21,15 @@ const Overlay: React.FC<OverlayProps> = ({ifcModel, components, buildingElements
 
         if(buildingElements)
         {
-            //console.log("ifcmodel",ifcModel)
-            //console.log("components",components)
-            // GetBuildingElements(ifcModel,components)
-
             //to do start to process them into groups for task board
-        }
-
-        // create building elements
-        
+        }        
     },[ifcModel,components,buildingElements])
 
     return (
         <>
-            <FloatingButtonGroup/>
-            <TaskOverViewPanel buildingElements={buildingElements} />
+            <FloatingButtonGroup buildingElements={buildingElements}/>
         </>
     )
 
 }
-//<DraggablePanel>
-  //          {/* <DraggableDataGrid data={buildingElements}/> */}
-    //    </DraggablePanel>
-
 export default Overlay;
