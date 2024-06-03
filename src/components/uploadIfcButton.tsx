@@ -5,6 +5,8 @@ import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import {tokens} from "../theme"
 import SetUpIfcComponents from "./setUpIfcComponents";
+import * as THREE from "three"
+import { MeshStandardMaterial } from "three";
 
 
 async function LoadIfcFile(file: File, containerRef : React.RefObject<HTMLElement | undefined>) : Promise<FRAGS.FragmentsGroup | undefined> {
@@ -28,6 +30,39 @@ async function LoadIfcFile(file: File, containerRef : React.RefObject<HTMLElemen
         // for (const mesh of model.children) {
         //   culler.add(mesh as any);
         // }
+
+        for(var i = 0; i < loadedModel.children.length; i++)
+                {
+
+                    var child = loadedModel.children[i]
+                    if(child instanceof THREE.InstancedMesh)
+                    {
+                        //console.log(child);
+                        if(child.instanceColor !== null){
+                            var oldColor = child.instanceColor.array;
+                            var material = new MeshStandardMaterial();
+                            material.color = new THREE.Color(oldColor[0],oldColor[1],oldColor[2]);
+                            material.side = THREE.DoubleSide;
+                            child.material = [material]
+
+                        //     if(child.material[0] instanceof THREE.MeshLambertMaterial)
+                        // {
+                        //     // console.log(child.material[0].color);
+                        //     //console.log(child);
+                        //     //child.material[0].color.setColorName("purple")
+                        //     child.material[0].side = THREE.DoubleSide;
+
+
+                        // }
+                        }
+                        
+                        
+                    }
+                    else
+                    {
+                        console.log('not frag')
+                    }
+                }
     return loadedModel;
   }
 
