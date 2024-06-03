@@ -25,21 +25,11 @@ export function GetFragmentsFromExpressIds(expressIds: number[],fragments: OBC.F
 
     const elementTypeIds = ifcModel.getFragmentMap(expressIds);    
     const elementTypesFragment = getFragmentsByKeys(fragments.list,Object.keys(elementTypeIds))
-    console.log("element types of task",elementTypesFragment)
+    //console.log("element types of task",elementTypesFragment)
 
     const result = getOverlappingMap(elementTypesFragment,expressIds);
     return result;
-    for(const elementType of elementTypesFragment)
-    {
-      const overlappingArray = expressIds.filter(id1 => elementType.ids.has(id1));
-      console.log('instance ids to set state', expressIds, "element type ids:",elementType.ids)
-      //elementType.setVisibility(visibility[buildingStep],overlappingArray)
-    }
-
-    // retrun a record key = elementType, and value is a collection of expressIds that are found in the overlapping array
-
-
-
+    
     function getFragmentsByKeys(
         fragmentMap: Map<string, FRAGS.Fragment>,
         keys: string[]
@@ -59,7 +49,7 @@ export function GetFragmentsFromExpressIds(expressIds: number[],fragments: OBC.F
       
         for (const elementType of elementTypesFragment) {
           const overlappingArray = expressIds.filter(id1 => elementType.ids.has(id1));
-          console.log('instance ids to set state', expressIds, 'element type ids:', elementType.ids);
+          //console.log('instance ids to set state', expressIds, 'element type ids:', elementType.ids);
           
           overlappingMap.set(elementType,overlappingArray);
         }

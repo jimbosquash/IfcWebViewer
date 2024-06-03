@@ -12,7 +12,7 @@ import * as OBC from "openbim-components";
 // import ViewerFun from './components/viewers/viewerFun';
 import ViewerFiber from './scenes/viewer/viewerFiber';
 // import ViewerSpeckle from './components/viewers/viewerSpeckle.jsx';
-// import DashBoard from './scenes/dashboard/dashBoard';
+import DashBoard from './scenes/dashboard/dashBoard';
 import Sidebar from './scenes/global/sideBar';
 import Topbar from "./scenes/global/topBar"
 // import ElementTable from './scenes/elementTable';
@@ -63,7 +63,9 @@ const handleComponentsLoad = (newComponents) => {
                 {/* <Route path='/' element={<LandingPage/>} /> */}
                 <Route path='/*' element={<Layout onIfcFileLoad={handleIFCLoad}/>} >
                   <Route path='' element={<ViewerFiber ifcModel={ifcFile} components={components}/>} />
+                  <Route path='dashboard' element={<DashBoard loadedifcFile={ifcFile}/>} />
                 </Route>
+
               </Routes>
             </main>
           </div>

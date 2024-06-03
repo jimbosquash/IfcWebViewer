@@ -35,6 +35,7 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
         setSortingStyle("BuildingStep")
 
         console.log("sort style", sortingType)
+        
 
 
     }
@@ -47,7 +48,7 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
       {
         console.log("here",group)
 
-        setVisibility(() => ({[group]: true}));        
+        //setVisibility(() => ({[group]: true}));        
 
         if(visibility[group])
         {
@@ -57,6 +58,8 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
 
         }
       }
+      console.log("visibility", visibility)
+
     }
 
     const toggleVisibility = async (buildingStep: string) => {
@@ -142,6 +145,9 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
               <IconButton size="small" sx={{ marginLeft: '16px' }} onClick={changeSrtType}>
               { sortingType === "buildingStep" ? <TocIcon/> : <TocIcon/>}
               </IconButton>
+              <IconButton size="small" sx={{ marginLeft: '16px', color: colors.grey[300] }} onClick={() => hideAll()}>
+                {true ? <TocIcon/> : <TocIcon/>} 
+              </IconButton>
             </Box>
         <div>
         <Box
@@ -186,6 +192,7 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
               <IconButton size="small" sx={{ marginLeft: '16px', color: colors.grey[300] }} onClick={() => toggleVisibility(buildingStep)}>
                 {visibility[buildingStep] ? <VisibilityOffOutlinedIcon/> : <VisibilityOutlinedIcon/>} 
               </IconButton>
+              
             </Box>
           ))}
         </Box>
