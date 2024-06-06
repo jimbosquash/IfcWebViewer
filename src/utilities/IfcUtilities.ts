@@ -19,9 +19,10 @@ interface taskOverviewProps {
 
 }
 
-export function GetFragmentsFromExpressIds(expressIds: number[],fragments: OBC.FragmentsManager,ifcModel : FRAGS.FragmentsGroup) : Map<FRAGS.Fragment,number[]>
+export function GetFragmentsFromExpressIds(expressIds: number[],fragments: OBC.FragmentsManager,ifcModel : FRAGS.FragmentsGroup | undefined) : Map<FRAGS.Fragment,number[]>
 {
-
+    if(!ifcModel)
+        return new Map<FRAGS.Fragment, number[]>();
 
     const elementTypeIds = ifcModel.getFragmentMap(expressIds);    
     const elementTypesFragment = getFragmentsByKeys(fragments.list,Object.keys(elementTypeIds))
@@ -172,7 +173,7 @@ export function getUniqueElementCount(elements: buildingElement[])
     return Object.keys(groupedByProductCode).length;
 }
 
-export async function GetBuildingElements(loadedModel : FRAGS.FragmentsGroup, components : OBC.Components)
+export async function GetBuildingElements(loadedModel : FRAGS.FragmentsGroup, components : OBC.Components | undefined)
 {
     if(!components)
     {
@@ -193,7 +194,7 @@ export async function GetBuildingElements(loadedModel : FRAGS.FragmentsGroup, co
             if(elements)
             {
                 const element = elements[reltingElement]
-                console.log("element related",element)
+                //console.log("element related",element)
 
                 const newElement : buildingElement = {
                                 expressID: element.expressID,
@@ -228,3 +229,4 @@ export async function GetBuildingElements(loadedModel : FRAGS.FragmentsGroup, co
     //console.log("building Elements",foundElements)
     return foundElements;
 }
+

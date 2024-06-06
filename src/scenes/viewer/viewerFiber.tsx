@@ -9,7 +9,7 @@ import { tokens } from '../../theme';
 import { Button, ButtonGroup, useTheme } from '@mui/material';
 import * as OBC from "@thatopen/components";
 import * as THREE from "three";
-import FloatingButtonGroup from './floatingButtonGroup';
+import FloatingButtonGroup from '../overlay/floatingButtonGroup';
 import CameraControler from "./cameraControler"
 import Overlay from '../overlay/overlay';
 
@@ -18,10 +18,9 @@ import Overlay from '../overlay/overlay';
 // 2. display all tasks
 // 1. get fragment hit in selection and set visibility based on selection 
 
-
 interface ViewerProps {
-    ifcModel: FRAGS.FragmentsGroup;
-    components: OBC.Components
+    ifcModel: FRAGS.FragmentsGroup | undefined;
+    components: OBC.Components | undefined;
 }
 
 export const ViewerFiber: React.FC<ViewerProps> = ({ifcModel, components}) => {

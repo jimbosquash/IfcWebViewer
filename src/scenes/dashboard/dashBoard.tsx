@@ -3,65 +3,43 @@ import { tokens } from "../../theme";
 import { Box, Typography, useTheme } from "@mui/material";
 // import Bar from "../../components/BarChart";
 import "./dashBoardStyles.css"
-import {useState, useEffect, useRef} from "react";
+import {useState, useEffect} from "react";
 // import MyResponsivePie from "../../components/pie";
-import UploadIfcButton from "../../components/uploadIfcButton";
 import SummaryRow from "./summaryRow";
-import SetUpIfcComponents from "../../components/setUpIfcComponents";
-import {getStationBarChartArray, buildingElement, GetBuildingElements} from "../../utilities/IfcUtilities"
-import * as OBC from '@thatopen/components';
+import {buildingElement} from "../../utilities/IfcUtilities"
+import {getStationBarChartArray} from "../../utilities/dataUtilities"
 import React from "react";
-import * as FRAGS from "@thatopen/fragments";
+import BarChart from "../../components/BarChart";
 
 interface DashboardProps {
-    loadedIfcModel: FRAGS.FragmentsGroup;
+    loadedBuildingElements: buildingElement[];
 }
 
-export const DashBoard: React.FC<DashboardProps> = ({loadedIfcModel}) => {
-    const containerRef = useRef<HTMLElement>(null);
+export const DashBoard: React.FC<DashboardProps> = ({loadedBuildingElements}) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
-    const [ifcModel,setIfcModel] = useState<FRAGS.FragmentsGroup>();
     const [barChartData,setBarChartData] = useState<any[]>([]);
-    const [obcComponents, setObcComponents] = useState<OBC.Components>();
     const [buildingElements,setBuildingElements] = useState<buildingElement[]>([]);
 
+    useEffect(() => {
+        console.log('Dashboard input before set', loadedBuildingElements)
+        setBuildingElements(loadedBuildingElements);
+    },[loadedBuildingElements])
+
+
+    useEffect(() => {
+        // create bar chart data
+        const data = getStationBarChartArray(buildingElements);
+        console.log('Dashboard BuildingElements set', data)
+
+        setBarChartData(data);
+    },[buildingElements])
 
     const boxStyle = { 
         backgroundColor: colors.primary[400],
         borderRadius: 4,
         justifyContent:"center",
     }
-
-    useEffect(() => {
-        const components = SetUpIfcComponents(containerRef);
-        //components.uiEnabled = false;
-        setObcComponents(components);
-    },[])
-
-    // called when app passes the loaded model
-    useEffect(() => {
-        if(loadedIfcModel && loadedIfcModel !== undefined)
-            setIfcModel(loadedIfcModel)
-    },[loadedIfcModel])
-
-    // // called once we set the model from setIfcModel
-    // useEffect(() => {
-    //     console.log("dashBoard getting elements start")
-
-    //     async function asyncGetElements() {
-    //         if(!ifcModel || !obcComponents)
-    //             return;
-    //         var newBuildingElements = await GetBuildingElements(ifcModel, obcComponents)
-    //         var data = getStationBarChartArray(newBuildingElements);
-    //         setBarChartData(data)
-    //         setBuildingElements(newBuildingElements);
-    //     }
-
-    //     if(obcComponents && ifcModel)
-    //             asyncGetElements();
-    //             // console.log("dashBoard getting elements", buildingElements)
-    //     },[ifcModel] )
 
   return<>
     <Box component={"div"}         
@@ -91,7 +69,7 @@ export const DashBoard: React.FC<DashboardProps> = ({loadedIfcModel}) => {
             gridAutoRows='140px'
             padding='20px'
             gap='20px'>
-        <SummaryRow data={ifcModel} components={obcComponents}/>
+        <SummaryRow loadedbuildingElements={buildingElements}/>
             {/* //Row 2 */}
             <Box
                 component={"div"}
@@ -108,12 +86,13 @@ export const DashBoard: React.FC<DashboardProps> = ({loadedIfcModel}) => {
                 alignItems="center">
                     <Box  component={"div"}>
                         <Typography variant="h6" fontWeight={"600"} color={colors.grey[100]}>
-                            Element types by Station
+                            {buildingElements?.length.toString() ?? 'no elements selected'}
                         </Typography>
                     </Box>
                 </Box>
                 <Box component={"div"} ml="10px" mb="-70px" width={"90%"} height={"90%"}>
                     {/* <Bar data={barChartData} keys={["CE", "UN", "EP", "Other"]} isDashboard={true}/> */}
+                    <BarChart data={barChartData} keys={["CE", "UN", "EP", "Other"]} isDashboard={true} />
                 </Box>
             </Box>
 

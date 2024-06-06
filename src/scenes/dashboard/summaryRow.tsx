@@ -9,20 +9,15 @@ import ListAlt from "@mui/icons-material/ListAlt";
 import Timer from "@mui/icons-material/Timer";
 import { useEffect } from "react";
 import * as FRAGS from "@thatopen/fragments";
-import { buildingElement, GetBuildingElements, getUniqueElementCount } from "../../utilities/IfcUtilities";
-import * as OBC from "@thatopen/components";
+import { buildingElement, getUniqueElementCount } from "../../utilities/IfcUtilities";
 import { Email } from "@mui/icons-material";
 
-
-
-
 interface DashboardProps {
-    data: FRAGS.FragmentsGroup | undefined;
-    components: OBC.Components | undefined;
+    loadedbuildingElements: buildingElement[];
 }
 
 
-export const SummaryRow:React.FC<DashboardProps> = ({data, components}) => {
+export const SummaryRow:React.FC<DashboardProps> = ({loadedbuildingElements}) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const [buildingElements,setBuildingElements] = useState<buildingElement[]>([]);
@@ -40,25 +35,17 @@ export const SummaryRow:React.FC<DashboardProps> = ({data, components}) => {
 
 
     useEffect(() => {
-        async function asyncGetElements() {
-            if(!data || !components)
-                return;
-            var newBuildingElements = await GetBuildingElements(data, components)
-            setBuildingElements(newBuildingElements);
-        }
+        if(loadedbuildingElements)
+            setBuildingElements(loadedbuildingElements); 
+        },[loadedbuildingElements] )
 
-        if(components && data)
-            asyncGetElements();  
-
-        },[data] )
-
-        useEffect(() =>{
-            if(!buildingElements)
-                return; 
-            console.log('setting summary data')
-            setTotalCount(buildingElements.length);
-            setUnqiueProductCodeCount(getUniqueElementCount(buildingElements))
-        }, [buildingElements])
+    useEffect(() =>{
+        if(!buildingElements)
+            return; 
+        console.log('setting summary data')
+        setTotalCount(buildingElements.length);
+        setUnqiueProductCodeCount(getUniqueElementCount(buildingElements))
+    }, [buildingElements])
 
 
 

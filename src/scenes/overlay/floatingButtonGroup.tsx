@@ -1,5 +1,5 @@
 import { Box, Button, ButtonGroup,IconButton,useTheme } from "@mui/material"
-import React, { useState } from "react"
+import React, { createRef, useEffect, useState } from "react"
 import Draggable from "react-draggable"
 import { tokens } from "../../theme"
 import { styled } from '@mui/system';
@@ -7,7 +7,7 @@ import TocIcon from "@mui/icons-material/Toc";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
-import TaskOverViewPanel from "../overlay/taskOverviewPanel";
+import TaskOverViewPanel from "./taskOverviewPanel";
 import { buildingElement } from "../../utilities/IfcUtilities";
 import * as FRAGS from '@thatopen/fragments';
 import * as OBC from "@thatopen/components";
@@ -16,13 +16,14 @@ import * as OBC from "@thatopen/components";
 
 interface taskOverviewProps {
   buildingElements: buildingElement[];
-  ifcModel : FRAGS.FragmentsGroup;
-  components : OBC.Components
+  ifcModel : FRAGS.FragmentsGroup | undefined;
+  components : OBC.Components | undefined;
 
 }
   
   const FloatingButtonGroup:React.FC<taskOverviewProps> = ({components, ifcModel, buildingElements}) => {
     const [isPanelVisible, setIsPanelVisible] = useState(false);
+    //const inputRef = createRef();
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
@@ -30,6 +31,13 @@ interface taskOverviewProps {
       console.log('panel vis set')
       setIsPanelVisible((prevVisibility) => !prevVisibility);
     };
+
+    useEffect(() => {
+      //const input = inputRef.current;
+      //input.select();
+      // there is a deprecated use of FindDOM inside Draggable core. need to implement correct useRef 
+
+    },[])
 
 
     return (

@@ -1,5 +1,5 @@
 import { FragmentStreamLoader } from "openbim-components";
-import FloatingButtonGroup from "../viewer/floatingButtonGroup";
+import FloatingButtonGroup from "./floatingButtonGroup";
 import DraggablePanel from "./draggablePanel";
 import * as FRAGS from "@thatopen/fragments"
 import * as OBC from "@thatopen/components"
@@ -8,8 +8,8 @@ import { buildingElement, GetBuildingElements } from "../../utilities/IfcUtiliti
 import TaskOverViewPanel from "./taskOverviewPanel";
 
 interface OverlayProps {
-    ifcModel : FRAGS.FragmentsGroup
-    components : OBC.Components
+    ifcModel : FRAGS.FragmentsGroup | undefined;
+    components : OBC.Components | undefined;
     buildingElements : buildingElement[];
 }
 

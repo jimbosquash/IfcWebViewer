@@ -14,8 +14,8 @@ import { Color } from "three/src/Three";
 
 interface taskOverviewProps {
     buildingElements: buildingElement[];
-    ifcModel : FRAGS.FragmentsGroup;
-    components: OBC.Components;
+    ifcModel : FRAGS.FragmentsGroup | undefined;
+    components: OBC.Components | undefined;
 
 }
 
@@ -41,7 +41,7 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
     }
 
     const hideAll = async () => {
-      const fragments = components.get(OBC.FragmentsManager);
+      const fragments = components?.get(OBC.FragmentsManager);
       const exporessIds = Object.values(taskGroups).flat().map((e) => {return e.expressID})
       //const taskFragments = GetFragmentsFromExpressIds(exporessIds,fragments,ifcModel);
       for(const group of Object.keys(visibility))
@@ -69,14 +69,16 @@ const TaskOverViewPanel: React.FC<taskOverviewProps> = ({components, ifcModel, b
       }));
       
       //console.log("task set to active", taskGroups[buildingStep]);
-
-      const fragments = components.get(OBC.FragmentsManager);
-      const exporessIds = taskGroups[buildingStep].map((e) => {return e.expressID})
-      const taskFragments = GetFragmentsFromExpressIds(exporessIds,fragments,ifcModel);
-
-      for(const fragmentType of taskFragments)
+      if(components)
       {
-        fragmentType[0].setVisibility(visibility[buildingStep],fragmentType[1])
+        const fragments = components.get(OBC.FragmentsManager);
+        const exporessIds = taskGroups[buildingStep].map((e) => {return e.expressID})
+        const taskFragments = GetFragmentsFromExpressIds(exporessIds,fragments,ifcModel);
+
+        for(const fragmentType of taskFragments)
+        {
+          fragmentType[0].setVisibility(visibility[buildingStep],fragmentType[1])
+        }
       }
     };
 
