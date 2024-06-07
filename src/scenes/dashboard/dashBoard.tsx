@@ -10,6 +10,8 @@ import {buildingElement} from "../../utilities/IfcUtilities"
 import {getStationBarChartArray} from "../../utilities/dataUtilities"
 import React from "react";
 import BarChart from "../../components/BarChart";
+import {GroupSummaryBox} from "../../components/GroupSummaryBox";
+import { ProductionSummaryRow } from "./productionSummaryRow";
 
 interface DashboardProps {
     loadedBuildingElements: buildingElement[];
@@ -69,7 +71,7 @@ export const DashBoard: React.FC<DashboardProps> = ({loadedBuildingElements}) =>
             gridAutoRows='140px'
             padding='20px'
             gap='20px'>
-        <SummaryRow loadedbuildingElements={buildingElements}/>
+        <ProductionSummaryRow newBuildingElements={buildingElements}/>
             {/* //Row 2 */}
             <Box
                 component={"div"}
@@ -95,6 +97,14 @@ export const DashBoard: React.FC<DashboardProps> = ({loadedBuildingElements}) =>
                     <BarChart data={barChartData} keys={["CE", "UN", "EP", "Other"]} isDashboard={true} />
                 </Box>
             </Box>
+            {/* <Box
+            style={boxStyle}
+            component={"div"}
+            gridColumn="span 3"
+            gridRow="span 1"
+            >
+                <GroupSummaryBox title="task 0.1" buildingElements={buildingElements} />
+            </Box> */}
 
             <Box
             style={boxStyle}

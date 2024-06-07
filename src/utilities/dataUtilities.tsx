@@ -87,3 +87,38 @@ function convertToStationArray(groupedByStation: Record<string, Record<string, b
     return stationSummary;
 
 }
+
+export function getTotalValue(propertyName: string,buildingElements: buildingElement[]) : number {
+    const totalObject = buildingElements.reduce((sumElement,item) => {
+        const price = item.properties.find(prop => prop.name === propertyName);
+        const numPrice =  price ? parseFloat(price?.value) : 0 
+        sumElement.total += numPrice;
+        return sumElement;
+    }, {total: 0});
+    return totalObject.total;
+}
+
+export function convertToPieChartValue(groupedElements: Record<string, buildingElement[]>) {
+    const pieChartValue = Object.entries(groupedElements).map(([key, elements], index) => ({
+        id: key,
+        label: key,
+        value: elements.length
+    }));
+
+    return pieChartValue;
+}
+
+export function groupByProperty(elements: buildingElement[], propertyName: string): Record<string, buildingElement[]> {
+    return elements.reduce((acc, element) => {
+      const materialProperty = element.properties.find(prop => prop.name.toLowerCase() === propertyName.toLowerCase());
+      const material = materialProperty ? materialProperty.value : 'Unknown';
+  
+      if (!acc[material]) {
+        acc[material] = [];
+      }
+      
+      acc[material].push(element);
+      
+      return acc;
+    }, {} as Record<string, buildingElement[]>);
+  }
