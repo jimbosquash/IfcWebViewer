@@ -12,6 +12,8 @@ import * as THREE from "three";
 import FloatingButtonGroup from '../overlay/floatingButtonGroup';
 import CameraControler from "./cameraControler"
 import Overlay from '../overlay/overlay';
+import * as OBF from "@thatopen/components-front"
+
 
 //todo
 // 1. display element table
@@ -23,10 +25,10 @@ interface ViewerProps {
     components: OBC.Components | undefined;
 }
 
-export const ViewerFiber: React.FC<ViewerProps> = ({ifcModel, components}) => {
+export const ViewerFiber = ({ifcModel, components} : ViewerProps) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
-    const containerRef = useRef(null);                               //only need this if passing it into the ifc creation object
+    const containerRef = useRef<any>(undefined);                               //only need this if passing it into the ifc creation object
     const camera = useRef(null);                               //only need this if passing it into the ifc creation object
     const [fragGroup,setFragGroup] = useState<FRAGS.FragmentsGroup | undefined>();
     const [loading, setLoading] = useState(false);
@@ -52,13 +54,42 @@ export const ViewerFiber: React.FC<ViewerProps> = ({ifcModel, components}) => {
                     setLoading(false)
                 }
             }
+            if(containerRef.current)
+            {
+                console.log('container Ref', containerRef.current)
+            }
             if(components)
-                setComponents(components);
+                {
+        //             console.log("components",components);
+        //             const worlds = components.get(OBC.Worlds);
+        //             console.log("components worlds",components.get(OBC.Worlds));
+
+        //             const world = worlds.create<
+        //                 OBC.SimpleScene,
+        //                 OBC.SimpleCamera,
+        //                 OBC.SimpleRenderer
+        //                 >();
+
+        //                 world.scene = new OBC.SimpleScene(components)
+        // world.renderer = new OBF.PostproductionRenderer(components, containerRef.current)
+        // const cameraComponent = new OBC.OrthoPerspectiveCamera(components);
+        // cameraComponent.controls.setLookAt(10, 10, 10, 0, 0, 0);
+        // world.camera = cameraComponent;
+        // world.camera.enabled;
+        // components.init()
+        // console.log("components worlds",components.get(OBC.Worlds));
+
+
+                    setComponents(components);
+                }
         
         };
 
         fetchBuildingElements();
     },[ifcModel,components]);
+
+
+
 
     useEffect(() => {
         //console.log("elements changed, grouping starting")
@@ -115,7 +146,7 @@ export const ViewerFiber: React.FC<ViewerProps> = ({ifcModel, components}) => {
             fadeDistance={25}
             fadeStrength={1}/>
 
-            <LoadModel ifcModel={fragGroup}></LoadModel>
+            <LoadModel components={component} ifcModel={fragGroup}></LoadModel>
     </Canvas>
     </>
       );

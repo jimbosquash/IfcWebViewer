@@ -21,7 +21,7 @@
     "@react-three/drei": "^9.105.5",
     "@react-three/fiber": "^8.16.2",
     "@thatopen/components": "^2.0.5",
-    "@thatopen/components-front": "^2.0.5",
+    "@thatopen/components-front": "^2.0.9",
     "@thatopen/fragments": "^2.0.3",
     "@types/node": "^20.12.7",
     "install": "^0.13.0",

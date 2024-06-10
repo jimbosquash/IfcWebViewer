@@ -1,5 +1,5 @@
 import {Button, useTheme} from "@mui/material";
-import React, { useRef } from "react";
+import React, { useContext, useRef } from "react";
 import UploadOutlinedIcon from "@mui/icons-material/UploadOutlined";
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
@@ -7,17 +7,18 @@ import {tokens} from "../theme"
 import SetUpIfcComponents from "./setUpIfcComponents";
 import * as THREE from "three"
 import { MeshStandardMaterial } from "three";
+import { ComponentsContext } from "../context/ComponentsContext";
 
 
-async function LoadIfcFile(file: File, containerRef : React.RefObject<HTMLElement | undefined>) : Promise<FRAGS.FragmentsGroup | undefined> {
+async function LoadIfcFile(file: File, components: OBC.Components) : Promise<FRAGS.FragmentsGroup | undefined> {
     
     //todo move all this to ifc loader utils
-
-    const components = SetUpIfcComponents(containerRef);
-    //components.uiEnabled = false;
-    const fragments = components.get(OBC.FragmentsManager);
+    
+    // console.log('containerRef retrieved', containerRef)
+    // const components = SetUpIfcComponents(containerRef);
+    // const world = components.get(OBC.Worlds);
+    // console.log('world retrieved', world)
     const fragmentIfcLoader = components.get(OBC.IfcLoader);
-
     await fragmentIfcLoader.setup();
 
     fragmentIfcLoader.settings.webIfc.COORDINATE_TO_ORIGIN = true;
@@ -25,11 +26,6 @@ async function LoadIfcFile(file: File, containerRef : React.RefObject<HTMLElemen
 
     const loadedModel = await fragmentIfcLoader.load(new Uint8Array(await file.arrayBuffer()));
     loadedModel.name = file.name;
-    //console.log(foundElements);
-    //world.scene.three.add(model);
-        // for (const mesh of model.children) {
-        //   culler.add(mesh as any);
-        // }
 
         for(var i = 0; i < loadedModel.children.length; i++)
                 {
@@ -37,26 +33,13 @@ async function LoadIfcFile(file: File, containerRef : React.RefObject<HTMLElemen
                     var child = loadedModel.children[i]
                     if(child instanceof THREE.InstancedMesh)
                     {
-                        //console.log(child);
                         if(child.instanceColor !== null){
                             var oldColor = child.instanceColor.array;
                             var material = new MeshStandardMaterial();
                             material.color = new THREE.Color(oldColor[0],oldColor[1],oldColor[2]);
                             material.side = THREE.DoubleSide;
                             child.material = [material]
-
-                        //     if(child.material[0] instanceof THREE.MeshLambertMaterial)
-                        // {
-                        //     // console.log(child.material[0].color);
-                        //     //console.log(child);
-                        //     //child.material[0].color.setColorName("purple")
-                        //     child.material[0].side = THREE.DoubleSide;
-
-
-                        // }
-                        }
-                        
-                        
+                        } 
                     }
                     else
                     {
@@ -73,22 +56,27 @@ async function LoadIfcFile(file: File, containerRef : React.RefObject<HTMLElemen
   }
   
   const UploadIfcButton: React.FC<UploadIfcButtonProps> = ({ onIfcFileLoad, setFileName }) => {
-      const containerRef = useRef<HTMLElement>(null);
-      const theme = useTheme();
-      const colors = tokens(theme.palette.mode);
+    const containerRef = useRef<HTMLElement>(null);
+    const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
+    const components = useContext(ComponentsContext);
+    console.log("load testing component use",components)
   
-      const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-          const file = event.target.files ? event.target.files[0] : null;
-          if (file) {
-              console.log("Start loading IFC file:", file.name);
-              const model = await LoadIfcFile(file, containerRef); 
-              //console.log(model)
-              console.log(onIfcFileLoad)
-              if(onIfcFileLoad)
-                onIfcFileLoad(model);
-              setFileName(file.name)
-          }
-      };
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files ? event.target.files[0] : null;
+        if (file && components) {
+            console.log("Start loading IFC file:", file.name);
+            const model = await LoadIfcFile(file, components); 
+            //console.log(model)
+            console.log(onIfcFileLoad)
+            if(onIfcFileLoad)
+            onIfcFileLoad(model);
+            setFileName(file.name)
+        }
+        else{
+            console.log('failed to upload file due to missing data',components)
+        }
+    };
   
       const handleClick = () => {
           document.getElementById('ifcFileInput')?.click();

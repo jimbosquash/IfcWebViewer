@@ -3,7 +3,7 @@ import { tokens } from "../../theme";
 import { Box, Typography, useTheme } from "@mui/material";
 // import Bar from "../../components/BarChart";
 import "./dashBoardStyles.css"
-import {useState, useEffect} from "react";
+import {useState, useEffect, useContext} from "react";
 // import MyResponsivePie from "../../components/pie";
 import SummaryRow from "./summaryRow";
 import {buildingElement} from "../../utilities/IfcUtilities"
@@ -12,12 +12,16 @@ import React from "react";
 import BarChart from "../../components/BarChart";
 import {GroupSummaryBox} from "../../components/GroupSummaryBox";
 import { ProductionSummaryRow } from "./productionSummaryRow";
+import { RefContext } from "../../context/RefContext";
 
 interface DashboardProps {
     loadedBuildingElements: buildingElement[];
 }
 
 export const DashBoard: React.FC<DashboardProps> = ({loadedBuildingElements}) => {
+    //const containerRef = useContext(RefContext);
+
+    //console.log('ref',containerRef)
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const [barChartData,setBarChartData] = useState<any[]>([]);

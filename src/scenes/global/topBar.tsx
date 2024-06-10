@@ -10,6 +10,7 @@ import InsertChart from "@mui/icons-material/InsertChart";
 import { Link } from "react-router-dom";
 import React from "react";
 import * as FRAGS from "@thatopen/fragments";
+import * as OBC from "@thatopen/components";
 
 
 
@@ -49,7 +50,7 @@ interface topbarProps {
     onIfcFileLoad: (ifcModel: any) => void;
 }
 
-const Topbar: React.FC<topbarProps> = ({onIfcFileLoad}) => {
+const Topbar = ({onIfcFileLoad} : topbarProps) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const colorMode = useContext(ColorModeContext);
@@ -74,7 +75,7 @@ const Topbar: React.FC<topbarProps> = ({onIfcFileLoad}) => {
     useEffect(() => {},[fileName])
 
     return (
-        <Box component={"div"} display="flex" justifyContent="space-between" p={2}>
+        <Box component={"div"} className='topBar' display="flex" justifyContent="space-between" p={2}>
             <Box component={"div"}>
                 <UploadIfcButton setFileName={setFileName} onIfcFileLoad={handleIFCLoad} /> 
             </Box>

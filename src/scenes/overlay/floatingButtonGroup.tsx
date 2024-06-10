@@ -1,5 +1,5 @@
 import { Box, Button, ButtonGroup,IconButton,useTheme } from "@mui/material"
-import React, { createRef, useEffect, useState } from "react"
+import React, { createRef, useContext, useEffect, useState } from "react"
 import Draggable from "react-draggable"
 import { tokens } from "../../theme"
 import { styled } from '@mui/system';
@@ -7,37 +7,44 @@ import TocIcon from "@mui/icons-material/Toc";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined';
 import TaskOverViewPanel from "./taskOverviewPanel";
+import PropertyOverViewPanel from "./propertyOverViewPanel"
 import { buildingElement } from "../../utilities/IfcUtilities";
 import * as FRAGS from '@thatopen/fragments';
 import * as OBC from "@thatopen/components";
+import { BuildingElementsContext } from "../../context/BuildingElementsContext";
 
 
 
 interface taskOverviewProps {
-  buildingElements: buildingElement[];
   ifcModel : FRAGS.FragmentsGroup | undefined;
-  components : OBC.Components | undefined;
-
 }
   
-  const FloatingButtonGroup:React.FC<taskOverviewProps> = ({components, ifcModel, buildingElements}) => {
-    const [isPanelVisible, setIsPanelVisible] = useState(false);
-    //const inputRef = createRef();
+  const FloatingButtonGroup:React.FC<taskOverviewProps> = ({ifcModel}) => {
+    const buildingElements = useContext(BuildingElementsContext);
+    const [isGroupPanelVisible, setIsGroupPanelVisible] = useState(false);
+    const [isPropertyPanelVisible, setIsPropertyPanelVisible] = useState(false);
+    const [selectedBuildingElements, setSelectedBuildingElements] = useState<buildingElement[]>([]);
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
+    const handleSelectedElementsChange = (selectedElements : buildingElement[]) => {
+      if(selectedElements)
+      {
+        setSelectedBuildingElements(selectedElements);
+      }
+    }
+
     const togglePanelVisibility = () => {
       console.log('panel vis set')
-      setIsPanelVisible((prevVisibility) => !prevVisibility);
+      setIsGroupPanelVisible((prevVisibility) => !prevVisibility);
     };
 
-    useEffect(() => {
-      //const input = inputRef.current;
-      //input.select();
-      // there is a deprecated use of FindDOM inside Draggable core. need to implement correct useRef 
-
-    },[])
+    const togglePropertyPanelVisibility = () => {
+      console.log('property panel vis set')
+      setIsPropertyPanelVisible((prevVisibility) => !prevVisibility);
+    };
 
 
     return (
@@ -72,7 +79,10 @@ interface taskOverviewProps {
                 < NavigateBeforeIcon fontSize="large"/>
               </IconButton>
               <IconButton style={floatingButtonStyle} onClick={togglePanelVisibility}>
-                < TocIcon fontSize="large"/>
+                < TocIcon fontSize="medium"/>
+              </IconButton>
+              <IconButton style={floatingButtonStyle} onClick={togglePropertyPanelVisibility}>
+                < DescriptionOutlined fontSize="small"/>
               </IconButton>
               <IconButton style={floatingButtonStyle}>
                 < NavigateNextIcon fontSize="large" />
@@ -80,8 +90,10 @@ interface taskOverviewProps {
             </ButtonGroup>
           </div>
         </Draggable>
-        {isPanelVisible && (
-          <TaskOverViewPanel components={components} ifcModel={ifcModel} buildingElements={buildingElements}/> )}
+        {isGroupPanelVisible && (
+          <TaskOverViewPanel ifcModel={ifcModel} onSelectedElementsChange={handleSelectedElementsChange}/> )}
+          {isPropertyPanelVisible && (
+          <PropertyOverViewPanel buildingElements={selectedBuildingElements}/> )}
       </>
     );
   };

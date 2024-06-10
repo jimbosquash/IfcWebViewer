@@ -6,16 +6,20 @@ import {useMode, ColorModeContext} from "./theme"
 import * as FRAGS from "@thatopen/fragments";
 import * as OBC from "@thatopen/components";
 import ViewerFiber from './scenes/viewer/viewerFiber';
+import ThreeViewer from './scenes/viewer/threeViewer';
+import {ThreeScene}  from './scenes/viewer/threeViewer';
 import DashBoard from './scenes/dashboard/dashBoard';
 import SetUpIfcComponents from "./components/setUpIfcComponents";
 import Layout from './scenes/global/Layout';
 import {GetBuildingElements} from "./utilities/IfcUtilities";
+import {ComponentsProvider} from './context/ComponentsContext'
+import {BuildingElementsProvider} from './context/BuildingElementsContext'
 
 
-
+//TODO CREATE A CONTEXT FOR THE OBC.COMPONENTS
 
 function App() {
-  const containerRef = useRef<HTMLElement>(null);
+  const containerRef = useRef(null);
   const [ifcFile,setIfcFile] = useState();
   const [components,setComponents] = useState();
   const [theme,colorMode] = useMode();
@@ -42,36 +46,42 @@ function App() {
   }
 
   useEffect(() => {
-    const newComponents = SetUpIfcComponents(containerRef);
+    // const newComponents = SetUpIfcComponents(containerRef);
+    const newComponents = new OBC.Components();
+    console.log("App: COMPONENTS CREATED",newComponents)
     setComponents(newComponents);
   },[])
 
-  // const handleComponentsLoad = (newComponents) => {
-  //   if(!newComponents)
-  //     return;
-  //   console.log("App: upload complete")
-  //   setComponents(newComponents);
-  // }
+  const handleComponentsLoad = (newComponents) => {
+    if(!newComponents)
+      return;
+    console.log("App: upload complete")
+    setComponents(newComponents);
+  }
 
   return (
     <>
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline/>
-        <BrowserRouter>
-          <div style={{ display: 'flex', height: '100%' }}> {/* Flex container */}
-            <main style={{flex: 1, padding: "0"}}>
-              <Routes>
-                {/* <Route path='/' element={<LandingPage/>} /> */}
-                <Route path='/*' element={<Layout onIfcFileLoad={handleIFCLoad}/>} >
-                  <Route path='' element={<ViewerFiber ifcModel={ifcFile} components={components}/>} />
-                  <Route path='dashboard' element={<DashBoard loadedBuildingElements={buildingElements}/>} />
-                </Route>
+        <ComponentsProvider components={components}>
+          <BuildingElementsProvider buildingElements={buildingElements}>
+          <BrowserRouter>
+            <div style={{ display: 'flex', height: '100%' }}> {/* Flex container */}
+              <main ref={containerRef} style={{flex: 1, padding: "0"}}>
+                <Routes>
+                  {/* <Route path='/' element={<LandingPage/>} /> */}
+                  <Route path='/*' element={<Layout components={components} onIfcFileLoad={handleIFCLoad}/>} >
+                    <Route path='' element={<ThreeScene ifcModel={ifcFile}/>} />
+                    <Route path='dashboard' element={<DashBoard loadedBuildingElements={buildingElements}/>} />
+                  </Route>
 
-              </Routes>
-            </main>
-          </div>
-      </BrowserRouter>
+                </Routes>
+              </main>
+            </div>
+        </BrowserRouter>
+        </BuildingElementsProvider>
+      </ComponentsProvider>
     </ThemeProvider>
   </ColorModeContext.Provider>
   </>
