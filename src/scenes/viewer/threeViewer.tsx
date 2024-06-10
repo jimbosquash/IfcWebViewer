@@ -99,7 +99,7 @@ export const ThreeViewer = ({ifcModel, components} : ViewerProps) => {
     if(loading) return <div>Loading...</div>;
     return (
         <>
-        <Overlay ifcModel={ifcModel} components={components}/>
+        {/* <Overlay ifcModel={ifcModel}/> */}
         {/* <LoadModel components={component} ifcModel={fragGroup}></LoadModel> */}
     </>
       );
@@ -188,6 +188,11 @@ export const ThreeScene = ({ifcModel} : ViewerProps) => {
         world.camera = new OBC.OrthoPerspectiveCamera(components)
         world.camera.projection.set('Orthographic');
         world.camera.enabled = true;
+        const directionalLight = new THREE.PointLight( 0xffffff );
+directionalLight.position.y = 3;
+directionalLight.position.z = 3;
+directionalLight.intensity = 1000;
+//world.scene.three.add( directionalLight );
         // const worldGrid = components.get(OBC.Grids).create(world)
         // worldGrid.material.uniforms.uColor.value = new THREE.Color(0x424242)
         // worldGrid.material.uniforms.uSize1.value = 2
@@ -197,6 +202,9 @@ export const ThreeScene = ({ifcModel} : ViewerProps) => {
         //postproduction.customEffects.excludedMeshes.push(worldGrid.three);
         postproduction.setPasses({ custom: true, ao: true, gamma: true })
         postproduction.customEffects.lineColor = 0x17191c
+        const highlighter = components.get(OBF.Highlighter)
+highlighter.setup({ world })
+// highlighter.zoomToSelection = true
 
       } 
       
@@ -215,7 +223,7 @@ export const ThreeScene = ({ifcModel} : ViewerProps) => {
   
     return (
       <>
-              <Overlay ifcModel={ifcModel} components={components ?? undefined}/>
+              <Overlay ifcModel={ifcModel} world={currentWorld}/>
         </>
     )
   }

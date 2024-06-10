@@ -130,18 +130,19 @@ const TaskOverViewPanel = ({ifcModel, onSelectedElementsChange} : taskOverviewPr
         backgroundColor: colors.primary[400],
         border: '1px solid #ccc',
         padding: '10px',
-        width: "300px",
+        width: "270px",
         margin: '10px 0',
         borderRadius: '12px',
         cursor: 'pointer',
       };
 
       const HeaderBoxStyle = {
-        backgroundColor: colors.primary[400],
+        // backgroundColor: colors.primary[400],
+        boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
         // border: '1px solid #ccc',
-        padding: '10px',
-        width: "300px",
-        margin: '20px',
+        padding: '5px',
+        width: "240px",
+        margin: '10px',
         borderRadius: '8px',
         cursor: 'grab',
       };
@@ -162,10 +163,10 @@ const TaskOverViewPanel = ({ifcModel, onSelectedElementsChange} : taskOverviewPr
             }}>
         <Box component="div" 
             className="panel-header"
-            width='100%' 
+            // width='100%' 
             style={HeaderBoxStyle} 
             display="flex" 
-            alignItems="right"
+            alignItems="center"
             justifyContent='space-between'>
             <Typography noWrap
               variant="h6" 
@@ -181,50 +182,52 @@ const TaskOverViewPanel = ({ifcModel, onSelectedElementsChange} : taskOverviewPr
         <div>
         <Box
           component="div"
-          m="20px"
-          width="100%"
-          padding="0px"
-          maxWidth="80vw"
+          m="10px"
+          // width="100%"
+          // padding="0px"
+          // maxWidth="80vw"
           maxHeight={"70vh"}
           // boxShadow= '0 0 10px rgba(0, 0, 0, 0.1)'
           overflow="auto"
         >
           {stationsVisible && Object.keys(stationGroup).length > 1 &&  Object.keys(stationGroup).map((group) => (
-            <Box component="div" width='100%' >
+            <Box component="div"
+            //  width='100%'
+              >
             <Box component="div" 
             onClick={() => { 
               console.log('clicked station',group)
               setSelectedBuildingElements(stationGroup[group])}}
               width='100%' 
               style={{
-                // backgroundColor: colors.primary[400],
-                border: '1px solid #ccc',
+                // border: '1px solid #ccc',
+                boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
                 padding: '10px',
-                width: "280px",
+                width: "250px",
+                height:"35px",
                 margin: '10px 0',
                 borderRadius: '12px',
                 cursor: 'pointer',
-                // '&:hover': {backgroundColor: theme.palette.primary[300]},
               }} 
               display="flex" 
               alignItems="center"
               justifyContent='space-between'>
-
               <Typography noWrap
-              maxWidth={'150px'}
+              maxWidth={'105px'}
                 variant="h6" 
                 sx={{ flexGrow: 1 }} 
-              >{group}</Typography>
+              >{ group.startsWith("Prefab -") ? group.slice("Prefab -".length) : group}
+              </Typography>
 
               <Typography 
               color={colors.primary[300]}
                  noWrap
                 variant="body2" 
-                sx={{ marginLeft: '16px' }}
-                >count : {stationGroup[group].length}
+                sx={{ marginLeft: '10px' }}
+                >el : {stationGroup[group].length}
               </Typography>
 
-              <IconButton size="small" sx={{ marginLeft: '8px', color: colors.grey[300] }} 
+              <IconButton size="small" sx={{ marginLeft: '8px', color: colors.grey[500] }} 
               onClick={(e) => {
                 e.stopPropagation();
                 toggleVisibility('Station',group);
@@ -242,7 +245,7 @@ const TaskOverViewPanel = ({ifcModel, onSelectedElementsChange} : taskOverviewPr
 
             {/* // here add fold down to */}
             {nestedListVisible[group] && (
-            <Box component="div" style={{ marginLeft: '20px', marginTop: '10px' }}>
+            <Box component="div" style={{ marginLeft: '5px', marginTop: '10px' }}>
             {Object.entries(groupElements(stationGroup[group], 'BuildingStep')).map(([buildingStep, elements]) => (
               <Box key={buildingStep} component="div" style={{ marginBottom: '2px' }}>
                 <Box component="div" 
@@ -254,7 +257,7 @@ const TaskOverViewPanel = ({ifcModel, onSelectedElementsChange} : taskOverviewPr
                   backgroundColor: colors.primary[400],
                   border: '1px solid #ccc',
                   padding: '5px',
-                  width: "280px",
+                  width: "250px",
                   height: "35px",
                   margin: '5px 0',
                   borderRadius: '12px',
@@ -273,8 +276,8 @@ const TaskOverViewPanel = ({ifcModel, onSelectedElementsChange} : taskOverviewPr
                   color={colors.primary[300]}
                     noWrap
                     variant="body2" 
-                    sx={{ marginLeft: '16px' }}
-                    >count : {elements.length}
+                    sx={{ marginLeft: '20px' }}
+                    >el : {elements.length}
                   </Typography>
                 <IconButton size="small" sx={{ marginLeft: '8px', color: colors.grey[500] }} onClick={(e) => {
                   e.stopPropagation();

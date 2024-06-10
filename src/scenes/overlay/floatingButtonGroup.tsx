@@ -8,12 +8,16 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined';
+import ZoomInMapOutlined from '@mui/icons-material/ZoomInMapOutlined';
 import TaskOverViewPanel from "./taskOverviewPanel";
 import PropertyOverViewPanel from "./propertyOverViewPanel"
 import { buildingElement } from "../../utilities/IfcUtilities";
 import * as FRAGS from '@thatopen/fragments';
 import * as OBC from "@thatopen/components";
+import * as OBF from "@thatopen/components-front";
 import { BuildingElementsContext } from "../../context/BuildingElementsContext";
+import { ComponentsContext } from "../../context/ComponentsContext";
+import { Worlds } from "@thatopen/components";
 
 
 
@@ -22,7 +26,8 @@ interface taskOverviewProps {
 }
   
   const FloatingButtonGroup:React.FC<taskOverviewProps> = ({ifcModel}) => {
-    const buildingElements = useContext(BuildingElementsContext);
+    // const buildingElements = useContext(BuildingElementsContext);
+    const components = useContext(ComponentsContext);
     const [isGroupPanelVisible, setIsGroupPanelVisible] = useState(false);
     const [isPropertyPanelVisible, setIsPropertyPanelVisible] = useState(false);
     const [selectedBuildingElements, setSelectedBuildingElements] = useState<buildingElement[]>([]);
@@ -45,6 +50,29 @@ interface taskOverviewProps {
       console.log('property panel vis set')
       setIsPropertyPanelVisible((prevVisibility) => !prevVisibility);
     };
+
+    const zoomToAll = () => {
+      if(components)
+      {
+        const worlds = components.get(OBC.Worlds);
+        console.log('get worlds', worlds.list.values().next().value.name)
+        console.log('get worlds', worlds)
+        for(const world of worlds?.list.values())
+        {
+          if(world instanceof OBC.SimpleWorld<OBC.SimpleScene,OBC.OrthoPerspectiveCamera,OBF.PostproductionRenderer>  )
+          {
+            if(world && world.name === 'Main')
+            {
+              setTimeout(async () => {
+                if(world.camera instanceof OBC.OrthoPerspectiveCamera)
+                  world.camera.fit(world.meshes, 0.8)
+              }, 50)
+            }
+          }
+          
+        }
+      }
+    }
 
 
     return (
@@ -83,6 +111,9 @@ interface taskOverviewProps {
               </IconButton>
               <IconButton style={floatingButtonStyle} onClick={togglePropertyPanelVisibility}>
                 < DescriptionOutlined fontSize="small"/>
+              </IconButton>
+              <IconButton style={floatingButtonStyle} onClick={zoomToAll}>
+                < ZoomInMapOutlined fontSize="small"/>
               </IconButton>
               <IconButton style={floatingButtonStyle}>
                 < NavigateNextIcon fontSize="large" />
