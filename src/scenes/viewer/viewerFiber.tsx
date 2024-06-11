@@ -117,7 +117,7 @@ export const ViewerFiber = ({ifcModel, components} : ViewerProps) => {
     if(loading) return <div>Loading...</div>;
     return (
         <>
-        <Overlay ifcModel={ifcModel} components={components} buildingElements={buildingElements}/>
+        {/* <Overlay ifcModel={ifcModel}/> */}
         <Canvas
         ref={containerRef}
         shadows

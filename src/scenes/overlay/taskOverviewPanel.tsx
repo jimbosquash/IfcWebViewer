@@ -18,13 +18,28 @@ interface taskOverviewProps {
     onSelectedElementsChange : (buildingElements : buildingElement[]) => void;
 }
 
-
+const groupElements = (buildingElements: buildingElement[],groupType: "BuildingStep" | "Station") => {
+  if(buildingElements)
+  {
+    return buildingElements.reduce((acc, element) => {
+      const buildingStep = element.properties.find(prop => prop.name === groupType)?.value || 'Unknown'; 
+      if(buildingStep === 'Unknown')
+        return acc;
+      if (!acc[buildingStep]) {
+        acc[buildingStep] = [];
+      }
+      acc[buildingStep].push(element);
+      return acc;
+    }, {} as { [key: string]: buildingElement[] });
+  }
+  return {};
+};
 
 const TaskOverViewPanel = ({ifcModel, onSelectedElementsChange} : taskOverviewProps) => {
     const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
     const buildingElements = useContext(BuildingElementsContext);
     const components = useContext(ComponentsContext);
-    const colors = tokens(theme.palette.mode);
     const [taskGroups, setTaskGroups] = useState<{[key: string]: buildingElement[]}>({});
     const [stationGroup, setStationGroup] = useState<{[key: string]: buildingElement[]}>({});
     const [visibility, setVisibility] = useState<{ [key: string]: boolean }>({});
@@ -91,22 +106,7 @@ const TaskOverViewPanel = ({ifcModel, onSelectedElementsChange} : taskOverviewPr
         [stationName]: !prev[stationName],
       }));
     };
-    const groupElements = (buildingElements: buildingElement[],groupType: "BuildingStep" | "Station") => {
-      if(buildingElements)
-      {
-        return buildingElements.reduce((acc, element) => {
-          const buildingStep = element.properties.find(prop => prop.name === groupType)?.value || 'Unknown'; 
-          if(buildingStep === 'Unknown')
-            return acc;
-          if (!acc[buildingStep]) {
-            acc[buildingStep] = [];
-          }
-          acc[buildingStep].push(element);
-          return acc;
-        }, {} as { [key: string]: buildingElement[] });
-      }
-      return {};
-    };
+    
 
     useEffect(() => {
       if(buildingElements)
@@ -191,13 +191,127 @@ const TaskOverViewPanel = ({ifcModel, onSelectedElementsChange} : taskOverviewPr
           overflow="auto"
         >
           {stationsVisible && Object.keys(stationGroup).length > 1 &&  Object.keys(stationGroup).map((group) => (
-            <Box component="div"
+          
+          <StationBox
+          elements={stationGroup[group]}
+          stationName={group}
+          setSelectedElements={setSelectedBuildingElements}
+          toggleElementVisibility={toggleVisibility}
+          visible={visibility[group]}
+          />
+          //   <Box component="div"
+          //   //  width='100%'
+          //     >
+          //   <Box component="div" 
+          //   onClick={() => { 
+          //     console.log('clicked station',group)
+          //     setSelectedBuildingElements(stationGroup[group])}}
+          //     width='100%' 
+          //     style={{
+          //       // border: '1px solid #ccc',
+          //       boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+          //       padding: '10px',
+          //       width: "250px",
+          //       height:"35px",
+          //       margin: '10px 0',
+          //       borderRadius: '12px',
+          //       cursor: 'pointer',
+          //     }} 
+          //     display="flex" 
+          //     alignItems="center"
+          //     justifyContent='space-between'>
+          //     <Typography noWrap
+          //     maxWidth={'105px'}
+          //       variant="h6" 
+          //       sx={{ flexGrow: 1 }} 
+          //     >{ group.startsWith("Prefab -") ? group.slice("Prefab -".length) : group}
+          //     </Typography>
+
+          //     <Typography 
+          //     color={colors.primary[300]}
+          //        noWrap
+          //       variant="body2" 
+          //       sx={{ marginLeft: '10px' }}
+          //       >el : {stationGroup[group].length}
+          //     </Typography>
+
+          //     <IconButton size="small" sx={{ marginLeft: '8px', color: colors.grey[500] }} 
+          //     onClick={(e) => {
+          //       e.stopPropagation();
+          //       toggleVisibility('Station',group);
+          //     }}>
+          //       {visibility[group] ? <VisibilityOffOutlinedIcon/> : <VisibilityOutlinedIcon/>} 
+          //     </IconButton>
+
+          //     <IconButton size="small" sx={{ marginLeft: '4px', color: colors.grey[500] }} onClick={(e) => {
+          //       e.stopPropagation();
+          //       toggleNestedListVisibility(group)
+          //       }}>
+          //       {visibility[group] ? <TocIcon/> : <TocIcon/>} 
+          //     </IconButton>
+          //   </Box>
+
+          //   {/* // here add fold down to */}
+          //   {nestedListVisible[group] && (
+          //   <Box component="div" style={{ marginLeft: '5px', marginTop: '10px' }}>
+          //   {Object.entries(groupElements(stationGroup[group], 'BuildingStep')).map(([buildingStep, elements]) => (
+          //     <BuildingStepBox 
+          //     buildingStep={buildingStep} 
+          //     elements={elements} 
+          //     visible={visibility[buildingStep]} 
+          //     setSelectedElements={setSelectedBuildingElements} 
+          //     toggleElementVisibility={toggleVisibility}/> 
+          //   ))}
+          //   </Box>
+          // )}
+          // </Box>
+        ))
+        }       
+        </Box>
+        </div>
+        </div>        
+    </Draggable>
+    </>)
+}
+
+interface BuildingStepBoxProps{
+  buildingStep: string;
+  elements : buildingElement[];
+  setSelectedElements: (elements: buildingElement[]) => void;
+  toggleElementVisibility: (groupType: string, buildingStep: string) => void;
+  visible: boolean;
+}
+
+interface StationBoxProps{
+  stationName: string;
+  elements : buildingElement[];
+  setSelectedElements: (elements: buildingElement[]) => void;
+  toggleElementVisibility: (groupType: string, buildingStep: string) => void;
+  // getVisibility: (groupName: string) => boolean;
+  visible: boolean;
+}
+
+const StationBox = (props : StationBoxProps) => {
+  const {stationName,elements, setSelectedElements, toggleElementVisibility, visible} = props;
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
+  const [nestedListVisible, setNestedListVisible] = useState<{ [key: string]: boolean }>({});
+
+  const toggleNestedListVisibility = (stationName: string) => {
+    setNestedListVisible(prev => ({
+      ...prev,
+      [stationName]: !prev[stationName],
+    }));
+  };
+
+  return (<>
+  <Box component="div"
             //  width='100%'
               >
             <Box component="div" 
             onClick={() => { 
-              console.log('clicked station',group)
-              setSelectedBuildingElements(stationGroup[group])}}
+              console.log('clicked station',stationName)
+              setSelectedElements(elements)}}
               width='100%' 
               style={{
                 // border: '1px solid #ccc',
@@ -216,7 +330,7 @@ const TaskOverViewPanel = ({ifcModel, onSelectedElementsChange} : taskOverviewPr
               maxWidth={'105px'}
                 variant="h6" 
                 sx={{ flexGrow: 1 }} 
-              >{ group.startsWith("Prefab -") ? group.slice("Prefab -".length) : group}
+              >{ stationName.startsWith("Prefab -") ? stationName.slice("Prefab -".length) : stationName}
               </Typography>
 
               <Typography 
@@ -224,34 +338,53 @@ const TaskOverViewPanel = ({ifcModel, onSelectedElementsChange} : taskOverviewPr
                  noWrap
                 variant="body2" 
                 sx={{ marginLeft: '10px' }}
-                >el : {stationGroup[group].length}
+                >el : {elements.length}
               </Typography>
 
               <IconButton size="small" sx={{ marginLeft: '8px', color: colors.grey[500] }} 
               onClick={(e) => {
                 e.stopPropagation();
-                toggleVisibility('Station',group);
+                toggleElementVisibility('Station',stationName);
               }}>
-                {visibility[group] ? <VisibilityOffOutlinedIcon/> : <VisibilityOutlinedIcon/>} 
+                {visible ? <VisibilityOffOutlinedIcon/> : <VisibilityOutlinedIcon/>} 
               </IconButton>
 
               <IconButton size="small" sx={{ marginLeft: '4px', color: colors.grey[500] }} onClick={(e) => {
                 e.stopPropagation();
-                toggleNestedListVisibility(group)
+                toggleNestedListVisibility(stationName)
                 }}>
-                {visibility[group] ? <TocIcon/> : <TocIcon/>} 
+                {visible ? <TocIcon/> : <TocIcon/>} 
               </IconButton>
             </Box>
 
             {/* // here add fold down to */}
-            {nestedListVisible[group] && (
+            {nestedListVisible[stationName] && (
             <Box component="div" style={{ marginLeft: '5px', marginTop: '10px' }}>
-            {Object.entries(groupElements(stationGroup[group], 'BuildingStep')).map(([buildingStep, elements]) => (
-              <Box key={buildingStep} component="div" style={{ marginBottom: '2px' }}>
+            {/* {Object.entries(groupElements(elements, 'BuildingStep')).map(([buildingStep, elements]) => (
+              <BuildingStepBox 
+              buildingStep={buildingStep} 
+              elements={elements} 
+              visible={visibility[buildingStep]} 
+              setSelectedElements={setSelectedBuildingElements} 
+              toggleElementVisibility={toggleVisibility}/> 
+            ))} */}
+            </Box>
+          )}
+          </Box>
+  </>)
+}
+
+const BuildingStepBox = (props : BuildingStepBoxProps) => {
+  const {buildingStep,elements, setSelectedElements, toggleElementVisibility, visible: Visible} = props;
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
+
+  return(<>
+  <Box key={buildingStep} component="div" style={{ marginBottom: '2px' }}>
                 <Box component="div" 
                 onClick={() => { 
                   console.log('clicked building step', buildingStep)
-                  setSelectedBuildingElements(elements)}}
+                  setSelectedElements(elements)}}
                 width='100%' 
                 style={{
                   backgroundColor: colors.primary[400],
@@ -262,7 +395,6 @@ const TaskOverViewPanel = ({ifcModel, onSelectedElementsChange} : taskOverviewPr
                   margin: '5px 0',
                   borderRadius: '12px',
                   cursor: 'pointer',
-                  // '&:hover': {backgroundColor: theme.palette.primary[300]},
                 }} 
                 display="flex" 
                 alignItems="center"
@@ -281,22 +413,13 @@ const TaskOverViewPanel = ({ifcModel, onSelectedElementsChange} : taskOverviewPr
                   </Typography>
                 <IconButton size="small" sx={{ marginLeft: '8px', color: colors.grey[500] }} onClick={(e) => {
                   e.stopPropagation();
-                  toggleVisibility('BuildingStep',buildingStep)}}>
-                  {visibility[buildingStep] ? <VisibilityOffOutlinedIcon/> : <VisibilityOutlinedIcon/>} 
+                  toggleElementVisibility('BuildingStep',buildingStep)}}>
+                  {Visible ? <VisibilityOffOutlinedIcon/> : <VisibilityOutlinedIcon/>} 
                 </IconButton>
                 </Box>
               </Box>
-            ))}
-            </Box>
-          )}
-          </Box>
-        ))
-        }       
-        </Box>
-        </div>
-        </div>        
-    </Draggable>
-    </>)
+  </>)
+
 }
 
 
