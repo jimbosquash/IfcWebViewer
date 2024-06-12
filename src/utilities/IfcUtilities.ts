@@ -2,15 +2,10 @@
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import * as WEBIFC from "web-ifc";
+import { buildingElement } from "./BuildingElementUtilities";
 
 
-export interface buildingElement {
-    expressID: number;
-    GlobalID: string;
-    type: number;
-    name: string;
-    properties: {name: string, value: string}[]
-}
+
 
 interface taskOverviewProps {
     buildingElements: buildingElement[];
