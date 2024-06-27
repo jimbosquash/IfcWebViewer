@@ -11,13 +11,6 @@ import { ComponentsContext } from "../context/ComponentsContext";
 
 
 async function LoadIfcFile(file: File, components: OBC.Components) : Promise<FRAGS.FragmentsGroup | undefined> {
-    
-    //todo move all this to ifc loader utils
-    
-    // console.log('containerRef retrieved', containerRef)
-    // const components = SetUpIfcComponents(containerRef);
-    // const world = components.get(OBC.Worlds);
-    // console.log('world retrieved', world)
     const fragmentIfcLoader = components.get(OBC.IfcLoader);
     await fragmentIfcLoader.setup();
 
@@ -56,21 +49,20 @@ async function LoadIfcFile(file: File, components: OBC.Components) : Promise<FRA
   }
   
   const UploadIfcButton: React.FC<UploadIfcButtonProps> = ({ onIfcFileLoad, setFileName }) => {
-    const containerRef = useRef<HTMLElement>(null);
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const components = useContext(ComponentsContext);
-    console.log("load testing component use",components)
+    //console.log("load testing component use",components)
   
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files ? event.target.files[0] : null;
         if (file && components) {
             console.log("Start loading IFC file:", file.name);
             const model = await LoadIfcFile(file, components); 
-            //console.log(model)
-            console.log(onIfcFileLoad)
             if(onIfcFileLoad)
-            onIfcFileLoad(model);
+            {
+                onIfcFileLoad(model);
+            }
             setFileName(file.name)
         }
         else{
@@ -78,9 +70,9 @@ async function LoadIfcFile(file: File, components: OBC.Components) : Promise<FRA
         }
     };
   
-      const handleClick = () => {
-          document.getElementById('ifcFileInput')?.click();
-      };
+    const handleClick = () => {
+        document.getElementById('ifcFileInput')?.click();
+    };
   
       return (
           <div>

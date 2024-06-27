@@ -1,19 +1,10 @@
-import { Box, useTheme,styled, Typography, Button, IconButton } from "@mui/material";
-// import { styled } from "@mui/system";
+import { Box, useTheme, Typography, IconButton } from "@mui/material";
 import Draggable from "react-draggable";
 import { tokens } from "../../theme";
-import { buildingElement, GetFragmentsFromExpressIds } from "../../utilities/IfcUtilities";
-import TaskBox from "./taskBox";
 import TocIcon from "@mui/icons-material/Toc";
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
-import { useContext, useEffect, useState } from "react";
-import * as FRAGS from '@thatopen/fragments';
-import * as OBC from "@thatopen/components";
-import { BuildingElementsContext } from "../../context/BuildingElementsContext";
-import { ComponentsContext } from "../../context/ComponentsContext";
+import { useEffect } from "react";
 import ElementTable from "../../components/ElementTable";
-
+import { buildingElement } from "../../utilities/BuildingElementUtilities";
 
 interface PropertyOverViewProps {
     buildingElements : buildingElement[];

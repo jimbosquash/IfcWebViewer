@@ -11,6 +11,9 @@ import { Link } from "react-router-dom";
 import React from "react";
 import * as FRAGS from "@thatopen/fragments";
 import * as OBC from "@thatopen/components";
+import { ModelStateContext } from "../../context/ModelStateContext";
+import { InfoPanel } from "./InfoPanel";
+import { InfoPanelContext, InfoPanelDataProvider } from "../../context/InfoPanelContext";
 
 
 
@@ -54,10 +57,22 @@ const Topbar = ({onIfcFileLoad} : topbarProps) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const colorMode = useContext(ColorModeContext);
+    const modelContext = useContext(ModelStateContext);
+    const infoPanelContext = useContext(InfoPanelContext);
     const [fileName, setFileName] = useState<string>("");
     const [selected, setSelected] = useState<string>("dashboard");
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
 
+    const handleDataUpdate = () => {
+        if(!modelContext?.selectedGroup) return;
+        console.log("topbar: selected Group set", modelContext?.selectedGroup)
+        infoPanelContext?.updateData({
+            moduleFileName: modelContext.currentModel.name,
+            moduleName: "module name",
+            groupType: modelContext.selectedGroup.groupType,
+            groupName: modelContext.selectedGroup.groupName
+        });
+    }
 
 
     const handleIFCLoad = (ifcModel: FRAGS.FragmentsGroup | undefined) => {
@@ -72,32 +87,35 @@ const Topbar = ({onIfcFileLoad} : topbarProps) => {
         setSnackbarOpen(false)
     }
 
-    useEffect(() => {},[fileName])
+    useEffect(() => {
+        if(modelContext?.currentModel !== FRAGS.FragmentsGroup.prototype)
+            {
+                console.log("topbar: current model setting",modelContext?.currentModel)
+            }
+    },[modelContext?.currentModel])
+
+    useEffect(() => {handleDataUpdate()},[modelContext?.selectedGroup])
 
     return (
         <Box component={"div"} className='topBar' display="flex" justifyContent="space-between" p={2}>
             <Box component={"div"}>
                 <UploadIfcButton setFileName={setFileName} onIfcFileLoad={handleIFCLoad} /> 
             </Box>
-            <Typography
-            variant="h6"
-            fontWeight='bold'
-            sx={{color: colors.grey[100]}}>
-            {fileName}
-          </Typography>
+                <InfoPanel />
+            {/* TOP RIGHT CORNER */}
             <Box component={"div"} display="flex" justifyContent="space-between" p={1}>
                 <div>
                 <IconButton onClick={colorMode.toggleColorMode}>
                 {theme.palette.mode === "dark" ?(<DarkModeOutlinedIcon/>) : (<LightModeOutlinedIcon/>)}
                 </IconButton>
                 </div>
-                <RoutingButton 
+                {/* <RoutingButton 
                 title="Dashboard"
                 to="/dashboard"
                 icon={<InsertChart />}
                 selected={selected}
                 setSelected={setSelected}
-                />
+                /> */}
                 <RoutingButton 
                 title="Viewer"
                 to="/"
@@ -107,6 +125,7 @@ const Topbar = ({onIfcFileLoad} : topbarProps) => {
                 />          
             </Box>
             
+            {/* corner pop up */}
             <Snackbar 
                 open={snackbarOpen}
                 autoHideDuration={5000}

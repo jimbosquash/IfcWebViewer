@@ -1,4 +1,4 @@
-import { buildingElement } from "./IfcUtilities";
+import { buildingElement } from "./BuildingElementUtilities";
 
 
 

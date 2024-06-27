@@ -221,7 +221,7 @@ export async function GetBuildingElements(loadedModel : FRAGS.FragmentsGroup, co
             }
         })
     } ))
-    //console.log("building Elements",foundElements)
+    // console.log("building Elements",foundElements)
     return foundElements;
 }
 

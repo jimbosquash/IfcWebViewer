@@ -1,33 +1,42 @@
-import { ButtonGroup,IconButton,useTheme } from "@mui/material"
-import React, { useContext, useState } from "react"
-import Draggable from "react-draggable"
+import { Box, ButtonGroup,IconButton,useTheme } from "@mui/material"
+import React, { useContext, useEffect, useRef, useState } from "react"
 import { tokens } from "../../theme"
 import TocIcon from "@mui/icons-material/Toc";
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined';
 import ZoomInMapOutlined from '@mui/icons-material/ZoomInMapOutlined';
 import TaskOverViewPanel from "./taskOverviewPanel";
 import PropertyOverViewPanel from "./propertyOverViewPanel"
-import { buildingElement } from "../../utilities/IfcUtilities";
+import { buildingElement, GetNextGroup, SelectionGroup } from "../../utilities/BuildingElementUtilities";
 import * as FRAGS from '@thatopen/fragments';
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
 import { ComponentsContext } from "../../context/ComponentsContext";
+import { ModelStateContext } from "../../context/ModelStateContext";
 
 interface taskOverviewProps {
   ifcModel : FRAGS.FragmentsGroup | undefined;
 }
   
-const FloatingButtonGroup:React.FC<taskOverviewProps> = ({ifcModel}) => {
+const FloatingButtonGroup:React.FC<taskOverviewProps> = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useContext(ComponentsContext);
+  const modelState = useContext(ModelStateContext);
   const [isGroupPanelVisible, setIsGroupPanelVisible] = useState(false);
   const [isPropertyPanelVisible, setIsPropertyPanelVisible] = useState(false);
   const [selectedBuildingElements, setSelectedBuildingElements] = useState<buildingElement[]>([]);
+  // const [currentGroup, setCurrentGroup] = useState<SelectionGroup>();
   
+  useEffect(() => {
+    if(modelState?.selectedGroup)
+    {
+      // setCurrentGroup(modelState.selectedGroup);
+      setSelectedBuildingElements(modelState.selectedGroup.elements)
+    }
+  },[modelState?.selectedGroup])
+
   const togglePanelVisibility = () => {
     // console.log('station panel visibility set',!prevVisibility)
     setIsGroupPanelVisible((prevVisibility) => !prevVisibility);
@@ -37,6 +46,22 @@ const FloatingButtonGroup:React.FC<taskOverviewProps> = ({ifcModel}) => {
     // console.log('property panel vis set',!prevVisibility)
     setIsPropertyPanelVisible((prevVisibility) => !prevVisibility);
   };
+
+  const setNextGroup = () => {
+    if(!modelState?.groups) return;
+
+    if(!modelState.selectedGroup)
+    {
+      console.log("No group selected, default will be used")
+    }
+    const nextGroup = GetNextGroup(modelState?.selectedGroup,modelState.groups);
+    if(nextGroup)
+    {
+      console.log("Next group found and setting", nextGroup)
+
+      modelState.setSelectedGroup(nextGroup)
+    }
+  }
 
   const zoomToAll = () => {
     if(components)
@@ -63,53 +88,46 @@ const FloatingButtonGroup:React.FC<taskOverviewProps> = ({ifcModel}) => {
 
   return (
     <>
-      <Draggable handle=".draggable-handle" >
-      <div style={{
-        position: 'fixed',
-        bottom: 50,
-        left: "40%",
-        transform: 'translateX(-50%,0)',
-        zIndex: 500,
-        width:450,
-        height: 35,
-        cursor: 'grab',
-        display: 'inline-block',
-        }} 
-      >
-        <ButtonGroup variant="contained" style={{ backgroundColor:colors.primary[400]}}>
-          <div
-          className="draggable-handle"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '12px',
-            cursor: 'grab',
-          }}
+        <Box component={"div"}  >
+        <div style={{
+          position: 'fixed',
+          bottom: 50,
+          left: "40%",
+          transform: 'translateX(-50%,0)',
+          zIndex: 500,
+          width:450,
+          height: 35,
+          cursor: 'grab',
+          display: 'inline-block',
+          }} 
         >
-        <DragIndicatorIcon />
-          </div>
-          <IconButton style={floatingButtonStyle}>
-            < NavigateBeforeIcon fontSize="large"/>
-          </IconButton>
-          <IconButton style={floatingButtonStyle} onClick={togglePanelVisibility}>
-            < TocIcon fontSize="medium"/>
-          </IconButton>
-          <IconButton style={floatingButtonStyle} onClick={togglePropertyPanelVisibility}>
-            < DescriptionOutlined fontSize="small"/>
-          </IconButton>
-          <IconButton style={floatingButtonStyle} onClick={zoomToAll}>
-            < ZoomInMapOutlined fontSize="small"/>
-          </IconButton>
-          <IconButton style={floatingButtonStyle}>
-            < NavigateNextIcon fontSize="large" />
-          </IconButton>
-        </ButtonGroup>
-      </div>
-      </Draggable>
-      {isGroupPanelVisible && (
-        <TaskOverViewPanel ifcModel={ifcModel} onSelectedElementsChange={(selectedElements) => {selectedElements && setSelectedBuildingElements(selectedElements)}}/> )}
+          <ButtonGroup variant="contained" style={{ backgroundColor:colors.primary[400]}}>
+            <div
+          >
+          {/* <DragIndicatorIcon /> */}
+            </div>
+            <IconButton style={floatingButtonStyle}>
+              < NavigateBeforeIcon fontSize="large"/>
+            </IconButton>
+            <IconButton style={floatingButtonStyle} onClick={togglePanelVisibility}>
+              < TocIcon fontSize="medium"/>
+            </IconButton>
+            <IconButton style={floatingButtonStyle} onClick={togglePropertyPanelVisibility}>
+              < DescriptionOutlined fontSize="small"/>
+            </IconButton>
+            <IconButton style={floatingButtonStyle} onClick={zoomToAll}>
+              < ZoomInMapOutlined fontSize="small"/>
+            </IconButton>
+            <IconButton style={floatingButtonStyle} onClick={setNextGroup}>
+              < NavigateNextIcon fontSize="large" />
+            </IconButton>
+          </ButtonGroup>
+        </div>
+        </Box>
+        {isGroupPanelVisible && (
+          <TaskOverViewPanel/> )}
         {isPropertyPanelVisible && (
-        <PropertyOverViewPanel buildingElements={selectedBuildingElements}/> )}
+          <PropertyOverViewPanel buildingElements={selectedBuildingElements}/> )}
     </>
   );
 };

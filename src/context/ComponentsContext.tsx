@@ -11,6 +11,8 @@ interface ComponentsProviderProps {
   }
 
 export const ComponentsProvider = ({children, components} : ComponentsProviderProps) => {
+
+
     return (
         <ComponentsContext.Provider value={components}>
           {children}

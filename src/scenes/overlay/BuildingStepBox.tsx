@@ -1,19 +1,19 @@
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
-import { buildingElement } from "../../utilities/BuildingElementUtilities";
+import { buildingElement, GroupingType } from "../../utilities/BuildingElementUtilities";
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import { ModelStateContext } from "../../context/ModelStateContext";
+import { useContext } from "react";
 
 interface BuildingStepBoxProps{
     buildingStep: string;
     elements : buildingElement[];
-    setSelectedElements: (elements: buildingElement[]) => void;
-    toggleElementVisibility: (groupType: string, buildingStep: string) => void;
-    getVisibility: (groupName: string) => boolean;
   }
   
   export const BuildingStepBox = (props : BuildingStepBoxProps) => {
-    const {buildingStep,elements, setSelectedElements, toggleElementVisibility, getVisibility} = props;
+    const {buildingStep,elements} = props;
+    const modelState = useContext(ModelStateContext);
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
   
@@ -22,7 +22,11 @@ interface BuildingStepBoxProps{
                   <Box component="div" 
                   onClick={() => { 
                     console.log('clicked building step', buildingStep)
-                    setSelectedElements(elements)}}
+                    if(modelState)
+                    {
+                    modelState.setSelectedGroup({groupType: "BuildingStep",groupName: buildingStep,elements: elements})
+                    }
+                  }}
                   width='100%' 
                   style={{
                     backgroundColor: colors.primary[400],
@@ -51,8 +55,15 @@ interface BuildingStepBoxProps{
                     </Typography>
                   <IconButton size="small" sx={{ marginLeft: '8px', color: colors.grey[500] }} onClick={(e) => {
                     e.stopPropagation();
-                    toggleElementVisibility('BuildingStep',buildingStep)}}>
-                    {getVisibility(buildingStep) ? <VisibilityOffOutlinedIcon/> : <VisibilityOutlinedIcon/>} 
+                    const visgroups = modelState?.groupVisibility;
+                    if (visgroups) {
+                      const newVisGroups = new Map(visgroups);
+                      const vis = newVisGroups.get(buildingStep);
+                      newVisGroups.set(buildingStep, !vis);
+                      modelState.setGroupVisibility(newVisGroups);
+                    }
+                  }}>
+                    {modelState?.groupVisibility.get(buildingStep)? <VisibilityOutlinedIcon/> :  <VisibilityOffOutlinedIcon/>} 
                   </IconButton>
                   </Box>
                 </Box>

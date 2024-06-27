@@ -1,18 +1,16 @@
 import { Canvas, useThree } from '@react-three/fiber'
-import { OrbitControls, Grid, GizmoViewport,GizmoViewcube , GizmoHelper, CameraControls } from '@react-three/drei'
+import { OrbitControls, Grid, GizmoViewcube , GizmoHelper } from '@react-three/drei'
 import '../../styles.css'
 import { useEffect, useRef, useState} from 'react'
-import {InteractableModel, LoadModel} from '../../utilities/modelLoader';
+import { LoadModel} from '../../utilities/modelLoader';
 import * as FRAGS from "@thatopen/fragments";
-import { buildingElement, GetBuildingElements } from '../../utilities/IfcUtilities';
+import { GetBuildingElements } from '../../utilities/IfcUtilities';
+import { buildingElement } from '../../utilities/BuildingElementUtilities';
 import { tokens } from '../../theme';
-import { Button, ButtonGroup, useTheme } from '@mui/material';
+import {useTheme } from '@mui/material';
 import * as OBC from "@thatopen/components";
 import * as THREE from "three";
-import FloatingButtonGroup from '../overlay/floatingButtonGroup';
-import CameraControler from "./cameraControler"
-import Overlay from '../overlay/overlay';
-import * as OBF from "@thatopen/components-front"
+
 
 
 //todo
@@ -29,7 +27,7 @@ export const ViewerFiber = ({ifcModel, components} : ViewerProps) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const containerRef = useRef<any>(undefined);                               //only need this if passing it into the ifc creation object
-    const camera = useRef(null);                               //only need this if passing it into the ifc creation object
+    //const {camera,renderer,scene} = useThree();                               //only need this if passing it into the ifc creation object
     const [fragGroup,setFragGroup] = useState<FRAGS.FragmentsGroup | undefined>();
     const [loading, setLoading] = useState(false);
     const [buildingElements, setBuildingElements] = useState<buildingElement[]>([]);

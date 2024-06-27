@@ -11,7 +11,7 @@ import { useThree } from "@react-three/fiber"
 
 
 
-export default function LandingPage() { 
+export const LandingPage = () => { 
 // green back ground
 // logo in center
 // button to enter to dashboard or upload file
@@ -23,7 +23,7 @@ const handleSelect = (selected: THREE.Intersection[]) => {
 
 
 // #241a1a
-    return<>
+    return(<>
     <div>
 
     </div>
@@ -58,7 +58,7 @@ const handleSelect = (selected: THREE.Intersection[]) => {
 
     </div>
 
-    </>
+    </>)
 }
 
 
@@ -134,6 +134,8 @@ interface RaycasterProps {
   
     return null;
   };
+
+  export default LandingPage;
   
 
 
