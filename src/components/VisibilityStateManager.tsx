@@ -17,15 +17,11 @@ export const VisibilityStateManager = () => {
         // set the visibility of all groups
         // if user setting support zoom then zoom on all things not invisible.
         console.log('visibility manager update')
-
-
-
-
-
+        updateVisibility();
     },[modelContext?.groupVisibility])
 
     
-    const updateVisibility = () => {
+    const updateVisibility = async () => {
         
         if(components && modelContext?.currentModel)
         {
@@ -40,47 +36,50 @@ export const VisibilityStateManager = () => {
 
           const stations = modelContext.groups.get('Station');
           if(!stations) return;
-          let elements: buildingElement[] = [];
+          let visibleElements: buildingElement[] = [];
+          let hiddenElement: buildingElement[] = [];
           for(let [key,value] of stations?.entries())
           {
             if(modelContext?.groupVisibility.has(key) && modelContext?.groupVisibility.get(key))
-            {
-                // add building elements
-                elements = elements.concat(value);
-            }
+                visibleElements = visibleElements.concat(value);            
+            else
+                hiddenElement = hiddenElement.concat(value)
           }
 
-          const buildingSteps = modelContext.groups.get('BuildingSteps');
-          if(!buildingSteps) return;
-          let stepElements: buildingElement[] = [];
-          for(let [key,value] of buildingSteps?.entries())
+          const duplicatedMap = new Map(modelContext.groups);
+          duplicatedMap.delete('Station')
+          // with each of the map items vis or invis 
+          let subGroupedElements: buildingElement[] = [];
+
+          // get all groups except for stations and group if visible or add to hidden if invisible
+          for(let [groupType,group] of duplicatedMap?.entries())
           {
-            if(modelContext?.groupVisibility.has(key) && modelContext?.groupVisibility.get(key))
-            {
-                // add building elements
-                stepElements = stepElements.concat(value);
-            }
-          }
-
-          const stepIds = new Set(stepElements.map(element => element.expressID))
-          const overlap = elements.filter(element => stepIds.has(element.expressID))
-
-          const expressIds = overlap.map(element => element.expressID);
-
-
-
-
-
-
-          // if(!groupToSearch) return;
-          //const expressIds = groupToSearch?.get(groupName)?.map((e) => {return e.expressID})
-          if(!expressIds) return;
-          const taskFragments = GetFragmentsFromExpressIds(expressIds,fragments,modelContext?.currentModel);
-  
-          for(const fragmentType of taskFragments)
+            for(let [groupName,elements] of group?.entries())
           {
-            fragmentType[0].setVisibility(true,fragmentType[1])
+            if(modelContext?.groupVisibility.has(groupName) && modelContext?.groupVisibility.get(groupName))            
+                subGroupedElements = subGroupedElements.concat(elements);
+            else
+                hiddenElement = hiddenElement.concat(elements)
+          } 
           }
+
+          // all hiddenElements will be hidden in the end 
+          // all visible elements if they does exist in hidden will be made visible
+
+
+          const subElementIds = new Set(subGroupedElements.map(element => element.expressID))
+          const overlap = visibleElements.filter(element => subElementIds.has(element.expressID))
+
+          const showExpressIds = overlap.map(element => element.expressID);
+          const hideExpressIds = hiddenElement.map(element => element.expressID);
+
+          const showFragments = GetFragmentsFromExpressIds(showExpressIds,fragments,modelContext?.currentModel);
+          const hideFragments = GetFragmentsFromExpressIds(hideExpressIds,fragments,modelContext?.currentModel);
+          console.log('setting visibility, hidden',hideFragments)
+          console.log('setting visibility, show',showFragments)
+
+          showFragments.forEach((ids,frag) => frag.setVisibility(true,ids));
+          hideFragments.forEach((ids,frag) => frag.setVisibility(false,ids));
         }
       };
 

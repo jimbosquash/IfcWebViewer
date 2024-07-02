@@ -34,17 +34,17 @@ export const ModelStateProvider = ({ children, elements, currentModel, selectedG
   const [allGroups, setGroups] = useState<Map<string, Map<string,buildingElement[]>>>(groups);
   const [groupVisibility, setGroupVisibility] = useState<Map<string,boolean>>(new Map<string,boolean>);
 
-  useEffect(() => {
-    console.log("ModelState: group changed", group);
-  }, [group]);
+  // useEffect(() => {
+  //   console.log("ModelState: group changed", group);
+  // }, [group]);
 
-  useEffect(() => {
-    console.log("ModelState: groupVisibility changed", groupVisibility);
-  }, [groupVisibility]);
+  // useEffect(() => {
+  //   console.log("ModelState: groupVisibility changed", groupVisibility);
+  // }, [groupVisibility]);
 
-  useEffect(() => {
-    console.log("ModelState: groups changed", allGroups);
-  }, [allGroups]);
+  // useEffect(() => {
+  //   console.log("ModelState: groups changed", allGroups);
+  // }, [allGroups]);
 
   // useEffect(() => {
   //   console.log("ModelState: model changed", model);

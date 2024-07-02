@@ -60,8 +60,27 @@ const FloatingButtonGroup:React.FC<taskOverviewProps> = () => {
       console.log("Next group found and setting", nextGroup)
 
       modelState.setSelectedGroup(nextGroup)
+
+      // hide all groups 
+      // show this group
+      // use the group state
+      const visMap = new Map(modelState?.groupVisibility);
+      visMap.forEach((visState, groupName) => visMap.set(groupName,true));
+      const matchingGroupType = modelState?.groups.get(nextGroup.groupType)?.keys();
+      if(!matchingGroupType) return;
+
+      for(let groupName of Array.from(matchingGroupType))
+      {
+        if(groupName !== nextGroup.groupName)
+  	        visMap.set(groupName,false)
+
+      }
+      console.log("new vis map set", visMap)
+      modelState?.setGroupVisibility(visMap)
+      }
+
     }
-  }
+  
 
   const zoomToAll = () => {
     if(components)
