@@ -20,9 +20,11 @@
     "@nivo/pie": "^0.86.0",
     "@react-three/drei": "^9.105.5",
     "@react-three/fiber": "^8.16.2",
-    "@thatopen/components": "^2.0.5",
-    "@thatopen/components-front": "^2.0.9",
-    "@thatopen/fragments": "^2.0.3",
+    "@thatopen/components": "~2.0.0",
+    "@thatopen/components-front": "~2.0.0",
+    "@thatopen/fragments": "~2.0.0",
+    "@thatopen/ui": "~2.0.0",
+    "@thatopen/ui-obc": "~2.0.0",
     "@types/node": "^20.12.7",
     "install": "^0.13.0",
     "jszip": "^3.10.1",
@@ -30,7 +32,6 @@
     "lil-gui": "^0.19.2",
     "mui": "^0.0.1",
     "npm": "^10.5.2",
-    "openbim-components": "^1.5.1",
     "papaparse": "^5.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -39,7 +40,7 @@
     "react-router-dom": "^6.22.3",
     "react-scripts": "^5.0.1",
     "vercel": "^34.0.0",
-    "web-ifc": "^0.0.53"
+    "web-ifc": "^0.0.55"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
