@@ -1,12 +1,12 @@
 import "../../styles.css";
 import { useContext, useEffect, useRef, useState } from "react";
 import * as OBC from "@thatopen/components";
-import Overlay from "../overlay";
+import Overlay from "../../overlay";
 import * as BUI from "@thatopen/ui";
 import * as OBF from "@thatopen/components-front"
-import { ComponentsContext } from "../../context/ComponentsContext";
-import { SetUpWorld } from "./src/SetUpWorld";
-import { useModelContext } from "../../context/ModelStateContext";
+import { ComponentsContext } from "../../../context/ComponentsContext";
+import { SetUpWorld } from "./SetUpWorld";
+import { useModelContext } from "../../../context/ModelStateContext";
 import { PostproductionRenderer } from "@thatopen/components-front";
 import { OrthoPerspectiveCamera } from "@thatopen/components";
 

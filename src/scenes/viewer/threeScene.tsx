@@ -1,15 +1,10 @@
 import "../../styles.css";
-import { useContext, useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import * as BUI from "@thatopen/ui";
+import { useContext, useEffect, useRef } from "react";
 import * as OBC from "@thatopen/components";
-import * as OBF from "@thatopen/components-front";
 import { ComponentsContext } from "../../context/ComponentsContext";
 import { SetUpWorld } from "./src/SetUpWorld";
 import { useModelContext } from "../../context/ModelStateContext";
 import Overlay from "../overlay";
-import { PostproductionRenderer } from "@thatopen/components-front";
-import { OrthoPerspectiveCamera } from "@thatopen/components";
 
 export const ThreeScene = () => {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -73,17 +68,6 @@ export const ThreeScene = () => {
       currentWorld.scene.three.add(currentModel);
       console.log("elements added to scene",currentModel, currentWorld.scene.three);
     }
-
-    // console.log("try create a box", currentWorld.meshes);
-    // const geometry = new THREE.BoxGeometry();
-    // const material = new THREE.MeshBasicMaterial({
-    //   color: Math.random() > 0.5 ? "yellow" : "green",
-    // });
-    // const cube = new THREE.Mesh(geometry, material);
-    // cube.name = "demo Cube";
-    // currentWorld.scene.three.add(cube);
-    // currentWorld.meshes.add(cube);
-    // currentWorld.camera.fit(currentWorld.meshes, 1.2);
 
     const resizeWorld = () => {
       currentWorld.renderer?.resize();

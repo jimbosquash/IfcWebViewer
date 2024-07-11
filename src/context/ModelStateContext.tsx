@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import * as OBC from "@thatopen/components";
-import { buildingElement, GroupingType, SelectionGroup } from '../utilities/BuildingElementUtilities';
+import { buildingElement, SelectionGroup } from '../utilities/BuildingElementUtilities';
 import * as FRAGS from "@thatopen/fragments";
 import * as OBF from "@thatopen/components-front"
 

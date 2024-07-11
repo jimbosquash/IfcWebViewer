@@ -2,17 +2,12 @@ import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls, Grid, GizmoViewcube , GizmoHelper } from '@react-three/drei'
 import '../../styles.css'
 import { useContext, useEffect, useRef, useState} from 'react'
-import { LoadModel} from '../../utilities/modelLoader';
 import * as FRAGS from "@thatopen/fragments";
-import { GetBuildingElements } from '../../utilities/IfcUtilities';
-import { buildingElement } from '../../utilities/BuildingElementUtilities';
-import { tokens } from '../../theme';
+import { tokens } from '../../../theme';
 import {useTheme } from '@mui/material';
-import * as OBC from "@thatopen/components";
 import * as THREE from "three";
-import { ComponentsContext } from '../../context/ComponentsContext';
-import { ModelStateContext } from '../../context/ModelStateContext';
-import { SetUpWorld } from './src/SetUpWorld';
+import { ComponentsContext } from '../../../context/ComponentsContext';
+import { useModelContext } from '../../../context/ModelStateContext';
 
 
 
@@ -22,7 +17,7 @@ export const ViewerFiber = () => {
     const colors = tokens(theme.palette.mode);
     // const {scene,camera,renderer}= useThree();
     const components = useContext(ComponentsContext);
-    const modelState = useContext(ModelStateContext);
+    const modelState = useModelContext();
     const containerRef = useRef<any>(undefined);                               //only need this if passing it into the ifc creation object
     const [fragGroup,setFragGroup] = useState<FRAGS.FragmentsGroup | undefined>();
     const [loading, setLoading] = useState(false);
