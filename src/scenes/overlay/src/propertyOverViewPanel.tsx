@@ -1,25 +1,18 @@
 import { Box, useTheme, Typography, IconButton } from "@mui/material";
 import Draggable from "react-draggable";
-import { tokens } from "../../theme";
+import { tokens } from "../../../theme";
 import TocIcon from "@mui/icons-material/Toc";
-import { useEffect } from "react";
-import ElementTable from "../../components/ElementTable";
-import { buildingElement } from "../../utilities/BuildingElementUtilities";
+import ElementTable from "../../../components/ElementTable";
+import { buildingElement } from "../../../utilities/BuildingElementUtilities";
 
 interface PropertyOverViewProps {
-    buildingElements : buildingElement[];
+    buildingElements : buildingElement[] | undefined;
 }
 
 export const PropertyOverViewPanel = ({buildingElements} : PropertyOverViewProps) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
-    useEffect(() => {
-      // create collection of elements and show in ui
-      console.log('new Properties received',buildingElements)
-      return () => {
-      }
-    }, [buildingElements])
     
     const HeaderBoxStyle = {
         // backgroundColor: colors.primary[400],
@@ -72,7 +65,7 @@ export const PropertyOverViewPanel = ({buildingElements} : PropertyOverViewProps
                 // maxWidth="80vw"
                 boxShadow= '0 0 10px rgba(0, 0, 0, 0.1)'
                 overflow="auto">
-                    <ElementTable isDashboard={false} buildingElements={buildingElements}/>
+                    { buildingElements && <ElementTable isDashboard={false} buildingElements={buildingElements}/>}
                 </Box>
             </div>        
         </Draggable>

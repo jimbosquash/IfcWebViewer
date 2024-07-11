@@ -15,10 +15,12 @@ async function LoadIfcFile(file: File, components: OBC.Components) : Promise<FRA
     await fragmentIfcLoader.setup();
 
     fragmentIfcLoader.settings.webIfc.COORDINATE_TO_ORIGIN = true;
-    fragmentIfcLoader.settings.webIfc.OPTIMIZE_PROFILES = true;
+    // fragmentIfcLoader.settings.webIfc.OPTIMIZE_PROFILES = true;
 
     const loadedModel = await fragmentIfcLoader.load(new Uint8Array(await file.arrayBuffer()));
+    
     loadedModel.name = file.name;
+    console.log("fragment downloaded",loadedModel.name,loadedModel)
 
         for(var i = 0; i < loadedModel.children.length; i++)
                 {
@@ -52,7 +54,6 @@ async function LoadIfcFile(file: File, components: OBC.Components) : Promise<FRA
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const components = useContext(ComponentsContext);
-    //console.log("load testing component use",components)
   
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files ? event.target.files[0] : null;

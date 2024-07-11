@@ -1,15 +1,12 @@
 import { Box, Typography, IconButton, useTheme } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
-import { tokens } from "../../theme";
-import {
-  buildingElement,
-  groupElements,
-} from "../../utilities/BuildingElementUtilities";
+import { useEffect, useState } from "react";
+import { tokens } from "../../../theme";
 import TocIcon from "@mui/icons-material/Toc";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import BuildingStepBox from "./BuildingStepBox";
-import { ModelStateContext } from "../../context/ModelStateContext";
+import { buildingElement, groupElements } from "../../../utilities/BuildingElementUtilities";
+import { useModelContext } from "../../../context/ModelStateContext";
 
 interface StationBoxProps {
   stationName: string;
@@ -20,15 +17,15 @@ const StationBox = (props: StationBoxProps) => {
   const { stationName, elements } = props;
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const modelState = useContext(ModelStateContext);
+  const {groups,setSelectedGroup, groupVisibility, setGroupVisibility} = useModelContext();
   const [buildingSteps, setBuildingSteps] = useState<Map<string, buildingElement[]>>();
   const [childVisible, setChildVisible] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!modelState?.groups) return;
+    if (!groups) return;
     const steps = groupElements(elements, "BuildingStep");
     if (steps) setBuildingSteps(groupElements(elements, "BuildingStep"));
-  }, [modelState?.groups]);
+  }, [groups]);
 
 
   return (
@@ -38,13 +35,11 @@ const StationBox = (props: StationBoxProps) => {
           component="div"
           onClick={() => {
             console.log("clicked station", stationName);
-            if (modelState) {
-              modelState.setSelectedGroup({
+              setSelectedGroup({
                 groupType: "Station",
                 groupName: stationName,
                 elements: elements,
               });
-            }
           }}
           width="100%"
           style={{
@@ -87,17 +82,17 @@ const StationBox = (props: StationBoxProps) => {
             onClick={(e) => {
               // update visibility group in ModelContext
               e.stopPropagation();
-              const visgroups = modelState?.groupVisibility;
+              const visgroups = groupVisibility;
               if (visgroups) {
                 const newVisGroups = new Map(visgroups);
                 const vis = newVisGroups.get(stationName);
                 console.log("get vis for ", vis, visgroups);
                 newVisGroups.set(stationName, !vis);
-                modelState.setGroupVisibility(newVisGroups);
+                setGroupVisibility(newVisGroups);
               }
             }}
           >
-            {modelState?.groupVisibility.get(stationName) ? (
+            {groupVisibility.get(stationName) ? (
               <VisibilityOutlinedIcon />
             ) : (
               <VisibilityOffOutlinedIcon />
@@ -112,7 +107,7 @@ const StationBox = (props: StationBoxProps) => {
               setChildVisible(!childVisible);
             }}
           >
-            {modelState?.groupVisibility.get(stationName) ? (
+            {groupVisibility.get(stationName) ? (
               <TocIcon />
             ) : (
               <TocIcon />

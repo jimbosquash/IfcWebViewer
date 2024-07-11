@@ -1,6 +1,6 @@
 import { useContext, useEffect } from "react";
 import { ComponentsContext } from "../context/ComponentsContext";
-import { ModelStateContext } from "../context/ModelStateContext";
+import { useModelContext } from "../context/ModelStateContext";
 import { buildingElement, GroupingType } from "../utilities/BuildingElementUtilities";
 import * as OBC from "@thatopen/components";
 import { GetFragmentsFromExpressIds } from "../utilities/IfcUtilities";
@@ -8,7 +8,7 @@ import { GetFragmentsFromExpressIds } from "../utilities/IfcUtilities";
 
 
 export const VisibilityStateManager = () => {
-    const modelContext = useContext(ModelStateContext);
+    const modelContext = useModelContext();
     const components = useContext(ComponentsContext);
 
     useEffect(() => {
@@ -16,7 +16,7 @@ export const VisibilityStateManager = () => {
 
         // set the visibility of all groups
         // if user setting support zoom then zoom on all things not invisible.
-        console.log('visibility manager update')
+        // console.log('visibility manager update')
         updateVisibility();
     },[modelContext?.groupVisibility])
 
@@ -75,8 +75,8 @@ export const VisibilityStateManager = () => {
 
           const showFragments = GetFragmentsFromExpressIds(showExpressIds,fragments,modelContext?.currentModel);
           const hideFragments = GetFragmentsFromExpressIds(hideExpressIds,fragments,modelContext?.currentModel);
-          console.log('setting visibility, hidden',hideFragments)
-          console.log('setting visibility, show',showFragments)
+          // console.log('setting visibility, hidden',hideFragments)
+          // console.log('setting visibility, show',showFragments)
 
           showFragments.forEach((ids,frag) => frag.setVisibility(true,ids));
           hideFragments.forEach((ids,frag) => frag.setVisibility(false,ids));

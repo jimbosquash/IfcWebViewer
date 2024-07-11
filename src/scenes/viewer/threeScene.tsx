@@ -1,0 +1,160 @@
+import "../../styles.css";
+import { useContext, useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import * as BUI from "@thatopen/ui";
+import * as OBC from "@thatopen/components";
+import * as OBF from "@thatopen/components-front";
+import { ComponentsContext } from "../../context/ComponentsContext";
+import { SetUpWorld } from "./src/SetUpWorld";
+import { useModelContext } from "../../context/ModelStateContext";
+import Overlay from "../overlay";
+import { PostproductionRenderer } from "@thatopen/components-front";
+import { OrthoPerspectiveCamera } from "@thatopen/components";
+
+export const ThreeScene = () => {
+  const mountRef = useRef<HTMLDivElement>(null);
+  const components = useContext(ComponentsContext);
+  const { currentWorld, currentModel, setWorld } = useModelContext();
+
+  // create the world
+  useEffect(() => {
+    console.log("three scene useEffect components start", components);
+
+    if (!mountRef.current) return;
+
+    if (mountRef?.current && components) {
+      const worlds = components.get(OBC.Worlds);
+      if (worlds.list.size === 0) {
+        console.log("new world to build", worlds);
+        const newWorld = SetUpWorld(components, mountRef.current, "Main");
+        if (newWorld) {
+          setWorld(newWorld);
+          console.log("a new world is born");
+          components.init();
+        }
+      }
+    } else {
+      console.log(
+        "failed to set up or resize world due to missing data",
+        mountRef,
+        components
+      );
+    }
+  }, [components]);
+
+
+  // add models to the world
+  useEffect(() => {
+    if (!currentWorld) return;
+
+    console.log("world changed, threeScene", currentWorld);
+    // if (currentWorld.camera === null) {
+    //   console.log('setting up world again')
+    // }
+
+    let cubeFound = false;
+    currentWorld.meshes.forEach((element) => {
+      if (element.name === "demo Cube") {
+        console.log("democudbe found");
+        cubeFound = true;
+        return;
+      }
+    });
+    if (cubeFound) return;
+
+    // also check if already in scene before being here
+    if(currentModel.items.length !== 0)
+    {
+      //add current model again
+      for (const frag of currentModel.items) {
+        currentWorld.meshes.add(frag.mesh);
+      }
+  
+      currentWorld.scene.three.add(currentModel);
+      console.log("elements added to scene",currentModel, currentWorld.scene.three);
+    }
+
+    // console.log("try create a box", currentWorld.meshes);
+    // const geometry = new THREE.BoxGeometry();
+    // const material = new THREE.MeshBasicMaterial({
+    //   color: Math.random() > 0.5 ? "yellow" : "green",
+    // });
+    // const cube = new THREE.Mesh(geometry, material);
+    // cube.name = "demo Cube";
+    // currentWorld.scene.three.add(cube);
+    // currentWorld.meshes.add(cube);
+    // currentWorld.camera.fit(currentWorld.meshes, 1.2);
+
+    const resizeWorld = () => {
+      currentWorld.renderer?.resize();
+      currentWorld.camera.updateAspect();
+    };
+    mountRef.current?.addEventListener("resize", resizeWorld);
+
+    // Clean up on component unmount
+    return () => {
+      console.log("three scene useEffect components cleanup");
+      if (currentWorld) {
+        const worlds = components?.get(OBC.Worlds);
+        if (worlds) {
+          let worldToDelete = worlds.list.get(currentWorld.uuid);
+          console.log("world disposed found world to delete", worldToDelete);
+          if (worldToDelete) worlds.delete(worldToDelete);
+        }
+        // currentWorld.dispose(true);
+        console.log("world disposed", currentWorld);
+        mountRef.current?.removeEventListener("resize", resizeWorld);
+        setWorld(undefined);
+      }
+    };
+  }, [currentWorld]);
+
+  useEffect(() => {
+    if (!currentWorld || currentModel.items.length === 0 || !components) {
+      console.log(
+        "current model effect not entering",
+        currentModel,
+        currentWorld
+      );
+      return;
+    }
+
+    // check if the current model is already in the world
+    // currentWorld.meshes
+
+    for (const frag of currentModel.items) {
+      currentWorld.meshes.add(frag.mesh);
+    }
+
+    currentWorld.scene.three.add(currentModel);
+    console.log("elements added to scene",currentModel, currentWorld.scene.three);
+
+    // console.log("elements added to scene.", modelContext?.currentWorld);
+    setTimeout(async () => {
+      if (currentWorld?.meshes)
+        currentWorld.camera.fit(currentWorld?.meshes, 0.8);
+    }, 50);
+
+    console.log("current model effect starting", currentModel);
+
+    return () => {
+      console.log("current model effect clean up", currentModel);
+    };
+  }, [currentModel]);
+
+  // when world is set we will check if current model is valid and if it is add it
+
+  // then when the current model changes we should check is the model in the world already or should we also add it
+
+  return (
+    <>
+      <div
+        className="threeDivContainer"
+        ref={mountRef}
+        style={{ display: "flex", width: "100%", height: "100%" }}
+      >
+        <Overlay />
+      </div>
+    </>
+  );
+};

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useContext, useState } from 'react';
 import * as THREE from 'three';
 import { ComponentsContext } from '../../context/ComponentsContext';
-import { SetUpWorld } from '../viewer/SetUpWorld';
+import { SetUpWorld } from '../viewer/src/SetUpWorld';
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
 
@@ -14,6 +14,31 @@ const ThreeLandingPage: React.FC = () => {
   const requestRef = useRef<number>(0);
 
   useEffect(() => {
+    if(!world) return;
+    {
+      console.log("try create a box",world.meshes)
+      const geometry = new THREE.BoxGeometry();
+  const material = new THREE.MeshBasicMaterial({ color: Math.random() > 0.5 ? "yellow" : 'green' });
+  const cube = new THREE.Mesh(geometry, material);
+  world.scene.three.add(cube);
+  world.meshes.add(cube)
+
+      world.camera.fit(world.meshes, 1.2)
+
+      const animate = () => {
+      requestRef.current = requestAnimationFrame(animate);
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
+      world.renderer?.three.render(world.scene.three,world.camera.three)
+    };
+    // animate();
+  }    
+
+  },[world])
+
+
+
+  useEffect(() => {
     if (!mountRef.current) return;
 
     if(mountRef?.current && components)
@@ -22,7 +47,7 @@ const ThreeLandingPage: React.FC = () => {
       if(worlds.list.size === 0)
       {
         console.log('new world to build',worlds)
-        const newWorld = SetUpWorld(components,mountRef.current);
+        const newWorld = SetUpWorld(components,mountRef.current,"Main");
         if(newWorld)
         {
             setWorld(newWorld);
@@ -30,22 +55,10 @@ const ThreeLandingPage: React.FC = () => {
             components.init();           
         }
       }  
-      if(world)
-            {
-                console.log("try create a box",world.meshes)
-                const geometry = new THREE.BoxGeometry();
-            const material = new THREE.MeshBasicMaterial({ color: Math.random() > 0.5 ? "yellow" : 'green' });
-            const cube = new THREE.Mesh(geometry, material);
-            world.scene.three.add(cube);
-            world.meshes.add(cube)
-
-                world.camera.fit(world.meshes, 0.8)
-            }     
 
     const resizeWorld = () => {
       if(world)
-      {
-        
+      {     
         world.renderer?.resize()
         world.camera.updateAspect()
       }
@@ -79,13 +92,7 @@ const ThreeLandingPage: React.FC = () => {
 
     // camera.position.z = 5;
 
-    // const animate = () => {
-    //   requestRef.current = requestAnimationFrame(animate);
-    //   cube.rotation.x += 0.01;
-    //   cube.rotation.y += 0.01;
-    //   renderer.render(scene, camera);
-    // };
-    // animate();
+    
 
     // Clean up on component unmount
     return () => {
@@ -98,7 +105,7 @@ const ThreeLandingPage: React.FC = () => {
     //   material.dispose();
     //   renderer.dispose();
     };
-  }, []);
+  }, [components]);
 
   return <div ref={mountRef} style={{ display: 'flex', height: '100%' }}/>;
 };

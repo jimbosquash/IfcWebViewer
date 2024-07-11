@@ -1,5 +1,5 @@
-import { Box, styled, Typography, useTheme, Theme } from "@mui/material";
-import { tokens } from "../../theme";
+import { Box, styled, Typography, useTheme } from "@mui/material";
+import { tokens } from "../../../theme";
 
 interface TaskBoxProps {
     title: string;

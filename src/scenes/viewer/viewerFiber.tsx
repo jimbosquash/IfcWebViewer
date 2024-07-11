@@ -1,7 +1,7 @@
 import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls, Grid, GizmoViewcube , GizmoHelper } from '@react-three/drei'
 import '../../styles.css'
-import { useEffect, useRef, useState} from 'react'
+import { useContext, useEffect, useRef, useState} from 'react'
 import { LoadModel} from '../../utilities/modelLoader';
 import * as FRAGS from "@thatopen/fragments";
 import { GetBuildingElements } from '../../utilities/IfcUtilities';
@@ -10,107 +10,35 @@ import { tokens } from '../../theme';
 import {useTheme } from '@mui/material';
 import * as OBC from "@thatopen/components";
 import * as THREE from "three";
+import { ComponentsContext } from '../../context/ComponentsContext';
+import { ModelStateContext } from '../../context/ModelStateContext';
+import { SetUpWorld } from './src/SetUpWorld';
 
 
 
-//todo
-// 1. display element table
-// 2. display all tasks
-// 1. get fragment hit in selection and set visibility based on selection 
 
-interface ViewerProps {
-    ifcModel: FRAGS.FragmentsGroup | undefined;
-    components: OBC.Components | undefined;
-}
-
-export const ViewerFiber = ({ifcModel, components} : ViewerProps) => {
+export const ViewerFiber = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
+    // const {scene,camera,renderer}= useThree();
+    const components = useContext(ComponentsContext);
+    const modelState = useContext(ModelStateContext);
     const containerRef = useRef<any>(undefined);                               //only need this if passing it into the ifc creation object
-    //const {camera,renderer,scene} = useThree();                               //only need this if passing it into the ifc creation object
     const [fragGroup,setFragGroup] = useState<FRAGS.FragmentsGroup | undefined>();
     const [loading, setLoading] = useState(false);
-    const [buildingElements, setBuildingElements] = useState<buildingElement[]>([]);
 
-    const [component, setComponents] = useState<OBC.Components>();
-
-    useEffect(() => {
-        const fetchBuildingElements = async () => {
-
-            console.log("fetching building elements",ifcModel)
-            if(ifcModel) {
-                setLoading(true)
-                setFragGroup(ifcModel);
-                try{
-                    const newBuildingElements = await GetBuildingElements(ifcModel,components);
-                    setBuildingElements(newBuildingElements);
-                    console.log(newBuildingElements)
-                    console.log(newBuildingElements.length," building elements found and set")
-                 } catch (error) {
-                    console.error("Error fetching building elements",error)
-                } finally {
-                    setLoading(false)
-                }
-            }
-            if(containerRef.current)
-            {
-                console.log('container Ref', containerRef.current)
-            }
-            if(components)
-                {
-        //             console.log("components",components);
-        //             const worlds = components.get(OBC.Worlds);
-        //             console.log("components worlds",components.get(OBC.Worlds));
-
-        //             const world = worlds.create<
-        //                 OBC.SimpleScene,
-        //                 OBC.SimpleCamera,
-        //                 OBC.SimpleRenderer
-        //                 >();
-
-        //                 world.scene = new OBC.SimpleScene(components)
-        // world.renderer = new OBF.PostproductionRenderer(components, containerRef.current)
-        // const cameraComponent = new OBC.OrthoPerspectiveCamera(components);
-        // cameraComponent.controls.setLookAt(10, 10, 10, 0, 0, 0);
-        // world.camera = cameraComponent;
-        // world.camera.enabled;
-        // components.init()
-        // console.log("components worlds",components.get(OBC.Worlds));
-
-
-                    setComponents(components);
-                }
-        
-        };
-
-        fetchBuildingElements();
-    },[ifcModel,components]);
-
-
-
-
-    useEffect(() => {
-        //console.log("elements changed, grouping starting")
-        //set data for table
-    }, [buildingElements])
-
-
-    const handleSelect = (selected: THREE.Intersection[]) => {
-        selected.forEach(mesh => {
-            console.log('Selected objects:', mesh.object);
-            if(mesh.object instanceof FRAGS.FragmentMesh && mesh.object.material[0] instanceof THREE.MeshStandardMaterial)
-            {
-                mesh.object.fragment.setVisibility(true);
-                // console.log('Frag', mesh.object);
-                // //var oldColor = child.instanceColor.array;
-                // const material = mesh.object.material[0];
-                // material.wireframe = !material.wireframe;
-                //             //material.color = new THREE.Color(oldColor[0],oldColor[1],oldColor[2]);
-
-            }
-        })
-      };
+    // useEffect(() => {
+    // // create world
+    // if(!components || !containerRef.current) return;
     
+    // console.log("viewer fiber container", containerRef.current)
+    // let world = SetUpWorld(components, containerRef.current)
+    // // world?.camera.three = scene;
+    // console.log("viewer setting up world after ifc import ",containerRef.current, world);
+    // // resizeWorld(world);
+    // const simpleWorld = world as OBC.World;
+    // modelState?.setWorld(simpleWorld);
+    // },[components]);
 
     if(loading) return <div>Loading...</div>;
     return (
@@ -129,7 +57,6 @@ export const ViewerFiber = ({ifcModel, components} : ViewerProps) => {
             {/* <CameraControler ifcModel={fragGroup} />? */}
             <OrbitControls makeDefault /> 
 
-            <RaycasterComponent onSelect={handleSelect}/>           
             <directionalLight castShadow position={ [ 1, 2, 3 ] } intensity={ 4.5 } />
             <ambientLight intensity={ 6.5 } />
 
@@ -144,7 +71,7 @@ export const ViewerFiber = ({ifcModel, components} : ViewerProps) => {
             fadeDistance={25}
             fadeStrength={1}/>
 
-            <LoadModel components={component} ifcModel={fragGroup}></LoadModel>
+            {/* <LoadModel components={components} ifcModel={fragGroup}></LoadModel> */}
     </Canvas>
     </>
       );

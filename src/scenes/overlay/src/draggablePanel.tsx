@@ -1,9 +1,8 @@
 import { useTheme } from "@mui/material";
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import Draggable from "react-draggable";
-import { tokens,themeSettings } from "../../theme";
+import { tokens,themeSettings } from "../../../theme";
 import  "./styles.css";
-
 
 export const DraggablePanel = ({children}) => {
     const theme = useTheme();
@@ -19,7 +18,7 @@ export const DraggablePanel = ({children}) => {
 
 
 
-    const handleDrag = (e, ui) => {
+    const handleDrag = (e: any, ui: any) => {
         setPosition({x: ui.x, y: ui.y})
     }
 

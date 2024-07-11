@@ -1,22 +1,22 @@
 import { useContext, useEffect, useRef } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import { ModelStateContext } from "../../context/ModelStateContext"
+import { useModelContext} from "../../context/ModelStateContext"
 import { GetBuildingElements } from "../../utilities/IfcUtilities"
-import ThreeScene from "../viewer/threeViewer"
+import ThreeViewer from "../viewer/threeViewer"
 import Layout from "./Layout"
 import * as FRAGS from "@thatopen/fragments";
 import { ComponentsContext } from "../../context/ComponentsContext"
 import { setUpGroup } from "../../utilities/BuildingElementUtilities"
 import { VisibilityStateManager } from "../../components/VisibilityStateManager"
+import ViewerFiber from "../viewer/viewerFiber"
+import { ThreeScene } from "../viewer/threeScene"
+import { WebComponentViewer } from "../viewer/webComponentViewer"
+import ThreeLandingPage from "../landingPage/threeLandingPage"
 
 
 export const AppRouter = () => {
     const containerRef = useRef(null);
-    const context = useContext(ModelStateContext);
-    if (!context) {
-        throw new Error('AppRouter must be used within a ModelStateProvider');
-      }
-    const {setCurrentModel,setBuildingElements, setGroups, setGroupVisibility} = context
+    const {setCurrentModel,setBuildingElements, setGroups, setGroupVisibility} = useModelContext();
     const components = useContext(ComponentsContext)
 
     const handleIFCLoad = (loadedifcFile: FRAGS.FragmentsGroup | undefined) => {
@@ -49,9 +49,12 @@ export const AppRouter = () => {
                 <Routes>
                   {/* <Route path='/' element={<LandingPage/>} /> */}
                   <Route path='/*' element={<Layout onIfcFileLoad={handleIFCLoad}/>} >
-                    <Route path='' element={<ThreeScene/>} />
+                  {/* <Route path='' element={<ThreeViewer/>} /> */}
+                  {/* <Route path='' element={<WebComponentViewer/>} /> */}
+                    {/* <Route path='' element={<ThreeScene/>} /> */}
                     {/* <Route path='dashboard' element={<DashBoard loadedBuildingElements={buildingElements}/>} /> */}
-                    {/* <Route path='' element={<ThreeLandingPage/>} /> */}
+                    {/* <Route path='' element={<ViewerFiber/>} /> */}
+                    <Route path='' element={<ThreeScene/>} />
                     {/* <Route path='dashboard' element={<ThreeLandingPage/>} /> */}
                   </Route>
 

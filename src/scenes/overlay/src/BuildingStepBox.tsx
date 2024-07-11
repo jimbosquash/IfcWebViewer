@@ -1,10 +1,9 @@
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
-import { tokens } from "../../theme";
-import { buildingElement, GroupingType } from "../../utilities/BuildingElementUtilities";
+import { tokens } from "../../../theme";
+import { buildingElement } from "../../../utilities/BuildingElementUtilities";
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
-import { ModelStateContext } from "../../context/ModelStateContext";
-import { useContext } from "react";
+import { useModelContext } from "../../../context/ModelStateContext";
 
 interface BuildingStepBoxProps{
     buildingStep: string;
@@ -13,7 +12,7 @@ interface BuildingStepBoxProps{
   
   export const BuildingStepBox = (props : BuildingStepBoxProps) => {
     const {buildingStep,elements} = props;
-    const modelState = useContext(ModelStateContext);
+    const modelState = useModelContext();
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
   

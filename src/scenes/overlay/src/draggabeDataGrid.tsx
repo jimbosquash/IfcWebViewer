@@ -1,11 +1,11 @@
 import { useState } from "react";
 import './styles.css';
 import { Box, useTheme } from "@mui/material";
-import { tokens } from "../theme.js";
-import { DataGrid, useGridApiRef, GridColDef, GridColumnVisibilityModel } from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridColumnVisibilityModel } from "@mui/x-data-grid";
 import { useEffect } from "react";
 import React from "react";
-import { buildingElement } from '../utilities/IfcUtilities';
+import { tokens } from "../../../theme";
+import { buildingElement } from "../../../utilities/BuildingElementUtilities";
 
 
 interface DraggableDataGridProps{

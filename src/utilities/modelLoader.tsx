@@ -22,7 +22,7 @@ export const LoadModel = ({ifcModel, components} : LoadModelProps) => {
     }
 
     // Get the scene from the underlying instance of threejs
-    //const { scene,gl,camera } = useThree()
+    // const { scene,gl,camera } = useThree()
     
 
     // State that will contain the rendered model at everytime, starts with a temporary cube
