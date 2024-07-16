@@ -1,7 +1,7 @@
 import { Box, useTheme, Typography, IconButton } from "@mui/material";
-import Draggable from "react-draggable";
 import { tokens } from "../../../theme";
-import TocIcon from "@mui/icons-material/Toc";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { useEffect, useState } from "react";
 import StationBox from "./StationBox";
 import { useModelContext } from "../../../context/ModelStateContext";
@@ -67,9 +67,10 @@ const TaskOverViewPanel = () => {
             sx={{ marginLeft: "16px", color: colors.grey[300] }}
             onClick={() => {
               setStationsVisible(!stationsVisible);
+
             }}
           >
-            {true ? <TocIcon /> : <TocIcon />}
+            {stationsVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           </IconButton>
         </Box>
         <div>

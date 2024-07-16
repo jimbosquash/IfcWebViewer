@@ -1,10 +1,12 @@
 import "../../styles.css";
 import { useContext, useEffect, useRef } from "react";
 import * as OBC from "@thatopen/components";
+import * as OBCF from "@thatopen/components-front";
 import { ComponentsContext } from "../../context/ComponentsContext";
 import { SetUpWorld } from "./src/SetUpWorld";
 import { useModelContext } from "../../context/ModelStateContext";
 import Overlay from "../overlay";
+import { shadows } from "@mui/system";
 
 export const ThreeScene = () => {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -47,26 +49,25 @@ export const ThreeScene = () => {
     //   console.log('setting up world again')
     // }
 
-    let cubeFound = false;
-    currentWorld.meshes.forEach((element) => {
-      if (element.name === "demo Cube") {
-        console.log("democudbe found");
-        cubeFound = true;
-        return;
-      }
-    });
-    if (cubeFound) return;
-
     // also check if already in scene before being here
-    if(currentModel.items.length !== 0)
+    if(components && currentModel.items.length !== 0)
     {
+
+        // const shadows = components.get(OBCF.ShadowDropper);
+        // shadows.shadowExtraScaleFactor = 50;
+        // shadows.shadowOffset = 0.1;
+      
       //add current model again
       for (const frag of currentModel.items) {
         currentWorld.meshes.add(frag.mesh);
+        // shadows.create([frag.mesh],"model shadow",currentWorld)
+
       }
   
       currentWorld.scene.three.add(currentModel);
       console.log("elements added to scene",currentModel, currentWorld.scene.three);
+      
+
     }
 
     const resizeWorld = () => {
@@ -89,6 +90,10 @@ export const ThreeScene = () => {
         console.log("world disposed", currentWorld);
         mountRef.current?.removeEventListener("resize", resizeWorld);
         setWorld(undefined);
+        // if(components)
+        // {const shadows = components.get(OBCF.ShadowDropper);}
+        // shadows.
+
       }
     };
   }, [currentWorld]);

@@ -43,6 +43,7 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     const world = worlds.create<OBC.SimpleScene, OBC.OrthoPerspectiveCamera, OBF.PostproductionRenderer>();
     world.name = name;
     world.scene = new OBC.SimpleScene(components)
+    world.scene.three
     world.scene.setup()
     world.scene.three.background = null;//new THREE.Color('blue')
 
@@ -52,11 +53,12 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     world.camera = new OBC.OrthoPerspectiveCamera(components)
     world.camera.projection.set('Orthographic');
     world.camera.enabled = true;
+    const light = new THREE.AmbientLight(0x424242,100)
     // const directionalLight = new THREE.PointLight( 0xffffff );
     // directionalLight.position.y = 3;
     // directionalLight.position.z = 3;
     // directionalLight.intensity = 1000;
-    //world.scene.three.add( directionalLight );
+    world.scene.three.add( light );
     const worldGrid = components.get(OBC.Grids).create(world)
     worldGrid.material.uniforms.uColor.value = new THREE.Color(0x424242)
     worldGrid.material.uniforms.uSize1.value = 2
@@ -67,8 +69,8 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     postproduction.setPasses({ custom: true, ao: true, gamma: true })
     postproduction.customEffects.lineColor = 0x17191c
 
-    //const highlighter = components.get(OBF.Highlighter)
-    //highlighter.setup({ world })
+    // const highlighter = components.get(OBF.Highlighter)
+    // highlighter.setup({ world })
     // highlighter.zoomToSelection = true
     const resizeWorld = () => {
       world.renderer?.resize();

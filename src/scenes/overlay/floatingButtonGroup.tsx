@@ -7,6 +7,7 @@ import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import ZoomInMapOutlined from "@mui/icons-material/ZoomInMapOutlined";
 import {
+  GetAdjacentGroup,
   GetNextGroup,
 } from "../../utilities/BuildingElementUtilities";
 import { ComponentsContext } from "../../context/ComponentsContext";
@@ -59,6 +60,56 @@ const FloatingButtonGroup = ({
     }
   };
 
+  const setAdjacentGroup = (adjacency: "previous" | "next") => {
+    if (!groups) return;
+
+    if (!selectedGroup) {
+      console.log("No group selected, default will be used");
+    }
+    const previousGroup = GetAdjacentGroup(selectedGroup, groups,adjacency);
+    if (previousGroup) {
+      console.log("group found and setting", previousGroup);
+
+      setSelectedGroup(previousGroup);
+
+      const visMap = new Map(groupVisibility);
+      visMap.forEach((visState, groupName) => visMap.set(groupName, true));
+      const matchingGroupType = groups.get(previousGroup.groupType)?.keys();
+      if (!matchingGroupType) return;
+
+      for (let groupName of Array.from(matchingGroupType)) {
+        if (groupName !== previousGroup.groupName) visMap.set(groupName, false);
+      }
+      console.log("new vis map set", visMap);
+      setGroupVisibility(visMap);
+    }
+  };
+
+  const setPreviousGroup = () => {
+    if (!groups) return;
+
+    if (!selectedGroup) {
+      console.log("No group selected, default will be used");
+    }
+    const previousGroup = GetAdjacentGroup(selectedGroup, groups,"previous");
+    if (previousGroup) {
+      console.log("group found and setting", previousGroup);
+
+      setSelectedGroup(previousGroup);
+
+      const visMap = new Map(groupVisibility);
+      visMap.forEach((visState, groupName) => visMap.set(groupName, true));
+      const matchingGroupType = groups.get(previousGroup.groupType)?.keys();
+      if (!matchingGroupType) return;
+
+      for (let groupName of Array.from(matchingGroupType)) {
+        if (groupName !== previousGroup.groupName) visMap.set(groupName, false);
+      }
+      console.log("new vis map set", visMap);
+      setGroupVisibility(visMap);
+    }
+  };
+
   return (
     <>
       <Box component={"div"}>
@@ -80,9 +131,7 @@ const FloatingButtonGroup = ({
             style={{ backgroundColor: colors.primary[400] }}
           >
             <div>{/* <DragIndicatorIcon /> */}</div>
-            <IconButton style={floatingButtonStyle}>
-              <NavigateBeforeIcon fontSize="large" />
-            </IconButton>
+            
             <IconButton
               style={floatingButtonStyle}
               onClick={() =>
@@ -110,8 +159,10 @@ const FloatingButtonGroup = ({
             >
               <ZoomInMapOutlined fontSize="small" />
             </IconButton>
-
-            <IconButton style={floatingButtonStyle} onClick={setNextGroup}>
+            <IconButton style={floatingButtonStyle} onClick={ () => setAdjacentGroup("previous")}>
+              <NavigateBeforeIcon fontSize="large" />
+            </IconButton>
+            <IconButton style={floatingButtonStyle} onClick={ () => setAdjacentGroup("next")}>
               <NavigateNextIcon fontSize="large" />
             </IconButton>
             <CommentIconButton />

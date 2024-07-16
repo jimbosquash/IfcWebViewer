@@ -11,7 +11,7 @@ import { useModelContext } from "../../../context/ModelStateContext";
 
 // todo find out how to pss down styles from parent container on buttons ... maybe
 export const CommentIconButton = () => {
-    const [isCommentsEnabled, setSsCommentsEnabled] = useState(false);
+    const [isCommentsEnabled, setIsCommentsEnabled] = useState(false);
     const components = useContext(ComponentsContext);
     const modelState = useModelContext();
   
@@ -63,7 +63,7 @@ export const CommentIconButton = () => {
 
     const comments = components.get(Comments);
     comments.enabled = !isCommentsEnabled;
-    setSsCommentsEnabled(!isCommentsEnabled);
+    setIsCommentsEnabled(!isCommentsEnabled);
 
   };
 

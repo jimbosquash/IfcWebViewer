@@ -15,79 +15,81 @@ export interface SelectionGroup {
 
 export type GroupingType = "Station" | "BuildingStep" | "Assembly" | "Unknown";
 
-export function GetNextGroup(current: SelectionGroup | undefined, groups: Map<string, Map<string,buildingElement[]>>) : SelectionGroup | undefined {
+export function GetNextGroup(current: SelectionGroup | undefined, groups: Map<string, Map<string, buildingElement[]>>): SelectionGroup | undefined {
+  if (!groups) return undefined;
+
+  // If no current group, return the first station group
+  if (!current) {
+    const stations = groups.get("Station");
+    if (!stations || stations.size === 0) return undefined;
+    
+    const [firstStationName, firstStationElements] = stations.entries().next().value;
+    return { groupType: "Station", groupName: firstStationName, elements: firstStationElements };
+  }
+
+  const groupType = groups.get(current.groupType);
+  if (!groupType) {
+    console.log("Get next group failed. grouping type not found", current.groupType);
+    return undefined;
+  }
+
+  // Convert keys to array for easier manipulation
+  const groupKeys = Array.from(groupType.keys());
+  const currentIndex = groupKeys.indexOf(current.groupName);
   
-  // console.log("groups", groups)
-  if(!groups) return;
+  // If current group not found or it's the last group, cycle to the first group
+  const nextIndex = (currentIndex === -1 || currentIndex === groupKeys.length - 1) ? 0 : currentIndex + 1;
+  const nextGroupKey = groupKeys[nextIndex];
 
-  if(!current)
-  {
-    const stations = groups.get("Station")//?.entries().next().value;
-    // console.log("station map", stations)
-
-    const firstStation = stations?.entries().next().value;
-    console.log("first station map", firstStation)
-
-      return {groupType: "Station",groupName: stations?.keys().next().value, elements: stations?.values().next().value }
-    return;
-
-  }
-
-  let groupType = groups.get(current.groupType);
-  if(!groupType)
-  {
-    console.log("Get next group failed. grouping type not found", current.groupType)
-    return;
-  }
-  console.log("group types", groupType)
-  console.log("current group", current)
-
-
-  var nextGroupKey: string = "";
-  let groupFound = false;
-  // console.log("group Type", groupType)
-
-  for(let key of groupType.keys())
-  {
-    console.log("grop key", key)
-    if(groupFound)
-      {
-        nextGroupKey = key;
-        break;
-      }
-    if(key === current.groupName)
-      {
-        groupFound = true;
-      }
-  }
-  console.log("next group key", nextGroupKey)
-
-  // groupType.forEach((value, key) => {
-  //   console.log("entrie",value,key)
-  //   // if(groupFound)
-  //   //   {
-  //   //     nextGroupKey = key;
-  //   //     return;
-  //   //   }
-  //   // if(key === current.groupName)
-  //   //   groupFound = true;
-  // })
-
-  // if not set but found, assume it is the last value in the last then go to first value
-  if(nextGroupKey === "" && groupFound)
-    {
-      nextGroupKey = groupType.keys().next().value;
-      console.log("last group key found, using first group key", nextGroupKey)
-
-    }
-  
   const elements = groupType.get(nextGroupKey);
-  if(elements)
-    {
-      console.log('next group returned',nextGroupKey)
-      return {groupType: current.groupType,groupName: nextGroupKey, elements: elements }
-    }
-  return;
+  if (elements) {
+    return { groupType: current.groupType, groupName: nextGroupKey, elements };
+  }
+
+  return undefined;
+}
+
+export function GetAdjacentGroup(
+  current: SelectionGroup | undefined,
+  groups: Map<string, Map<string, buildingElement[]>>,
+  direction: 'next' | 'previous' = 'next'
+): SelectionGroup | undefined {
+  if (!groups) return undefined;
+
+  // If no current group, return the first or last station group based on direction
+  if (!current) {
+    const stations = groups.get("Station");
+    if (!stations || stations.size === 0) return undefined;
+    
+    const stationEntries = Array.from(stations.entries());
+    const [stationName, stationElements] = direction === 'next' ? stationEntries[0] : stationEntries[stationEntries.length - 1];
+    return { groupType: "Station", groupName: stationName, elements: stationElements };
+  }
+
+  const groupType = groups.get(current.groupType);
+  if (!groupType) {
+    console.log("Get adjacent group failed. grouping type not found", current.groupType);
+    return undefined;
+  }
+
+  const groupKeys = Array.from(groupType.keys());
+  const currentIndex = groupKeys.indexOf(current.groupName);
+  
+  let adjacentIndex: number;
+  if (direction === 'next') {
+    adjacentIndex = (currentIndex === -1 || currentIndex === groupKeys.length - 1) ? 0 : currentIndex + 1;
+  } else {
+    adjacentIndex = (currentIndex === -1 || currentIndex === 0) ? groupKeys.length - 1 : currentIndex - 1;
+  }
+  
+  const adjacentGroupKey = groupKeys[adjacentIndex];
+  const elements = groupType.get(adjacentGroupKey);
+
+  if (elements) {
+    return { groupType: current.groupType, groupName: adjacentGroupKey, elements };
+  }
+
+  return undefined;
 }
 
 export const setUpGroup = (elements: buildingElement[]) => {

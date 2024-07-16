@@ -6,7 +6,7 @@ import PropertyOverViewPanel from "./src/propertyOverViewPanel";
 import TaskOverViewPanel from "./src/taskOverviewPanel";
 
 const Overlay = () => {
-  const [isGroupPanelVisible, setIsGroupPanelVisible] = useState(false);
+  const [isGroupPanelVisible, setIsGroupPanelVisible] = useState(true);
   const [isPropertyPanelVisible, setIsPropertyPanelVisible] = useState(false);
   const [selectedBuildingElements, setSelectedBuildingElements] =
     useState<buildingElement[]>();
