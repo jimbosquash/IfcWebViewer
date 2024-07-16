@@ -15,7 +15,7 @@ interface LayoutProps {
 
 const Layout = ({ onIfcFileLoad }: LayoutProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
   const toggleSidebar = () => {
     setIsSidebarExpanded(!isSidebarExpanded);

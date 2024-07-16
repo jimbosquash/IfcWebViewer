@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
+import { FloatingPropertiesPanel } from "../../components/FloatingPropertiesPanel";
 import { useModelContext } from "../../context/ModelStateContext";
 import { buildingElement } from "../../utilities/BuildingElementUtilities";
 import FloatingButtonGroup from "./floatingButtonGroup";
-import PropertyOverViewPanel from "./src/propertyOverViewPanel";
+// import PropertyOverViewPanel from "./src/propertyOverViewPanel";
 import TaskOverViewPanel from "./src/taskOverviewPanel";
 
 const Overlay = () => {
@@ -31,7 +32,8 @@ const Overlay = () => {
       />
       {isGroupPanelVisible && <TaskOverViewPanel />}
       {isPropertyPanelVisible && (
-        <PropertyOverViewPanel buildingElements={selectedBuildingElements} />
+        // <PropertyOverViewPanel buildingElements={selectedBuildingElements} />
+        <FloatingPropertiesPanel />
       )}
     </div>
   );

@@ -9,13 +9,11 @@ export const BimSettings = () => {
     const components = useContext(ComponentsContext);
     const panelSection = useRef<HTMLDivElement | null>(null);
     const [isSetUp, setIsSetUp] = useState<boolean>(false);
-    const [dimensions, setDimensions] = useState({ width: '200px', height: '300px' });
 
-
-
-  
     useEffect(() => {
       if (!components || isSetUp) return;
+      BUI.Manager.init();
+
   
     //   console.log("is set up", isSetUp);
 
@@ -26,15 +24,17 @@ export const BimSettings = () => {
     }
   
       const loadSettingsPanel = () => {
-        // const modelloadedSection = asyncGetModelLoadedPanelSection(components);
+        const modelloadedSection = asyncGetModelLoadedPanelSection(components);
+        const relationsTree = createrelationsTreeComponent(components );
   
         const panel = BUI.Component.create(() => {
           const [loadIfcBtn] = CUI.buttons.loadIfc({ components });
 
           return BUI.html`
             <bim-panel label="Settings" >
-            <bim-panel-section label="Importing">
-      ${loadIfcBtn}
+            <bim-panel-section>
+      ${modelloadedSection}
+      ${relationsTree}
     </bim-panel-section>
 
             </bim-panel> 
@@ -59,41 +59,21 @@ export const BimSettings = () => {
         setIsSetUp(false);
       };
     }, [components]);
-
-  //   useEffect(() => {
-  //     const updateDimensions = () => {
-  //         // You can adjust this logic to set dimensions based on parent container or window size
-  //         setDimensions({
-  //             width: `${window.innerWidth * 0.2}px`,  // 20% of window width
-  //             height: `${window.innerHeight * 0.8}px` // 80% of window height
-  //         });
-  //     };
-
-  //     updateDimensions();
-  //     window.addEventListener('resize', updateDimensions);
-
-  //     return () => window.removeEventListener('resize', updateDimensions);
-  // }, []);
-
-
   
-    return (
-      <div 
+    return (<>
+    <div 
             className="BimSettings" 
             style={{
-                width: dimensions.width, 
-                height: dimensions.height,
                 overflow: 'auto'  // Add scroll if content exceeds dimensions
             }} 
             ref={panelSection}
         ></div>
+    </>
     );
   };
 
 const asyncGetModelLoadedPanelSection = (components: OBC.Components) => {
   if (!components) return;
-
-  const ifcLoader = components.get(OBC.IfcLoader);
 
   const [modelsList] = CUI.tables.modelsList({ components });
   console.log('setting up ifc property panel',modelsList)
@@ -108,35 +88,34 @@ const asyncGetModelLoadedPanelSection = (components: OBC.Components) => {
   });
 };
 
-const GetBimPanelSectionTest = (components: OBC.Components) => {
+const createrelationsTreeComponent = (components: OBC.Components): HTMLElement | undefined => {
   if (!components) return;
+  const fragmentsManager = components.get(OBC.FragmentsManager);
+  const indexer = components.get(OBC.IfcRelationsIndexer);
+  fragmentsManager.onFragmentsLoaded.add(async (model) => {
+    if (model.hasProperties) await indexer.process(model);
+  });
 
-  const [classificationsTree, updateClassificationsTree] =
-    CUI.tables.classificationTree({
-      components,
-      classifications: {},
-    });
+  const [relationsTree] = CUI.tables.relationsTree({
+    components,
+    models: [],
+  });
 
-  const classifier = components?.get(OBC.Classifier);
-  const fragmentsManager = components?.get(OBC.FragmentsManager);
+  relationsTree.preserveStructureOnFilter = true;
 
-  fragmentsManager?.onFragmentsLoaded.add(async (model) => {
-    classifier?.byEntity(model);
-
-    await classifier?.byPredefinedType(model);
-    const classifications = {
-      Entities: ["entities"],
-      "Predefined Types": ["predefinedTypes"],
+  const panel = BUI.Component.create(() => {
+    const onSearch = (e: Event) => {
+      const input = e.target as BUI.TextInput;
+      relationsTree.queryString = input.value;
     };
 
-    updateClassificationsTree({ classifications });
+    return BUI.html`
+           <bim-panel-section label="Model Tree">
+             <bim-text-input @input=${onSearch} placeholder="Search..." debounce="200"></bim-text-input>
+             ${relationsTree}
+           </bim-panel-section>
+         `;
   });
 
-  return BUI.Component.create<BUI.PanelSection>(() => {
-    return BUI.html`
-<bim-panel-section label="Classifications">
-${classificationsTree}
-</bim-panel-section>
-`;
-  });
-};
+  return panel;
+}
