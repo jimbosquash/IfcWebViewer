@@ -15,13 +15,7 @@ import { useModelContext } from "../../context/ModelStateContext";
 import { InfoPanel } from "./InfoPanel";
 import { InfoPanelContext, InfoPanelDataProvider } from "../../context/InfoPanelContext";
 
-
-interface TopbarProps {
-    // onComponentsSet: ; // this should take component to manage top level better
-    onIfcFileLoad: (ifcModel: any) => void;
-}
-
-const Topbar: React.FC<TopbarProps> = ({ onIfcFileLoad }) => {
+const Topbar: React.FC = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const colorMode = useContext(ColorModeContext);
@@ -42,10 +36,10 @@ const Topbar: React.FC<TopbarProps> = ({ onIfcFileLoad }) => {
       });
     };
   
-    const handleIFCLoad = (ifcModel: any) => {
-      onIfcFileLoad(ifcModel);
-      setSnackbarOpen(true);
-    };
+    // const handleIFCLoad = (ifcModel: any) => {
+    //   onIfcFileLoad(ifcModel);
+    //   setSnackbarOpen(true);
+    // };
   
     const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
       if (reason === 'clickaway') {
@@ -59,6 +53,7 @@ const Topbar: React.FC<TopbarProps> = ({ onIfcFileLoad }) => {
     //     console.log('topbar: current model setting', modelContext?.currentModel);
     //   }
     // }, [modelContext?.currentModel]);
+    useEffect
   
     useEffect(() => {
       handleDataUpdate();

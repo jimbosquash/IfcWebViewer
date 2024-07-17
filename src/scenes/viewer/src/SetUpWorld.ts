@@ -107,7 +107,6 @@ export function SetUpFiberWorld(components: OBC.Components, containerRef: HTMLEl
 
     world.renderer = new OBF.PostproductionRenderer(components, containerRef)
     const { postproduction } = world.renderer;
-
     world.camera = new OBC.OrthoPerspectiveCamera(components)
     world.camera.projection.set('Orthographic');
     world.camera.enabled = true;

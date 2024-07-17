@@ -52,7 +52,7 @@ export const AppRouter = () => {
               <main style={{flex: 1, padding: "0"}}>
                 <Routes>
                   {/* <Route path='/' element={<LandingPage/>} /> */}
-                  <Route path='/*' element={<Layout onIfcFileLoad={handleIFCLoad}/>} >
+                  <Route path='/*' element={<Layout/>} >
                   <Route path='' element={<ThreeScene/>} />
                   {/* <Route path='' element={<ThreeViewer/>} /> */}
                   {/* <Route path='' element={<WebComponentViewer/>} /> */}
