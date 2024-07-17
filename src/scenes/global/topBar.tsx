@@ -14,39 +14,7 @@ import * as OBC from "@thatopen/components";
 import { useModelContext } from "../../context/ModelStateContext";
 import { InfoPanel } from "./InfoPanel";
 import { InfoPanelContext, InfoPanelDataProvider } from "../../context/InfoPanelContext";
-// import "./topBar.css"
 
-
-interface routerButtonProps {
-    title: string;
-    to: string;
-    icon: any;
-    selected: string;
-    setSelected: (title: string) => void;
-  
-  }
-
-
-const RoutingButton : React.FC<routerButtonProps> = ({ title, to, icon, selected, setSelected }) => {
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
-    return (
-        <Link to={to}>
-        <IconButton
-        style={{
-          color: colors.grey[100],
-          textDecoration: 'none'
-        }}
-        onClick={() => {
-            setSelected(title)
-            console.log(to)
-        }}>
-        {icon}
-        {/* <Typography>{title}</Typography> */}
-        </IconButton>
-    </Link>
-    );
-  };
 
 interface TopbarProps {
     // onComponentsSet: ; // this should take component to manage top level better
@@ -98,39 +66,30 @@ const Topbar: React.FC<TopbarProps> = ({ onIfcFileLoad }) => {
   
     return (
       <Box
-        component={'div'}
+        component='div'
         className='topBar'
-        position={'absolute'}
+        position='relative'
         display='flex'
         justifyContent='space-between'
         alignItems='center'
         p={2}
-        style={{ width: '100%' }}
+        width= '100%' 
         >
-        <Box component={'div'} display='flex' alignItems='center'>
-          <UploadIfcButton setFileName={setFileName} onIfcFileLoad={handleIFCLoad} />
-        </Box>
         <InfoPanel />
-        {/* TOP RIGHT CORNER */}
-        <Box component={'div'} display='flex' alignItems='center'>
+
+        {/* TOP RIGHT CORNER ICON BUTTONS */}
+        <Box 
+        component='div'
+        position="absolute"
+        top={0}
+        right={0}
+        p={2}
+        >
           <IconButton onClick={colorMode.toggleColorMode}>
             {theme.palette.mode === 'dark' ? <DarkModeOutlinedIcon /> : <LightModeOutlinedIcon />}
           </IconButton>
-          {/* <RoutingButton
-            title='Settings'
-            to='/dashboard'
-            icon={<MenuOutlinedIcon />}
-            selected={selected}
-            setSelected={setSelected}
-          /> */}
-          {/* <RoutingButton
-            title='Viewer'
-            to='/'
-            icon={<HomeOutlinedIcon />}
-            selected={selected}
-            setSelected={setSelected}
-          /> */}
         </Box>
+
         {/* corner pop up */}
         <Snackbar
           open={snackbarOpen}

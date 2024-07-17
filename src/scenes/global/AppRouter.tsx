@@ -15,6 +15,14 @@ export const AppRouter = () => {
     const {setCurrentModel,setBuildingElements, setGroups, setGroupVisibility} = useModelContext();
     const components = useContext(ComponentsContext)
 
+    if(components)
+    {
+      // then listen to event
+      // components.get(OBC.fragmentsManager)
+    }
+
+
+
     // this location is a code smell
     const handleIFCLoad = (loadedifcFile: FRAGS.FragmentsGroup | undefined) => {
         if(!loadedifcFile || !components)return;

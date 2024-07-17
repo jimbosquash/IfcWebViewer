@@ -21,7 +21,7 @@ export const InfoPanel = () => {
   }, [infoPanelContext]);
 
   const infoBoxStyle: React.CSSProperties = {
-    position: "fixed",
+    position: "absolute",
     top: "20px",
     left: "50%",
     transform: "translateX(-50%)",

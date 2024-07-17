@@ -9,6 +9,9 @@ export class ModelCache extends OBC.Component {
     private _enabled = false
     private _models: Map<string, FRAGS.FragmentsGroup> = new Map<string, FRAGS.FragmentsGroup>;
     static uuid = "005d1863-99d7-453d-96ef-c07b309758ce" as const;
+    readonly onModelAdded = new OBC.Event<FRAGS.FragmentsGroup>()
+    readonly onModelStartRemoving = new OBC.Event<FRAGS.FragmentsGroup>()
+    private _world: OBC.World | null = null;
 
 
 
@@ -26,6 +29,8 @@ export class ModelCache extends OBC.Component {
             return false;
 
         this._models.set(model.uuid, model)
+        console.log("model added to cache", model)
+        this.onModelAdded.trigger(model)
         return true;
     }
 
@@ -35,6 +40,18 @@ export class ModelCache extends OBC.Component {
 
     dispose() {
         this._models = new Map<string, FRAGS.FragmentsGroup>();
+    }
+
+    set world(world: OBC.World | null) {
+        this._world = world
+        console.log("model cache, new world set",world)
+
+        if(world){
+        }
+    }
+
+    get world() {
+        return this._world
     }
 
 

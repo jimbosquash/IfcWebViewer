@@ -16,7 +16,7 @@ async function LoadIfcFile(file: File, components: OBC.Components) : Promise<FRA
 
     fragmentIfcLoader.settings.webIfc.COORDINATE_TO_ORIGIN = true;
     // fragmentIfcLoader.settings.webIfc.OPTIMIZE_PROFILES = true;
-
+console.log("opening file",fragmentIfcLoader)
     const loadedModel = await fragmentIfcLoader.load(new Uint8Array(await file.arrayBuffer()));
     
     loadedModel.name = file.name;
