@@ -1,6 +1,4 @@
-import { ThreeDRotation } from "@mui/icons-material";
 import * as OBC from "@thatopen/components";
-import { Configurable, SimpleCamera, SimpleScene } from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
 import * as THREE from 'three';
 
@@ -53,7 +51,7 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     world.camera = new OBC.OrthoPerspectiveCamera(components)
     world.camera.projection.set('Orthographic');
     world.camera.enabled = true;
-    const light = new THREE.AmbientLight(0x424242,100)
+    const light = new THREE.AmbientLight(0x424242,30)
     // const directionalLight = new THREE.PointLight( 0xffffff );
     // directionalLight.position.y = 3;
     // directionalLight.position.z = 3;

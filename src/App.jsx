@@ -10,9 +10,7 @@ import { AppRouter } from './scenes/global/AppRouter';
 import * as FRAGS from "@thatopen/fragments";
 
 function App() {
-  const [ifcFile,setIfcFile] = useState();
   const [theme,colorMode] = useMode();
-  const [buildingElements, setBuildingElements] = useState([]);
   const [components, setCompenents] = useState(null);
   const isInitialized = useRef(false);
 
@@ -31,9 +29,7 @@ function App() {
     <ComponentsProvider components={components}>
       <ThemeProvider theme={theme}>
         <CssBaseline/>
-          <ModelStateProvider currentModel={new FRAGS.FragmentsGroup()} buildingElements={buildingElements} groups={undefined} selectedGroup={undefined}>
           <AppRouter/>
-        </ModelStateProvider>
     </ThemeProvider>
     </ComponentsProvider>
   </ColorModeContext.Provider>

@@ -1,10 +1,7 @@
 import * as OBC from "@thatopen/components";
-import { FragmentsGroup } from "@thatopen/fragments";
 import * as BUI from "@thatopen/ui";
 import * as CUI from "@thatopen/ui-obc";
-import * as THREE from "three"
 import { useContext, useEffect, useRef, useState } from "react";
-import { ModelCache } from "../../../bim-components/modelCache";
 import { ComponentsContext } from "../../../context/ComponentsContext";
 import { UploadButton } from "../../../bim-components/src/uploadButton";
 
@@ -16,34 +13,8 @@ export const BimSettings = () => {
   useEffect(() => {
     if (!components || isSetUp) return;
     BUI.Manager.init();
-    const loader = components.get(OBC.IfcLoader);
-    if (loader) {
-      loader.onIfcStartedLoading;
-    }
 
-    const loadSettingsPanel = async () => {
-      const modelloadedSection = asyncGetModelLoadedPanelSection(components);
-      const relationsTree = createrelationsTreeComponent(components);
-      const uploadButton = await UploadButton(components);
-      const panel = BUI.Component.create(() => {
-        return BUI.html`
-            <bim-panel label="Settings" >
-              <bim-panel-section>
-                ${uploadButton}
-                ${modelloadedSection}
-                ${relationsTree}
-              </bim-panel-section>
-            </bim-panel> 
-          `;
-      });
-      if (panelSection.current && panel) {
-        panelSection.current.appendChild(panel);
-      }
-
-      setIsSetUp(true);
-    };
-
-    loadSettingsPanel();
+    loadSettingsPanel(components);
 
     return () => {
       if (panelSection.current) {
@@ -52,6 +23,29 @@ export const BimSettings = () => {
       setIsSetUp(false);
     };
   }, [components]);
+
+  const loadSettingsPanel = async (components: OBC.Components) => {
+    if (!components) return;
+    const modelloadedSection = asyncGetModelLoadedPanelSection(components);
+    const relationsTree = createrelationsTreeComponent(components);
+    const uploadButton = await UploadButton(components);
+    const panel = BUI.Component.create(() => {
+      return BUI.html`
+          <bim-panel label="Settings" >
+            <bim-panel-section>
+              ${uploadButton}
+              ${modelloadedSection}
+              ${relationsTree}
+            </bim-panel-section>
+          </bim-panel> 
+        `;
+    });
+    if (panelSection.current && panel) {
+      panelSection.current.replaceChildren(panel);
+    }
+
+    setIsSetUp(true);
+  };
 
   return (
     <>
@@ -113,5 +107,3 @@ const createrelationsTreeComponent = (components: OBC.Components): HTMLElement |
 
   return panel;
 };
-
-

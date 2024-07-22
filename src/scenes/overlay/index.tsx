@@ -2,19 +2,14 @@ import { Snackbar, Alert } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { FloatingPropertiesPanel } from "../../components/FloatingPropertiesPanel";
 import { ComponentsContext } from "../../context/ComponentsContext";
-import { useModelContext } from "../../context/ModelStateContext";
-import { buildingElement } from "../../utilities/BuildingElementUtilities";
 import Topbar from "../global/topBar";
 import FloatingButtonGroup from "./floatingButtonGroup";
 import * as OBC from "@thatopen/components";
-// import PropertyOverViewPanel from "./src/propertyOverViewPanel";
 import TaskOverViewPanel from "./src/taskOverviewPanel";
 
 const Overlay = () => {
   const [isGroupPanelVisible, setIsGroupPanelVisible] = useState(true);
   const [isPropertyPanelVisible, setIsPropertyPanelVisible] = useState(false);
-  const [selectedBuildingElements, setSelectedBuildingElements] = useState<buildingElement[]>();
-  const { selectedGroup } = useModelContext();
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [fileName, setFileName] = useState<string>("");
   const components = useContext(ComponentsContext);
@@ -30,12 +25,6 @@ const Overlay = () => {
       fragments.onFragmentsLoaded.remove((data) => setSnackbarOpen(true));
     };
   }, [components]);
-
-  useEffect(() => {
-    if (selectedGroup) {
-      setSelectedBuildingElements(selectedGroup.elements);
-    }
-  }, [selectedGroup]);
 
   const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === "clickaway") {
@@ -72,7 +61,6 @@ const Overlay = () => {
         </div>
       )}
       {isPropertyPanelVisible && (
-        // <PropertyOverViewPanel buildingElements={selectedBuildingElements} />
         <div style={{ pointerEvents: "auto" }}>
           <FloatingPropertiesPanel />
         </div>

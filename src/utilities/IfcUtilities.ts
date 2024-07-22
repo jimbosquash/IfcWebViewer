@@ -189,7 +189,8 @@ export async function GetBuildingElements(loadedModel : FRAGS.FragmentsGroup, co
             if(elements)
             {
                 const element = elements[reltingElement]
-                //console.log("element related",element)
+                // console.log("element related",element)
+                // console.log("element ifc properties",elements)
 
                 const newElement : buildingElement = {
                                 expressID: element.expressID,

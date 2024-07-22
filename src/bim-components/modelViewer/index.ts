@@ -30,6 +30,15 @@ export class ModelViewManager extends OBC.Component {
 
     constructor(components: OBC.Components) {
         super(components);
+
+        const frag = components.get(OBC.FragmentsManager)
+        frag.onFragmentsDisposed.add((data) => this.cleanUp(data.groupID,data.fragmentIDs))
+    }
+
+    cleanUp = (groupID: string, fragmentIDs: string[]) => {
+
+        
+
     }
 
     setUpGroups = (buildingElements: buildingElement[] | undefined, groupVisibility?: Map<string, boolean>): void => {
@@ -44,6 +53,7 @@ export class ModelViewManager extends OBC.Component {
         this.onGroupsChanged.trigger(this._groups);
 
         this._groupVisibility = groupVisibility ?? this.createDefaultGroupVisibility();
+        this._selectedGroup = undefined;
         this._enabled = true;
         this.onGroupVisibilitySet.trigger(this._groupVisibility);
         this.updateVisibility();

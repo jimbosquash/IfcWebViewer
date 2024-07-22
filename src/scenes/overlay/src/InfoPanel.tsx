@@ -16,7 +16,6 @@ export const InfoPanel = () => {
   const colors = tokens(theme.palette.mode);
   const components = useContext(ComponentsContext);
   const [infoPanelData, setPanelData] = useState<InfoPanelProps>();
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [showToolTip, setShowToolTip] = useState<boolean>(false);
 
   useEffect(() => {
@@ -57,27 +56,6 @@ export const InfoPanel = () => {
     flex: 1,
     padding: "6px",
     textAlign: "center",
-  };
-
-  const subBoxHoveredStyle: React.CSSProperties = {
-    backgroundColor: "#f0f0f0", // {colors.grey[200]}
-  };
-
-  const subBoxNotLastChildStyle: React.CSSProperties = {
-    borderRight: "1px solid #ddd",
-  };
-
-  const tooltipStyle: React.CSSProperties = {
-    position: "absolute",
-    top: "50px",
-    left: "50%",
-    transform: "translateX(-50%)",
-    backgroundColor: "white",
-    border: "1px solid #ddd",
-    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-    borderRadius: "5px",
-    padding: "5px",
-    zIndex: 1001,
   };
 
   const nonSelectableTextStyle = {

@@ -4,7 +4,6 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { useContext, useEffect, useState } from "react";
 import StationBox from "./StationBox";
-import { useModelContext } from "../../../context/ModelStateContext";
 import { buildingElement } from "../../../utilities/BuildingElementUtilities";
 import { ComponentsContext } from "../../../context/ComponentsContext";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
@@ -12,7 +11,6 @@ import { ModelViewManager } from "../../../bim-components/modelViewer";
 const TaskOverViewPanel = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const { groups } = useModelContext();
   const components = useContext(ComponentsContext);
   const [stations, setStationGroup] = useState<Map<string, buildingElement[]>>();
   const [stationsVisible, setStationsVisible] = useState<boolean>(true);

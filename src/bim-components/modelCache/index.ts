@@ -11,6 +11,7 @@ export class ModelCache extends OBC.Component {
     readonly onModelAdded = new OBC.Event<FRAGS.FragmentsGroup>()
     readonly onModelStartRemoving = new OBC.Event<FRAGS.FragmentsGroup>()
     readonly onBuildingElementsChanged = new OBC.Event<buildingElement[]>()
+    readonly onWorldSet = new OBC.Event<OBC.World>()
     private _world: OBC.World | null = null;
 
     private _buildingElements: buildingElement[] | undefined;
@@ -20,9 +21,22 @@ export class ModelCache extends OBC.Component {
     }
 
 
-    delete(model: string) {
-        this._models.delete(model)
+    async delete(groupID: string): Promise<boolean> {
+        this._models.delete(groupID)
+
+
+        // Filter out elements whose ids are in the idSet
+        const result = this._buildingElements?.filter(element => element.modelID !== groupID);
+        // console.log(result)
+
+        this._buildingElements = result;
+        this.components.get(ModelViewManager).setUpGroups(this._buildingElements);
+        console.log("building element count:", this._buildingElements?.length)
+        return true;
     }
+
+    // delete
+    // remove building building elements
 
     async add(model: FRAGS.FragmentsGroup): Promise<boolean> {
         if (this._models.has(model.uuid))
@@ -46,6 +60,10 @@ export class ModelCache extends OBC.Component {
 
             this.components.get(ModelViewManager).setUpGroups(this._buildingElements);
             this.components.get(ModelViewManager).enabled = true;
+            this.components.get(OBC.FragmentsManager).onFragmentsDisposed.add((data) => {
+                this.delete(data.groupID)
+                console.log("fragmentunloaded", data)
+            })
             return true;
         } catch (error) {
             console.error('Error fetching building elements:', error);
@@ -53,6 +71,7 @@ export class ModelCache extends OBC.Component {
         }
 
     }
+
 
     exists(model: FRAGS.FragmentsGroup): boolean {
         return this._models.has(model.uuid);
@@ -66,8 +85,8 @@ export class ModelCache extends OBC.Component {
     set world(world: OBC.World | null) {
         this._world = world
         console.log("model cache, new world set", world)
-
-        if (world) {
+        if (this._world !== null) {
+            this.onWorldSet.trigger(this._world)
         }
     }
 

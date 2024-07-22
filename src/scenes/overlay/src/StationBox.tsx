@@ -29,11 +29,11 @@ const StationBox: React.FC<StationBoxProps> = ({ stationName, elements }) => {
   useEffect(() => {
     if (!components) return;
     const viewManager = components.get(ModelViewManager);
-    console.log(
-      "stationBox: component changed, setting view manager, vis state",
-      stationName,
-      modelViewManager?.GroupVisibility?.get(stationName)
-    );
+    // console.log(
+    //   "stationBox: component changed, setting view manager, vis state",
+    //   stationName,
+    //   modelViewManager?.GroupVisibility?.get(stationName)
+    // );
     viewManager.onGroupVisibilitySet.add((data) => handleVisibilityyUpdate(data));
     viewManager.onSelectedGroupChanged.add((data) => handleSelectedGroupChanged(data));
     setModelViewManager(viewManager);
@@ -72,7 +72,7 @@ const StationBox: React.FC<StationBoxProps> = ({ stationName, elements }) => {
     const visibilityState = data.get(stationName);
     if (visibilityState === undefined) return;
 
-    console.log("stationbox: handling visibility update:", data, visibilityState);
+    // console.log("stationbox: handling visibility update:", data, visibilityState);
     setIsVisible(visibilityState);
   };
 

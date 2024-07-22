@@ -67,13 +67,16 @@ const setMeshFaceDoubleSided = (model: FragmentsGroup): void => {
               console.warn(`Invalid color data for child ${i}`);
               continue;
             }
+            // console.log("material type:",child.material);
+            let mat = child.material as THREE.MeshLambertMaterial;
+            mat.side = THREE.DoubleSide;
+
+            // const material = new THREE.MeshStandardMaterial({
+            //   color: new THREE.Color(oldColor[0], oldColor[1], oldColor[2]),
+            //   side: THREE.DoubleSide
+            // });
   
-            const material = new THREE.MeshStandardMaterial({
-              color: new THREE.Color(oldColor[0], oldColor[1], oldColor[2]),
-              side: THREE.DoubleSide
-            });
-  
-            child.material = material;
+            // child.material = material;
           } else {
             console.warn(`Child ${i} has no instance color`);
           }
