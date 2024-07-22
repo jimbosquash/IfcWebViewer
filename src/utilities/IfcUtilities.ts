@@ -196,7 +196,8 @@ export async function GetBuildingElements(loadedModel : FRAGS.FragmentsGroup, co
                                 GlobalID: element.GlobalId.value,
                                 type: element.type,
                                 name: element.Name.value,
-                                properties: []
+                                properties: [],
+                                modelID: loadedModel.uuid
                             };   
                             
                 OBC.IfcPropertiesUtils.getPsetProps(loadedModel,propertySetID,(async (propertyId) => {

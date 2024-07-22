@@ -4,6 +4,7 @@ export interface buildingElement {
     GlobalID: string;
     type: number;
     name: string;
+    modelID: string; // the fraggroup id
     properties: {name: string, value: string}[]
 }
 

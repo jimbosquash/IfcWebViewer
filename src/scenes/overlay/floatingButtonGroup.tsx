@@ -1,18 +1,18 @@
 import { Box, ButtonGroup, IconButton, useTheme } from "@mui/material";
 import { useContext } from "react";
 import { tokens } from "../../theme";
+import * as OBC from "@thatopen/components";
 import TocIcon from "@mui/icons-material/Toc";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import ZoomInMapOutlined from "@mui/icons-material/ZoomInMapOutlined";
 import {
-  GetAdjacentGroup,
-  GetNextGroup,
+  GetAdjacentGroup, SelectionGroup,
 } from "../../utilities/BuildingElementUtilities";
 import { ComponentsContext } from "../../context/ComponentsContext";
-import { useModelContext } from "../../context/ModelStateContext";
 import { CommentIconButton } from "./src/commentIconButton";
+import { ModelViewManager } from "../../bim-components/modelViewer";
 
 interface floatingButtonProps {
   togglePropertyPanelVisibility: () => void;
@@ -26,89 +26,44 @@ const FloatingButtonGroup = ({
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useContext(ComponentsContext);
-  const {
-    currentWorld,
-    selectedGroup,
-    groups,
-    setSelectedGroup,
-    groupVisibility,
-    setGroupVisibility,
-  } = useModelContext();
-
-  const setNextGroup = () => {
-    if (!groups) return;
-
-    if (!selectedGroup) {
-      console.log("No group selected, default will be used");
-    }
-    const nextGroup = GetNextGroup(selectedGroup, groups);
-    if (nextGroup) {
-      console.log("Next group found and setting", nextGroup);
-
-      setSelectedGroup(nextGroup);
-
-      const visMap = new Map(groupVisibility);
-      visMap.forEach((visState, groupName) => visMap.set(groupName, true));
-      const matchingGroupType = groups.get(nextGroup.groupType)?.keys();
-      if (!matchingGroupType) return;
-
-      for (let groupName of Array.from(matchingGroupType)) {
-        if (groupName !== nextGroup.groupName) visMap.set(groupName, false);
-      }
-      console.log("new vis map set", visMap);
-      setGroupVisibility(visMap);
-    }
-  };
 
   const setAdjacentGroup = (adjacency: "previous" | "next") => {
-    if (!groups) return;
+    console.log()
+    if(!components) return;
 
-    if (!selectedGroup) {
+    const viewManager = components.get(ModelViewManager);
+
+    const current = viewManager.SelectedGroup;
+
+
+    if (!viewManager.Groups) return;
+
+    if (!current) {
       console.log("No group selected, default will be used");
     }
-    const previousGroup = GetAdjacentGroup(selectedGroup, groups,adjacency);
-    if (previousGroup) {
-      console.log("group found and setting", previousGroup);
+    const newGroup = GetAdjacentGroup(current, viewManager.Groups,adjacency);
+    if (newGroup) {
+      const visMap = IsolateSelected(components, newGroup);
 
-      setSelectedGroup(previousGroup);
+      viewManager.GroupVisibility = visMap;
+      viewManager.SelectedGroup = newGroup;
 
-      const visMap = new Map(groupVisibility);
-      visMap.forEach((visState, groupName) => visMap.set(groupName, true));
-      const matchingGroupType = groups.get(previousGroup.groupType)?.keys();
-      if (!matchingGroupType) return;
-
-      for (let groupName of Array.from(matchingGroupType)) {
-        if (groupName !== previousGroup.groupName) visMap.set(groupName, false);
-      }
-      console.log("new vis map set", visMap);
-      setGroupVisibility(visMap);
+      // set up
     }
   };
 
-  const setPreviousGroup = () => {
-    if (!groups) return;
+  const IsolateSelected = (components : OBC.Components,selected: SelectionGroup) => {
+    const viewManager = components.get(ModelViewManager);
+    const visMap = new Map(viewManager.GroupVisibility);
+    visMap.forEach((visState, groupName) => visMap.set(groupName, true));
+    const matchingGroupType = viewManager.Groups?.get(selected.groupType)?.keys();
+    if (!matchingGroupType) return;
 
-    if (!selectedGroup) {
-      console.log("No group selected, default will be used");
+    for (let groupName of Array.from(matchingGroupType)) {
+      if (groupName !== selected.groupName) visMap.set(groupName, false);
     }
-    const previousGroup = GetAdjacentGroup(selectedGroup, groups,"previous");
-    if (previousGroup) {
-      console.log("group found and setting", previousGroup);
-
-      setSelectedGroup(previousGroup);
-
-      const visMap = new Map(groupVisibility);
-      visMap.forEach((visState, groupName) => visMap.set(groupName, true));
-      const matchingGroupType = groups.get(previousGroup.groupType)?.keys();
-      if (!matchingGroupType) return;
-
-      for (let groupName of Array.from(matchingGroupType)) {
-        if (groupName !== previousGroup.groupName) visMap.set(groupName, false);
-      }
-      console.log("new vis map set", visMap);
-      setGroupVisibility(visMap);
-    }
-  };
+    return visMap;
+  }
 
   return (
     <>
@@ -146,7 +101,7 @@ const FloatingButtonGroup = ({
             >
               <DescriptionOutlined fontSize="small" />
             </IconButton>
-            <IconButton
+            {/* <IconButton
               style={floatingButtonStyle}
               onClick={() => {
                 if (components && currentWorld) {
@@ -158,7 +113,7 @@ const FloatingButtonGroup = ({
               }}
             >
               <ZoomInMapOutlined fontSize="small" />
-            </IconButton>
+            </IconButton> */}
             <IconButton style={floatingButtonStyle} onClick={ () => setAdjacentGroup("previous")}>
               <NavigateBeforeIcon fontSize="large" />
             </IconButton>

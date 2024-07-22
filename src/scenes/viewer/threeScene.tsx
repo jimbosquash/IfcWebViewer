@@ -7,11 +7,11 @@ import { SetUpWorld } from "./src/SetUpWorld";
 import { useModelContext } from "../../context/ModelStateContext";
 import Overlay from "../overlay";
 import { ModelCache } from "../../bim-components/modelCache";
+import { ModelViewManager } from "../../bim-components/modelViewer";
 
 export const ThreeScene = () => {
   const mountRef = useRef<HTMLDivElement>(null);
   const components = useContext(ComponentsContext);
-  const { currentWorld, currentModel, setWorld } = useModelContext();
 
   const fragments = components?.get(OBC.FragmentsManager);
   if (fragments) {
@@ -26,7 +26,9 @@ export const ThreeScene = () => {
       const fragments = components?.get(OBC.FragmentsManager);
       console.log("view port, setting up");
       fragments.onFragmentsLoaded.add((data) => loadModelIntoWorld(data));
-
+      const viewManager = components.get(ModelViewManager);
+      if(viewManager)
+        viewManager.onGroupsChanged
       const modelCache = components.get(ModelCache);
       const worlds = components.get(OBC.Worlds);
 
@@ -82,30 +84,30 @@ export const ThreeScene = () => {
   };
 
   // add models to the world
-  useEffect(() => {
-    if (!currentWorld) return;
+  // useEffect(() => {
+  //   if (!currentWorld) return;
 
-    const resizeWorld = () => {
-      currentWorld.renderer?.resize();
-      currentWorld.camera.updateAspect();
-    };
-    mountRef.current?.addEventListener("resize", resizeWorld);
+  //   const resizeWorld = () => {
+  //     currentWorld.renderer?.resize();
+  //     currentWorld.camera.updateAspect();
+  //   };
+  //   mountRef.current?.addEventListener("resize", resizeWorld);
 
-    // Clean up on component unmount
-    return () => {
-      // console.log("three scene useEffect components cleanup");
-      if (currentWorld) {
-        const worlds = components?.get(OBC.Worlds);
-        if (worlds) {
-          let worldToDelete = worlds.list.get(currentWorld.uuid);
-          if (worldToDelete) worlds.delete(worldToDelete);
-        }
+  //   // Clean up on component unmount
+  //   return () => {
+  //     // console.log("three scene useEffect components cleanup");
+  //     if (currentWorld) {
+  //       const worlds = components?.get(OBC.Worlds);
+  //       if (worlds) {
+  //         let worldToDelete = worlds.list.get(currentWorld.uuid);
+  //         if (worldToDelete) worlds.delete(worldToDelete);
+  //       }
 
-        mountRef.current?.removeEventListener("resize", resizeWorld);
-        setWorld(undefined);
-      }
-    };
-  }, [currentWorld]);
+  //       mountRef.current?.removeEventListener("resize", resizeWorld);
+  //       setWorld(undefined);
+  //     }
+  //   };
+  // }, [currentWorld]);
 
   return (
     <>

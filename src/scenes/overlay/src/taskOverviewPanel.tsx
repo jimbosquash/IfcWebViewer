@@ -1,28 +1,60 @@
 import { Box, useTheme, Typography, IconButton } from "@mui/material";
 import { tokens } from "../../../theme";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { useEffect, useState } from "react";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import { useContext, useEffect, useState } from "react";
 import StationBox from "./StationBox";
 import { useModelContext } from "../../../context/ModelStateContext";
 import { buildingElement } from "../../../utilities/BuildingElementUtilities";
+import { ComponentsContext } from "../../../context/ComponentsContext";
+import { ModelViewManager } from "../../../bim-components/modelViewer";
 
 const TaskOverViewPanel = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const { groups } = useModelContext();
-  const [stations, setStationGroup] =
-    useState<Map<string, buildingElement[]>>();
+  const components = useContext(ComponentsContext);
+  const [stations, setStationGroup] = useState<Map<string, buildingElement[]>>();
   const [stationsVisible, setStationsVisible] = useState<boolean>(true);
 
   useEffect(() => {
-    if (!groups) {
-      setStationGroup(new Map<string, buildingElement[]>());
-      return; // todo should clear groups
-    }
-    const stations = groups.get("Station");
+    if (!components) return;
+
+    let viewManager = components.get(ModelViewManager);
+    viewManager.onGroupsChanged.add((data) => handleGroupChange(data));
+    if(viewManager.Groups)
+      {
+        handleGroupChange(viewManager.Groups)
+      }
+
+    return () => {
+      viewManager.onGroupsChanged.remove((data) => handleGroupChange(data));
+    };
+  }, [components]);
+
+
+  useEffect(() => {
+    console.log("TaskOverViewPanel : changing station visibility",)
+    
+
+  }, [stationsVisible])
+
+
+
+  const handleGroupChange = (data: Map<string, Map<string, buildingElement[]>>) => {
+    console.log("task over view panel handeling new groups:", data);
+    const stations = data.get("Station");
     if (stations) setStationGroup(stations);
-  }, [groups]);
+  };
+
+  useEffect(() => {
+    console.log("taskViewPanel: new Stations:", stations)
+  
+    return () => {
+      
+    }
+  }, [stations])
+  
 
   const HeaderBoxStyle = {
     // backgroundColor: colors.primary[400],
@@ -67,7 +99,6 @@ const TaskOverViewPanel = () => {
             sx={{ marginLeft: "16px", color: colors.grey[300] }}
             onClick={() => {
               setStationsVisible(!stationsVisible);
-
             }}
           >
             {stationsVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
@@ -87,11 +118,7 @@ const TaskOverViewPanel = () => {
             {stationsVisible &&
               stations &&
               Array.from(stations).map(([name, elements], index) => (
-                <StationBox
-                  key={index}
-                  elements={elements}
-                  stationName={name}
-                />
+                <StationBox key={index} elements={elements} stationName={name} />
               ))}
           </Box>
         </div>

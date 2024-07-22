@@ -1,8 +1,6 @@
 import { useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { RefProvider } from "../../context/RefContext";
-import Topbar from "./topBar";
-import * as FRAGS from "@thatopen/fragments";
 import { InfoPanelDataProvider } from "../../context/InfoPanelContext";
 import { SideMenu } from "../sideMenu";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
@@ -14,7 +12,7 @@ const Layout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
   const toggleSidebar = () => {
-    console.log('side bar button clicked')
+    console.log("side bar button clicked");
     setIsSidebarExpanded(!isSidebarExpanded);
   };
 

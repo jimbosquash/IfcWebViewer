@@ -3,17 +3,10 @@ import {useContext, useState, useEffect} from "react"
 import { ColorModeContext, tokens } from "../../theme";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
-import UploadIfcButton from "../../components/uploadIfcButton";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
-import InsertChart from "@mui/icons-material/InsertChart";
-import { Link } from "react-router-dom";
 import React from "react";
-import * as FRAGS from "@thatopen/fragments";
-import * as OBC from "@thatopen/components";
 import { useModelContext } from "../../context/ModelStateContext";
-import { InfoPanel } from "./InfoPanel";
-import { InfoPanelContext, InfoPanelDataProvider } from "../../context/InfoPanelContext";
+import { InfoPanel } from "../overlay/src/InfoPanel";
+import { InfoPanelContext } from "../../context/InfoPanelContext";
 
 const Topbar: React.FC = () => {
     const theme = useTheme();
@@ -22,7 +15,6 @@ const Topbar: React.FC = () => {
     const modelContext = useModelContext();
     const infoPanelContext = useContext(InfoPanelContext);
     const [fileName, setFileName] = useState<string>('');
-    const [selected, setSelected] = useState<string>('dashboard');
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   
     const handleDataUpdate = () => {
