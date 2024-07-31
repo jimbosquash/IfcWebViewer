@@ -16,6 +16,7 @@ export const InfoPanel = () => {
   const colors = tokens(theme.palette.mode);
   const components = useContext(ComponentsContext);
   const [infoPanelData, setPanelData] = useState<InfoPanelProps>();
+  const [isVisible, setVsibility] = useState<boolean>(false);
   const [showToolTip, setShowToolTip] = useState<boolean>(false);
 
   useEffect(() => {
@@ -30,11 +31,15 @@ export const InfoPanel = () => {
     if (!data) return;
 
     const infoPanelData = {
-      moduleName: "demo",
+      moduleName: "",
       groupType: data.groupType,
       groupName: data.groupName,
     };
     setPanelData(infoPanelData);
+    if(data.groupName)
+      setVsibility(true)
+    else
+      setVsibility(false)
 
     // get that group data
   };
@@ -45,12 +50,14 @@ export const InfoPanel = () => {
     left: "50%",
     transform: "translateX(-50%)",
     display: "flex",
-    backgroundColor: "{colors.grey[200]}",
+    backgroundColor: "{colors.grey[500]}",
     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
     borderRadius: "10px",
     padding: "10px",
     zIndex: 1000,
   };
+
+  
 
   const subBoxStyle: React.CSSProperties = {
     flex: 1,
@@ -66,10 +73,12 @@ export const InfoPanel = () => {
   };
   
   return (
-    <Box component="div" sx={infoBoxStyle} width="200px">
+    <> {isVisible && 
+      <Box component="div"  sx={infoBoxStyle} >
       {infoPanelData && (
         <>
           <Typography
+          width="100px"
             component="div"
             sx={{ ...subBoxStyle, ...nonSelectableTextStyle }}
             onClick={() => setShowToolTip(!showToolTip)}
@@ -101,7 +110,8 @@ export const InfoPanel = () => {
           <Typography>Tooltip Item 3</Typography>
         </Box>
       )}
-    </Box>
+    </Box>}</>
+    
   );
 };
 

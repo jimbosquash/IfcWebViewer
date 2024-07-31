@@ -1,39 +1,18 @@
 import * as OBC from "@thatopen/components";
 import { FragmentsGroup } from "@thatopen/fragments";
 import * as BUI from "@thatopen/ui";
-import * as CUI from "@thatopen/ui-obc";
 import * as THREE from "three"
 import { ModelCache } from "../modelCache";
-
 
 export const UploadButton = async (components: OBC.Components): Promise<HTMLElement | undefined> => {
     if (!components) return undefined;
   
     const ifcLoader = components.get(OBC.IfcLoader);
-    const manager = components.get(OBC.FragmentsManager);
-    // manager.onFragmentsLoaded.add((data) => console.log("model set up", data))
     const modelCache = components.get(ModelCache);
     await ifcLoader.setup();
 
     ifcLoader.settings.webIfc.COORDINATE_TO_ORIGIN = true;
-  
-    const onBtnClick = () => {
-      const fileOpener = document.createElement("input");
-      fileOpener.type = "file";
-      fileOpener.accept = ".ifc";
-      fileOpener.onchange = async () => {
-        if (fileOpener.files === null || fileOpener.files.length === 0) return;
-        const file = fileOpener.files[0];
-        fileOpener.remove();
-        const buffer = await file.arrayBuffer();
-        const data = new Uint8Array(buffer);
-        const model = await ifcLoader.load(data);
-        model.name = file.name.replace(".ifc", "");
-        setMeshFaceDoubleSided(model)
-        modelCache.add(model)
-      };
-      fileOpener.click();
-    };
+
   
     return BUI.Component.create(() => {
       return BUI.html`
@@ -41,11 +20,31 @@ export const UploadButton = async (components: OBC.Components): Promise<HTMLElem
               data-ui-id="import-ifc"
               label="Load IFC"
               style="flex: 0;" 
-              @click=${onBtnClick} 
+              @click=${() => uploadIfcFromUserInput(ifcLoader,modelCache)} 
               icon="mage:box-3d-fill">
             </bim-button>
            `;
     });
+  };
+
+
+  export const uploadIfcFromUserInput = (ifcLoader : OBC.IfcLoader, modelCache : ModelCache) => {
+    console.log("upoade button clicked", ifcLoader,modelCache)
+    const fileOpener = document.createElement("input");
+    fileOpener.type = "file";
+    fileOpener.accept = ".ifc";
+    fileOpener.onchange = async () => {
+      if (fileOpener.files === null || fileOpener.files.length === 0) return;
+      const file = fileOpener.files[0];
+      fileOpener.remove();
+      const buffer = await file.arrayBuffer();
+      const data = new Uint8Array(buffer);
+      const model = await ifcLoader.load(data);
+      model.name = file.name.replace(".ifc", "");
+      setMeshFaceDoubleSided(model)
+      modelCache.add(model)
+    };
+    fileOpener.click();
   };
 
   

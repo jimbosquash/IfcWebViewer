@@ -13,6 +13,7 @@ const TaskOverViewPanel = () => {
   const colors = tokens(theme.palette.mode);
   const components = useContext(ComponentsContext);
   const [stations, setStationGroup] = useState<Map<string, buildingElement[]>>();
+  const [isVisible, setVisibility] = useState<boolean>(false);
   const [stationsVisible, setStationsVisible] = useState<boolean>(true);
 
   useEffect(() => {
@@ -42,7 +43,12 @@ const TaskOverViewPanel = () => {
   const handleGroupChange = (data: Map<string, Map<string, buildingElement[]>>) => {
     console.log("task over view panel handeling new groups:", data);
     const stations = data.get("Station");
-    if (stations) setStationGroup(stations);
+    if (stations) 
+      {setStationGroup(stations);
+      setVisibility(true)
+      }
+    else
+      setVisibility(false);
   };
 
   useEffect(() => {
@@ -66,18 +72,16 @@ const TaskOverViewPanel = () => {
   };
 
   return (
-    <>
+    <>{ isVisible &&
       <div
         className="draggable-panel"
         style={{
           position: "absolute",
           top: "10%",
           left: 0,
-          // transform: "translateY(-50%)",
           zIndex: 500,
           padding: "15px",
           width: 350,
-          // border: '1px solid #ccc'
         }}
       >
         <Box
@@ -116,11 +120,11 @@ const TaskOverViewPanel = () => {
             {stationsVisible &&
               stations &&
               Array.from(stations).map(([name, elements], index) => (
-                <StationBox key={index} elements={elements} stationName={name} />
+                <StationBox key={index} elements={elements} groupName={name} />
               ))}
           </Box>
         </div>
-      </div>
+      </div>}
     </>
   );
 };

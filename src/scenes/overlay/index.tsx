@@ -1,4 +1,4 @@
-import { Snackbar, Alert } from "@mui/material";
+import { Snackbar, Alert, useTheme, Button } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { FloatingPropertiesPanel } from "../../components/FloatingPropertiesPanel";
 import { ComponentsContext } from "../../context/ComponentsContext";
@@ -6,6 +6,8 @@ import Topbar from "../global/topBar";
 import FloatingButtonGroup from "./floatingButtonGroup";
 import * as OBC from "@thatopen/components";
 import TaskOverViewPanel from "./src/taskOverviewPanel";
+import { FloatingUploadIfcButton } from "../../components/uploadButton";
+import { tokens } from "../../theme";
 
 const Overlay = () => {
   const [isGroupPanelVisible, setIsGroupPanelVisible] = useState(true);
@@ -13,16 +15,20 @@ const Overlay = () => {
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [fileName, setFileName] = useState<string>("");
   const components = useContext(ComponentsContext);
+  const [hasModel, setHasModel] = useState<boolean>(false);
+  const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
+
 
   useEffect(() => {
     if (!components) return;
     const fragments = components.get(OBC.FragmentsManager);
     if (!fragments) return;
 
-    fragments.onFragmentsLoaded.add((data) => setSnackbarOpen(true));
+    fragments.onFragmentsLoaded.add((data) => handleLoadedModel());
 
     return () => {
-      fragments.onFragmentsLoaded.remove((data) => setSnackbarOpen(true));
+      fragments.onFragmentsLoaded.remove((data) => handleLoadedModel());
     };
   }, [components]);
 
@@ -32,6 +38,12 @@ const Overlay = () => {
     }
     setSnackbarOpen(false);
   };
+
+  const handleLoadedModel = () => {
+    setHasModel(true)
+    console.log('overlay handel opening',hasModel)
+    setSnackbarOpen(true)
+  }
 
   return (
     <div
@@ -45,7 +57,7 @@ const Overlay = () => {
         // overflow: "auto", // This allows scrolling within the Overlay if content exceeds its size
       }}
     >
-      {" "}
+      
       <div style={{ pointerEvents: "auto" }}>
         <Topbar />
       </div>
@@ -79,3 +91,31 @@ const Overlay = () => {
   );
 };
 export default Overlay;
+
+
+// {!hasModel && <div 
+//   // style={{
+//   //   position: "fixed",
+//   //   bottom: "50%",
+//   //   left: "50%",
+//   //   zIndex: 1000,
+//   //   width: 450,
+//   //   height: 35,
+//   //   cursor: "grab",
+//   //   display: "inline-block",
+//   // }}
+//   ><Button
+//   onClick={() => {console.log("btn click")}}
+//   sx={{
+//       backgroundColor: colors.blueAccent[700],
+//       color: colors.grey[100],
+//       zIndex: 1000,
+//       fontSize: "14px",
+//       fontWeight: "bold",
+//       cursor: "grab",
+//       padding: "10px 20px",
+//   }}>
+//   {/* <UploadOutlinedIcon sx={{ mr: "10px" }} /> */}
+//   Upload .IFC
+// </Button>
+//   </div>}

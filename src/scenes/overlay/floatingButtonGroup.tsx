@@ -1,10 +1,12 @@
 import { Box, ButtonGroup, IconButton, useTheme } from "@mui/material";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { tokens } from "../../theme";
 import * as THREE from "three";
 import * as OBC from "@thatopen/components";
 import TocIcon from "@mui/icons-material/Toc";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import Group from "@mui/icons-material/Group";
+import ViewArray from "@mui/icons-material/ViewArray";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import ZoomInMapOutlined from "@mui/icons-material/ZoomInMapOutlined";
@@ -15,6 +17,7 @@ import { CommentIconButton } from "./src/commentIconButton";
 import { ModelViewManager } from "../../bim-components/modelViewer";
 import { ModelCache } from "../../bim-components/modelCache";
 import Stats from "stats.js";
+import { VisibilityMode } from "../../utilities/types";
 
 interface floatingButtonProps {
   togglePropertyPanelVisibility: () => void;
@@ -25,6 +28,20 @@ const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelV
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useContext(ComponentsContext);
+  const [visibilityMode, setVisibilityMode] = useState<VisibilityMode>();
+
+  useEffect(() => {
+    if (!components) return;
+
+    const viewManager = components.get(ModelViewManager);
+    if (!viewManager) return;
+
+    viewManager.onVisibilityModeChanged.add(handelVisibilityModeChange);
+
+    return () => {
+      viewManager.onVisibilityModeChanged.remove(handelVisibilityModeChange);
+    };
+  }, [components]);
 
   const setAdjacentGroup = (adjacency: "previous" | "next") => {
     console.log();
@@ -40,25 +57,54 @@ const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelV
       console.log("No group selected, default will be used");
     }
     const newGroup = GetAdjacentGroup(current, viewManager.Groups, adjacency);
+    //todo: fix this up for switch statement
     if (newGroup) {
-      const visMap = IsolateSelected(components, newGroup);
-
-      viewManager.GroupVisibility = visMap;
+      updateVisibility(viewManager,newGroup)
       viewManager.SelectedGroup = newGroup;
-
-      // set up
     }
+  };
+
+  const updateVisibility = (viewManager: ModelViewManager, group: SelectionGroup) => {
+    if (viewManager.VisibilityMode === "Isolate") {
+      const visMap = IsolateSelected(viewManager.components, group);
+      viewManager.GroupVisibility = visMap;
+    } else if (viewManager.VisibilityMode === "Passive") {
+      const visMap = ShowSelected(viewManager.components, group);
+      viewManager.GroupVisibility = visMap;
+    }
+  };
+
+  const handelVisibilityModeChange = () => {
+    const viewManager = components?.get(ModelViewManager);
+    if (!viewManager) return;
+
+    viewManager.VisibilityMode;
+    setVisibilityMode(viewManager.VisibilityMode);
+
+    //trigger display of current elements again
   };
 
   const IsolateSelected = (components: OBC.Components, selected: SelectionGroup) => {
     const viewManager = components.get(ModelViewManager);
     const visMap = new Map(viewManager.GroupVisibility);
-    visMap.forEach((visState, groupName) => visMap.set(groupName, true));
+    visMap.forEach((visState, groupName) => visMap.set(groupName, "Visible"));
     const matchingGroupType = viewManager.Groups?.get(selected.groupType)?.keys();
     if (!matchingGroupType) return;
 
     for (let groupName of Array.from(matchingGroupType)) {
-      if (groupName !== selected.groupName) visMap.set(groupName, false);
+      if (groupName !== selected.groupName) visMap.set(groupName, "Hidden");
+    }
+    return visMap;
+  };
+
+  const ShowSelected = (components: OBC.Components, selected: SelectionGroup) => {
+    const viewManager = components.get(ModelViewManager);
+    const matchingGroupType = viewManager.Groups?.get(selected.groupType)?.keys();
+    if (!matchingGroupType) return;
+    const visMap = new Map(viewManager.GroupVisibility);
+
+    for (let groupName of Array.from(matchingGroupType)) {
+      if (groupName === selected.groupName) visMap.set(groupName, "Visible");
     }
     return visMap;
   };
@@ -101,7 +147,6 @@ const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelV
     cam.projection.set("Orthographic");
     cam.set("Plan" as OBC.NavModeID);
 
-
     const bbox = new THREE.Box3().setFromObject(cache.world.scene.three);
     const center = bbox.getCenter(new THREE.Vector3());
     const size = bbox.getSize(new THREE.Vector3());
@@ -113,17 +158,24 @@ const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelV
     // Set camera position
     const cameraHeight = Math.max(size.y, maxSize) * 2; // Ensure camera is high enough
     cam.controls.setPosition(center.x, center.y + cameraHeight, center.z, false);
-    console.log("cam position center:", center.x,center.y + cameraHeight,center.z);
+    console.log("cam position center:", center.x, center.y + cameraHeight, center.z);
 
     // Set camera target to look at the center
     cam.controls.setTarget(center.x, center.y, center.z, false);
-    console.log("cam target center:", center.x,center.y,center.z);
-    
+    console.log("cam target center:", center.x, center.y, center.z);
 
     // cam.controls.up
 
     // cam.fit(cache.world?.meshes, 0.5);
     // console.log("cam mode setting:", cam.mode.id, cam.mode.enabled);
+  };
+
+  const toggleVisibilityMode = () => {
+    // togge between isol
+    const viewManager = components?.get(ModelViewManager);
+    if (!viewManager) return;
+    if (viewManager.VisibilityMode === "Isolate") viewManager.VisibilityMode = "Passive";
+    else if (viewManager.VisibilityMode === "Passive") viewManager.VisibilityMode = "Isolate";
   };
 
   return (
@@ -173,6 +225,9 @@ const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelV
             </IconButton>
             <IconButton style={floatingButtonStyle} onClick={() => setAdjacentGroup("next")}>
               <NavigateNextIcon fontSize="large" />
+            </IconButton>
+            <IconButton style={floatingButtonStyle} onClick={() => toggleVisibilityMode()}>
+              {visibilityMode === "Passive" ? <Group fontSize="large" /> : <ViewArray fontSize="large" />}
             </IconButton>
             <CommentIconButton />
           </ButtonGroup>

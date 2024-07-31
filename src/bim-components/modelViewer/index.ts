@@ -1,9 +1,13 @@
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
 import * as FRAGS from "@thatopen/fragments";
+import * as THREE from 'three'
 import { FragmentsGroup } from "@thatopen/fragments";
 import { buildingElement, SelectionGroup, setUpGroup } from "../../utilities/BuildingElementUtilities";
 import { GetFragmentsFromExpressIds } from "../../utilities/IfcUtilities";
+import { VisibilityMode, VisibilityState } from "../../utilities/types";
+
+
 
 export class ModelViewManager extends OBC.Component {
     private _enabled = false;
@@ -11,9 +15,10 @@ export class ModelViewManager extends OBC.Component {
     private _groups?: Map<string, Map<string, buildingElement[]>>;
     readonly onGroupsChanged = new OBC.Event<Map<string, Map<string, buildingElement[]>> | undefined>();
     readonly onBuildingElementsChanged = new OBC.Event<buildingElement[]>();
-    readonly onGroupVisibilitySet = new OBC.Event<Map<string, boolean>>();
+    readonly onGroupVisibilitySet = new OBC.Event<Map<string, VisibilityState>>();
     readonly onSelectedGroupChanged = new OBC.Event<SelectionGroup>();
-    private _groupVisibility?: Map<string, boolean>;
+    readonly onVisibilityModeChanged = new OBC.Event<VisibilityMode>();
+    private _groupVisibility?: Map<string, VisibilityState>;
     private _selectedGroup?: SelectionGroup;
 
     get SelectedGroup(): SelectionGroup | undefined {
@@ -32,16 +37,16 @@ export class ModelViewManager extends OBC.Component {
         super(components);
 
         const frag = components.get(OBC.FragmentsManager)
-        frag.onFragmentsDisposed.add((data) => this.cleanUp(data.groupID,data.fragmentIDs))
+        frag.onFragmentsDisposed.add((data) => this.cleanUp(data.groupID, data.fragmentIDs))
     }
 
     cleanUp = (groupID: string, fragmentIDs: string[]) => {
 
-        
+
 
     }
 
-    setUpGroups = (buildingElements: buildingElement[] | undefined, groupVisibility?: Map<string, boolean>): void => {
+    setUpGroups = (buildingElements: buildingElement[] | undefined, groupVisibility?: Map<string, VisibilityState>): void => {
         if (!buildingElements) {
             this._groups = undefined;
             this.onGroupsChanged.trigger(undefined);
@@ -59,10 +64,10 @@ export class ModelViewManager extends OBC.Component {
         this.updateVisibility();
     }
 
-    private createDefaultGroupVisibility(): Map<string, boolean> {
+    private createDefaultGroupVisibility(): Map<string, VisibilityState> {
         if (!this._groups) throw new Error("Groups not initialized");
         const keys = Array.from(this._groups.values()).flatMap(a => Array.from(a.keys()));
-        return new Map(keys.map(name => [name, true]));
+        return new Map(keys.map(name => [name, "Visible"]));
     }
 
     get Groups(): Map<string, Map<string, buildingElement[]>> | undefined {
@@ -77,25 +82,54 @@ export class ModelViewManager extends OBC.Component {
         return this._enabled;
     }
 
-    set GroupVisibility(value: Map<string, boolean> | undefined) {
+    private _visibilityMode: VisibilityMode = "Isolate";
+
+    get VisibilityMode(): VisibilityMode {
+        return this._visibilityMode;
+    }
+
+    set VisibilityMode(value: VisibilityMode) {
+        console.log("Visibility mode set:", value)
+        this._visibilityMode = value;
+        this.onVisibilityModeChanged.trigger(this._visibilityMode);
+    }
+
+    set GroupVisibility(value: Map<string, VisibilityState> | undefined) {
         console.log("ModelViewManager: group vis being set", value);
         this._groupVisibility = value;
         this.onGroupVisibilitySet.trigger(this._groupVisibility);
         this.updateVisibility();
     }
 
-    get GroupVisibility(): Map<string, boolean> | undefined {
+    get GroupVisibility(): Map<string, VisibilityState> | undefined {
         return this._groupVisibility;
     }
 
-    private groupAndSetVisibility(fragments: OBC.FragmentsManager, elements: buildingElement[], setVisibility: boolean): void {
+    private SetVisibility(fragments: OBC.FragmentsManager, elements: buildingElement[], setVisibility: boolean): void {
         const elementsByModelId = this.groupElementsByModelId(elements);
 
         fragments.groups.forEach(model => {
             const elementsForModel = elementsByModelId.get(model.uuid);
             if (elementsForModel) {
                 const allFragments = GetFragmentsFromExpressIds(elementsForModel.map(element => element.expressID), fragments, model);
+                console.log("Setting visibility", setVisibility)
                 allFragments.forEach((ids, frag) => frag.setVisibility(setVisibility, ids));
+            }
+        });
+    }
+
+    // if color = true color will be reset to original
+    private SetColor(fragments: OBC.FragmentsManager, elements: buildingElement[], color: boolean | THREE.Color = false): void {
+        const elementsByModelId = this.groupElementsByModelId(elements);
+
+        fragments.groups.forEach(model => {
+            const elementsForModel = elementsByModelId.get(model.uuid);
+            if (elementsForModel) {
+                const allFragments = GetFragmentsFromExpressIds(elementsForModel.map(element => element.expressID), fragments, model);
+                if (color === true)
+                    allFragments.forEach((ids, frag) => frag.resetColor(ids));
+                else if (color instanceof THREE.Color)
+                    allFragments.forEach((ids, frag) => frag.setColor(color, ids));
             }
         });
     }
@@ -116,15 +150,29 @@ export class ModelViewManager extends OBC.Component {
         const fragments = this.components.get(OBC.FragmentsManager);
         if (!this._groupVisibility) {
             const allElements = this.getAllElements();
-            this.groupAndSetVisibility(fragments, allElements, true);
+            this.SetVisibility(fragments, allElements, true);
+            console.log("hide elements fails")
+
             return;
         }
 
         const { visibleElements, hiddenElements } = this.categorizeElements();
         const cleanVisibleElements = this.filterVisibleElements(visibleElements, hiddenElements);
 
-        this.groupAndSetVisibility(fragments, cleanVisibleElements, true);
-        this.groupAndSetVisibility(fragments, hiddenElements, false);
+        this.SetVisibility(fragments, cleanVisibleElements, true);
+        this.SetVisibility(fragments, hiddenElements, false);
+        console.log("hide elements", hiddenElements)
+        // if (this._visibilityMode === "Isolate") {
+        //     const allElements = this.getAllElements();
+        //     this.SetColor(fragments, allElements, true)
+        // }
+        // else if (this._visibilityMode === "Passive") {
+        //     // selection group rest
+        //     // all other visible group to be transparent
+        //     this.SetColor(fragments,cleanVisibleElements,true)
+
+
+        // }
     };
 
     private getAllElements(): buildingElement[] {
