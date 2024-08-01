@@ -60,7 +60,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
     if (validChildren.length > 1) {
           console.log("setting up children:", validChildren)
 
-      // setChildren(validChildren);
+      setChildren(validChildren);
     }
     else setChildren(undefined);
   }, [node]);

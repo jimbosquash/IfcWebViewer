@@ -1,4 +1,4 @@
-import { buildingElement } from "./BuildingElementUtilities";
+import { buildingElement } from "./types";
 
 
 

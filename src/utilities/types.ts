@@ -35,7 +35,7 @@ export interface SelectionGroup {
     type: number;
     name: string;
     modelID: string; // the fraggroup id
-    properties: { name: string, value: string }[]
+    properties: { name: string, value: string, pSet: string}[]
   }
   
   

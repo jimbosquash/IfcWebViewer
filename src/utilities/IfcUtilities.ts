@@ -1,4 +1,5 @@
 
+import { numberInputClasses } from "@mui/base";
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import { FragmentIdMap } from "@thatopen/fragments";
@@ -6,10 +7,11 @@ import * as WEBIFC from "web-ifc";
 import { ModelCache } from "../bim-components/modelCache";
 import { buildingElement } from "./types";
 
+// allows you to pass these idmaps into helpful functions with @thatopen
 export function GetFragmentIdMaps(elements: buildingElement[], components: OBC.Components) {
-    
+
     if (!components) return;
-    
+
     const cache = components.get(ModelCache);
     if (!cache) return;
 
@@ -17,18 +19,18 @@ export function GetFragmentIdMaps(elements: buildingElement[], components: OBC.C
 
     const elementsByModel = elements.reduce((acc, e) => {
         const modelId = e.modelID;
-        if(!acc.has(modelId)) {
-            acc.set(modelId,[])
+        if (!acc.has(modelId)) {
+            acc.set(modelId, [])
         }
         acc.get(modelId)!.push(e.expressID)
         return acc;
 
     }, new Map<string, number[]>);
 
-    
+
     elementsByModel.forEach((expressIds, modelId) => {
         const model = cache.getModel(modelId);
-        if(!model) return;
+        if (!model) return;
         const fragIdMap = model?.getFragmentMap(expressIds);
         result = result.concat(fragIdMap)
     });
@@ -75,7 +77,6 @@ export function GetFragmentsFromExpressIds(expressIds: number[], fragments: OBC.
     }
 
 }
-
 
 
 export function getStationBarChartArray(elements: buildingElement[]): any[] {
@@ -194,33 +195,38 @@ export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, com
     // await indexer.process(loadedModel);
     // console.log("indexer",indexer)
 
-    const foundElements: buildingElement[] = [];
+    const foundElements = new Map<number, buildingElement>();// = Map<number,buildingElement[]>;
     const elements = loadedModel.getLocalProperties();
     await OBC.IfcPropertiesUtils.getRelationMap(loadedModel, WEBIFC.IFCRELDEFINESBYPROPERTIES, (async (propertySetID, _relatedElementsIDs) => {
 
-        _relatedElementsIDs.forEach(reltingElement => {
+        _relatedElementsIDs.forEach(relatingElement => {
             if (elements) {
-                const element = elements[reltingElement]
-                // console.log("element related",element)
-                // console.log("element ifc properties",elements)
+                const element = elements[relatingElement]
+                // console.log("element related", element)
+                let newElement = foundElements.get(relatingElement);
+                if (!newElement) {
+                    newElement = {
+                        expressID: element.expressID,
+                        GlobalID: element.GlobalId.value,
+                        type: element.type,
+                        name: element.Name.value,
+                        properties: [],
+                        modelID: loadedModel.uuid
+                    };
+                }
+                if(!newElement) return;
 
-                const newElement: buildingElement = {
-                    expressID: element.expressID,
-                    GlobalID: element.GlobalId.value,
-                    type: element.type,
-                    name: element.Name.value,
-                    properties: [],
-                    modelID: loadedModel.uuid
-                };
-
+                const pSetName = elements[propertySetID];
+                // console.log("element ifc pset", pSetName)
                 OBC.IfcPropertiesUtils.getPsetProps(loadedModel, propertySetID, (async (propertyId) => {
                     const property = elements[propertyId];
                     if (!property)
                         return;
 
-                    newElement.properties.push({
+                    newElement?.properties.push({
                         name: property.Name.value,
-                        value: property.NominalValue.value
+                        value: property.NominalValue.value,
+                        pSet: "Test"
                     })
 
                     // const propertyName = property.Name?.value;
@@ -232,11 +238,11 @@ export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, com
                     // if(propertyName && propertyName.toLowerCase === "name")
                     //     {newElement.name = propertyValue;}
                 }))
-                foundElements.push(newElement)
+                foundElements.set(relatingElement,newElement)
             }
         })
     }))
-    // console.log("building Elements",foundElements)
-    return foundElements;
+    // console.log("building Elements", foundElements)
+    return Array.from(foundElements.values());
 }
 

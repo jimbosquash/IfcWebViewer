@@ -8,6 +8,7 @@ import { ComponentsContext } from "../../../context/ComponentsContext";
 import { buildingElement, GroupingType, SelectionGroup, VisibilityState } from "../../../utilities/types";
 import { GroupPanelProps } from "./StationBox";
 import { TreeNode, TreeUtils } from "../../../utilities/Tree";
+import { zoomToSelected } from "../../../utilities/BuildingElementUtilities";
 
 
 
@@ -17,10 +18,12 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({node}) => {
   const [modelViewManager, setModelViewManager] = useState<ModelViewManager | undefined>();
   const [isHovered, setIsHovered] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
+  const [childVisible, setChildVisible] = useState(false);
   const components = useContext(ComponentsContext);
   const treeNode = useRef<TreeNode<buildingElement>>();
   const [name, setName] = useState<string | undefined>();
   const [elements, setElements] = useState<buildingElement[]>();
+  const [children, setChildren] = useState<TreeNode<buildingElement>[]>();
   const [isVisible, setIsVisible] = useState<boolean>(
     node.id !== undefined && modelViewManager?.GroupVisibility?.get(node.id) !== VisibilityState.Hidden
   );
@@ -75,7 +78,7 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({node}) => {
 
     modelViewManager.SelectedGroup = {
       id: node.id,
-      groupType: "Station",
+      groupType: node.type,
       groupName: name,
       elements: elements,
     };
@@ -96,6 +99,13 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({node}) => {
     }
   }, [modelViewManager, name]);
 
+  const handelDoubleClick = () => {
+    setSelected();
+    if (children) setChildVisible((prev) => !prev);
+    if (!elements || !components) return;
+    zoomToSelected(elements, components);
+  };
+
   const nonSelectableTextStyle = {
     userSelect: 'none',
     WebkitUserSelect: 'none', // For Safari
@@ -108,7 +118,7 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({node}) => {
       <Box key={name} component="div" style={{ marginBottom: "2px" }}>
         <Box
           component="div"
-          onDoubleClick={() => setSelected()}
+          onDoubleClick={() => handelDoubleClick()}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           width="100%"
