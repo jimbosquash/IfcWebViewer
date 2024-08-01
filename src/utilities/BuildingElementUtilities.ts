@@ -87,7 +87,7 @@ export const zoomToSelected = (elements : buildingElement[] | undefined, compone
 
       const ids = idMap[fragID];
       bbox.addMesh(fragment.mesh, ids);
-      console.log("zooming to selected",fragment)
+      // console.log("zooming to selected",fragment)
 
     }
   });

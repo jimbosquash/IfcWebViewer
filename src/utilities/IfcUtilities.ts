@@ -6,16 +6,6 @@ import * as WEBIFC from "web-ifc";
 import { ModelCache } from "../bim-components/modelCache";
 import { buildingElement } from "./types";
 
-
-
-
-interface taskOverviewProps {
-    buildingElements: buildingElement[];
-    ifcModel: FRAGS.FragmentsGroup;
-    components: OBC.Components;
-
-}
-
 export function GetFragmentIdMaps(elements: buildingElement[], components: OBC.Components) {
     
     if (!components) return;

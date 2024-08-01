@@ -87,7 +87,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
   }, [components]);
 
   useEffect(() => {
-    if (!modelViewManager?.Groups || !elements) return;
+    if (!modelViewManager?.Tree || !elements) return;
     const steps = groupElementsByProperty(elements, "BuildingStep");
     console.log("stationbox: getting children", steps);
     if (steps.size > 0) {
@@ -109,11 +109,12 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
   };
 
   const handleVisibilityyUpdate = (data: Map<String, VisibilityState>) => {
-    if (!name) return;
-    const visibilityState = data.get(name);
+    // console.log("stationbox: handling visibility update:", data);
+    if (!node.id) return;
+    const visibilityState = data.get(node.id);
+
     if (visibilityState === undefined) return;
 
-    // console.log("stationbox: handling visibility update:", data, visibilityState);
     setIsVisible(visibilityState !== VisibilityState.Hidden);
   };
 
@@ -179,7 +180,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
           display: "flex",
           alignItems: "center",
           border: isSelected ? "1px solid #ccc" : "none",
-          backgroundColor: isHovered ? colors.primary[400] : colors.grey[900],
+          backgroundColor: isSelected ? colors.primary[400] : colors.grey[900],
           transition: "all 0.3s ease",
           justifyContent: "space-between",
         }}

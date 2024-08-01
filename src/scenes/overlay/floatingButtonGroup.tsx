@@ -11,13 +11,12 @@ import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import ZoomInMapOutlined from "@mui/icons-material/ZoomInMapOutlined";
 import CameraEnhance from "@mui/icons-material/CameraEnhance";
-import { GetAdjacentGroup, zoomToSelected } from "../../utilities/BuildingElementUtilities";
+import { GetAdjacentGroup } from "../../utilities/BuildingElementUtilities";
 import { ComponentsContext } from "../../context/ComponentsContext";
 import { CommentIconButton } from "./src/commentIconButton";
 import { ModelViewManager } from "../../bim-components/modelViewer";
 import { ModelCache } from "../../bim-components/modelCache";
-import Stats from "stats.js";
-import { SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
+import { SelectionGroup, VisibilityMode } from "../../utilities/types";
 
 interface floatingButtonProps {
   togglePropertyPanelVisibility: () => void;
@@ -54,7 +53,7 @@ const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelV
     if (!current) {
       console.log("No group selected, default will be used");
     }
-    console.log("Setting adjacent",current);
+    // console.log("Setting adjacent",current);
 
     const newGroup = GetAdjacentGroup(current, viewManager.Tree, adjacency);
     //todo: fix this up for switch statement
@@ -86,24 +85,10 @@ const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelV
     //trigger display of current elements again
   };
 
-  // to do, create a change so all stations or other elements on the same level are isolated
   const IsolateSelected = (components: OBC.Components, selected: SelectionGroup) => {
     const viewManager = components.get(ModelViewManager);
     viewManager.isolate(selected);
-
   };
-
-  // const ShowSelected = (components: OBC.Components, selected: SelectionGroup) => {
-  //   const viewManager = components.get(ModelViewManager);
-  //   const matchingGroupType = viewManager.Groups?.get(selected.groupType)?.keys();
-  //   if (!matchingGroupType) return;
-  //   const visMap = new Map(viewManager.GroupVisibility);
-
-  //   for (let groupName of Array.from(matchingGroupType)) {
-  //     if (groupName === selected.groupName) visMap.set(groupName, VisibilityState.Visible);
-  //   }
-  //   return visMap;
-  // };
 
   const zoomAll = () => {
     if (!components) return;

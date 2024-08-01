@@ -25,8 +25,8 @@ export const ThreeScene = () => {
       const fragments = components?.get(OBC.FragmentsManager);
       console.log("view port, setting up");
       fragments.onFragmentsLoaded.add((data) => loadModelIntoWorld(data));
-      const viewManager = components.get(ModelViewManager);
-      if (viewManager) viewManager.onGroupsChanged;
+      // const viewManager = components.get(ModelViewManager);
+      // if (viewManager) viewManager.onTreeChanged.;
       const modelCache = components.get(ModelCache);
       const worlds = components.get(OBC.Worlds);
 

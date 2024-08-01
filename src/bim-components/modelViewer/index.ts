@@ -1,9 +1,6 @@
 import * as OBC from "@thatopen/components";
-import * as OBF from "@thatopen/components-front";
-import * as FRAGS from "@thatopen/fragments";
 import * as THREE from 'three'
-import { FragmentsGroup } from "@thatopen/fragments";
-import { setUpGroup, setUpTree } from "../../utilities/BuildingElementUtilities";
+import {  setUpTree } from "../../utilities/BuildingElementUtilities";
 import { GetFragmentsFromExpressIds } from "../../utilities/IfcUtilities";
 import { buildingElement, SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
 import { Tree, TreeNode, TreeUtils } from "../../utilities/Tree";
@@ -15,15 +12,12 @@ export class ModelViewManager extends OBC.Component {
     private _enabled = false;
     private _isSetup = false;
     static uuid = "0f5e514e-5c1c-4097-a9cc-6620c2e28378" as const;
-    private _groups?: Map<string, Map<string, buildingElement[]>>;
     private _tree?: Tree<buildingElement>;
-    readonly onGroupsChanged = new OBC.Event<Map<string, Map<string, buildingElement[]>> | undefined>();
     readonly onTreeChanged = new OBC.Event<Tree<buildingElement> | undefined>();
     readonly onBuildingElementsChanged = new OBC.Event<buildingElement[]>();
     readonly onGroupVisibilitySet = new OBC.Event<Map<string, VisibilityState>>();
     readonly onSelectedGroupChanged = new OBC.Event<SelectionGroup>();
     readonly onVisibilityModeChanged = new OBC.Event<VisibilityMode>();
-    private _groupVisibility?: Map<string, VisibilityState>;
     private _treeVisibility?: Map<string, VisibilityState>;
     private _selectedGroup?: SelectionGroup;
 
@@ -68,19 +62,14 @@ export class ModelViewManager extends OBC.Component {
 
     setUpGroups = (buildingElements: buildingElement[] | undefined, groupVisibility?: Map<string, VisibilityState>): void => {
         if (!buildingElements) {
-            this._groups = undefined;
-            this.onGroupsChanged.trigger(undefined);
+            this.onTreeChanged.trigger(undefined);
             return;
         }
 
-        //this._groups = setUpGroup(buildingElements);
         this._tree = setUpTree(buildingElements);
         console.log("tree created:", this._tree)
-        console.log("modelViewManager: groups set:", this._groups);
-        this.onGroupsChanged.trigger(this._groups);
         this.onTreeChanged.trigger(this._tree);
 
-        //this._groupVisibility = groupVisibility ?? this.createDefaultGroupVisibility();
         this._treeVisibility = this.createDefaultTreeVisibility();
         console.log("tree vis:", this._treeVisibility)
         this._selectedGroup = undefined;
@@ -89,11 +78,6 @@ export class ModelViewManager extends OBC.Component {
         this.updateVisibility();
     }
 
-    private createDefaultGroupVisibility(): Map<string, VisibilityState> {
-        if (!this._groups) throw new Error("Groups not initialized");
-        const keys = Array.from(this._groups.values()).flatMap(a => Array.from(a.keys()));
-        return new Map(keys.map(name => [name, VisibilityState.Visible]));
-    }
 
     private createDefaultTreeVisibility(): Map<string, VisibilityState> {
         if (!this._tree) throw new Error("Tree not initialized");
@@ -102,13 +86,8 @@ export class ModelViewManager extends OBC.Component {
         return new Map(keys.map(name => [name, VisibilityState.Visible]));
     }
 
-    
     get GroupVisibility(): Map<string, VisibilityState> | undefined {
         return this._treeVisibility;
-    }
-
-    get Groups(): Map<string, Map<string, buildingElement[]>> | undefined {
-        return this._groups;
     }
 
     get enabled(): boolean {
@@ -123,7 +102,7 @@ export class ModelViewManager extends OBC.Component {
 
     // visibilityMode determines how selected and non selected groupings will be displayed.
     set VisibilityMode(value: VisibilityMode) {
-        console.log("Visibility mode set:", value)
+        // console.log("Visibility mode set:", value)
         this._visibilityMode = value;
         this.onVisibilityModeChanged.trigger(this._visibilityMode);
     }
@@ -131,7 +110,7 @@ export class ModelViewManager extends OBC.Component {
     // Group Visibility : key = group Name, value = visibility state. will be used to determine the visibility of geometry 
     // when triggering updateVisibility;
     set GroupVisibility(value: Map<string, VisibilityState> | undefined) {
-        console.log("ModelViewManager: group vis being set", value);
+        // console.log("ModelViewManager: group vis being set", value);
         this._treeVisibility = value;
         this.onGroupVisibilitySet.trigger(this._treeVisibility);
         this.updateVisibility();
@@ -147,7 +126,7 @@ export class ModelViewManager extends OBC.Component {
         sameNodeTypes.forEach(element => {
             this.setVisibility(element.id,element.id === group.id ? VisibilityState.Visible : VisibilityState.Hidden,false)
         });
-
+        this.onGroupVisibilitySet.trigger(this._treeVisibility);
         this.updateVisibility();
     }
 
@@ -178,7 +157,7 @@ export class ModelViewManager extends OBC.Component {
             const elementsForModel = elementsByModelId.get(model.uuid);
             if (elementsForModel) {
                 const allFragments = GetFragmentsFromExpressIds(elementsForModel.map(element => element.expressID), fragments, model);
-                console.log("Setting visibility", visibility)
+                // console.log("Setting visibility", visibility)
                 allFragments.forEach((ids, frag) => frag.setVisibility(visibility !== VisibilityState.Hidden, ids));
             }
         });
@@ -211,7 +190,7 @@ export class ModelViewManager extends OBC.Component {
     }
 
     private updateVisibility = () => {
-        console.log("update Visibility", this._treeVisibility)
+        // console.log("update Visibility", this._treeVisibility)
 
         if (!this._enabled || !this.components || !this._tree) return;
 
@@ -224,69 +203,22 @@ export class ModelViewManager extends OBC.Component {
             return;
         }
 
-        const test = this.groupElementsByVisibilityState();
-        console.log("tree vis state groups:", test)
-        if (test) {
-            this.SetVisibility(fragments, test.get(VisibilityState.Visible), VisibilityState.Visible);
-            this.SetVisibility(fragments, test.get(VisibilityState.Hidden), VisibilityState.Hidden);
+        const visibilityTypes = this.groupElementsByVisibilityState();
+        if (visibilityTypes) {
+            this.SetVisibility(fragments, visibilityTypes.get(VisibilityState.Visible), VisibilityState.Visible);
+            this.SetVisibility(fragments, visibilityTypes.get(VisibilityState.Hidden), VisibilityState.Hidden);
         }
-        else {
-            const { visibleElements, hiddenElements } = this.categorizeElements();
-            const cleanVisibleElements = this.filterVisibleElements(visibleElements, hiddenElements);
-            this.SetVisibility(fragments, cleanVisibleElements, VisibilityState.Visible);
-            this.SetVisibility(fragments, hiddenElements, VisibilityState.Hidden);
-            console.log("update Visibility: hide", hiddenElements)
-            console.log("update Visibility: show", cleanVisibleElements)
-        }
-
     };
 
-    private getAllElements(): buildingElement[] {
-        return Array.from(this._groups!.values())
-            .flatMap(innerMap => Array.from(innerMap.values()))
-            .flat();
-    }
-
-    // groups elements into visible and non visible
-    private categorizeElements(): { visibleElements: buildingElement[], hiddenElements: buildingElement[] } {
-        let visibleElements: buildingElement[] = [];
-        let hiddenElements: buildingElement[] = [];
-
-        // const stations = this._groups!.get('Station');
-        // if (stations) {
-        //     for (let [key, value] of stations.entries()) {
-        //         if (this._groupVisibility!.get(key)) {
-        //             visibleElements = visibleElements.concat(value);
-        //         } else {
-        //             hiddenElements = hiddenElements.concat(value);
-        //         }
-        //     }
-        // }
-
-        // const otherGroups = new Map(this._groups);
-        // otherGroups.delete('Station');
-        // for (let [, group] of otherGroups) {
-        //     for (let [groupName, elements] of group) {
-        //         if (this._groupVisibility!.get(groupName)) {
-        //             visibleElements = visibleElements.concat(elements);
-        //         } else {
-        //             hiddenElements = hiddenElements.concat(elements);
-        //         }
-        //     }
-        // }
-
-        return { visibleElements, hiddenElements };
+    private getAllElements(): buildingElement[] | undefined {
+        if(!this._tree?.root.id) return;
+        return this.getBuildingElements(this._tree?.root.id);
     }
 
     // search element tree and group building elements by visibility state of their highest parent node 
     private groupElementsByVisibilityState(): Map<VisibilityState, buildingElement[]> | undefined {
 
-        // depending on visibility mode
         if (!this._tree || !this._treeVisibility) return undefined;
-
-        //go through the treenodes searching deeply
-        // for each node search the _treeVisibilityMap to see if the node can be found by id, then if the id is found check its visibility state
-        // depending on the visibility state (hidden, vissible, ghost) you will add children too a different visibility entry in the returning map
 
         // 1. if the parent node is hidden, all children nodes will be hidden
         // 2. if parent node is ghost, children node of type visible and ghost will be ghost, and hidden remains hidden
@@ -334,10 +266,5 @@ export class ModelViewManager extends OBC.Component {
         traverseNode(this._tree.root!, VisibilityState.Visible);
         // console.log("vis state grouped",result)
         return result;
-    }
-
-    private filterVisibleElements(visibleElements: buildingElement[], hiddenElements: buildingElement[]): buildingElement[] {
-        const hiddenElementIds = new Set(hiddenElements.map(element => element.expressID));
-        return visibleElements.filter(element => !hiddenElementIds.has(element.expressID));
     }
 }
