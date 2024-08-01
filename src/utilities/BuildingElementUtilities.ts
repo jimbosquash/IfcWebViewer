@@ -1,5 +1,5 @@
 import { Tree, TreeNode, TreeUtils } from "./Tree";
-import { SelectionGroup, buildingElement, GroupingType, KnowGroupType } from "./types";
+import { SelectionGroup, buildingElement, KnowGroupType } from "./types";
 import * as OBC from "@thatopen/components";
 import { ModelCache } from "../bim-components/modelCache";
 import { GetFragmentIdMaps } from "./IfcUtilities";
@@ -63,9 +63,6 @@ export const setUpGroup = (elements: buildingElement[]) => {
   groupMap.set("BuildingStep", steps);
   return groupMap;
 }
-const isGroupingType = (value: any): value is GroupingType => {
-  return ["Station", "BuildingStep", "Assembly", "Unknown"].includes(value);
-};
 
 export const zoomToSelected = (elements : buildingElement[] | undefined, components: OBC.Components) => {
   if (!components || !elements) return;
@@ -128,6 +125,7 @@ export const setUpTree = (elements: buildingElement[], nodeOrder: string[] = ["S
 
     const currentNodeType = nodeOrder[currentLevel];
     const groupedElements = groupElementsByProperty(currentElements, currentNodeType);
+    console.log("Grouping elements by prop", groupedElements)
 
     groupedElements.forEach((groupElements, groupValue) => {
       const nodeId = `${parentNode.id}_${currentNodeType}_${groupValue}`;
@@ -146,6 +144,8 @@ export const groupElementsByProperty = (elements: buildingElement[], property: s
   const grouped = new Map<string, buildingElement[]>();
   elements.forEach(element => {
     const value = element.properties.find(prop => prop.name === property)?.value || 'Unknown';
+    if(value === "Unknown")
+      console.log("unknown data found",property,element.properties )
     if (!grouped.has(value)) {
       grouped.set(value, []);
     }

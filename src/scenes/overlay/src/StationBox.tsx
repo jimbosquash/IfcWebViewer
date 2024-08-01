@@ -9,22 +9,10 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { ComponentsContext } from "../../../context/ComponentsContext";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
-import { buildingElement, SelectionGroup, VisibilityState } from "../../../utilities/types";
+import { buildingElement, KnowGroupType, SelectionGroup, VisibilityState } from "../../../utilities/types";
 import { TreeNode, TreeUtils } from "../../../utilities/Tree";
-import { ModelCache } from "../../../bim-components/modelCache";
-import * as OBC from "@thatopen/components";
-import { FragmentsGroup } from "@thatopen/fragments";
-import * as FRAGS from "@thatopen/fragments";
-import { GetFragmentIdMaps } from "../../../utilities/IfcUtilities";
 
-
-interface GroupBoxProps {
-  groupName: string;
-  elements: buildingElement[];
-  child: GroupBoxProps | undefined;
-}
-
-interface GroupPanelProps {
+export interface GroupPanelProps {
   node: TreeNode<buildingElement>;
 }
 
@@ -32,13 +20,12 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useContext(ComponentsContext);
-  const [buildingSteps, setBuildingSteps] = useState<Map<string, buildingElement[]>>();
-  const [hasChildren, setHasChildren] = useState<boolean>(false);
   const [childVisible, setChildVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   const [name, setName] = useState<string | undefined>();
   const [elements, setElements] = useState<buildingElement[]>();
+  const [children, setChildren] = useState<TreeNode<buildingElement>[]>();
   const [modelViewManager, setModelViewManager] = useState<ModelViewManager | undefined>();
   const [isVisible, setIsVisible] = useState<boolean>(
     node.id !== undefined && modelViewManager?.GroupVisibility?.get(node.id) !== VisibilityState.Hidden
@@ -47,14 +34,12 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
   const treeNode = useRef<TreeNode<buildingElement>>();
 
   useEffect(() => {
-    if(!modelViewManager) return;
+    if (!modelViewManager) return;
     const visState = modelViewManager.GroupVisibility?.get(node.id);
-    if(visState === VisibilityState.Visible)
-      setIsVisible(true);
-    else
-      setIsVisible(false);
-  },)
-  
+    if (visState === VisibilityState.Visible) setIsVisible(true);
+    else setIsVisible(false);
+  });
+
   useEffect(() => {
     if (!node) return;
 
@@ -65,16 +50,24 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
     const t = foundElements.map((n) => n.data).filter((data): data is buildingElement => data !== null);
     // console.log("Station group box has elements:", t);
     setElements(t);
+
+
+    const validChildren = Array.from(node.children.values()).filter(
+      (n) => n.type !== KnowGroupType.BuildingElement.toString()
+    );
+
+
+    if (validChildren.length > 1) {
+          console.log("setting up children:", validChildren)
+
+      // setChildren(validChildren);
+    }
+    else setChildren(undefined);
   }, [node]);
 
   useEffect(() => {
     if (!components) return;
     const viewManager = components.get(ModelViewManager);
-    // console.log(
-    //   "stationBox: component changed, setting view manager, vis state",
-    //   stationName,
-    //   modelViewManager?.GroupVisibility?.get(stationName)
-    // );
     viewManager.onGroupVisibilitySet.add((data) => handleVisibilityyUpdate(data));
     viewManager.onSelectedGroupChanged.add((data) => handleSelectedGroupChanged(data));
     setModelViewManager(viewManager);
@@ -86,15 +79,11 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
     };
   }, [components]);
 
-  useEffect(() => {
-    if (!modelViewManager?.Tree || !elements) return;
-    const steps = groupElementsByProperty(elements, "BuildingStep");
-    console.log("stationbox: getting children", steps);
-    if (steps.size > 0) {
-      setBuildingSteps(steps);
-      setHasChildren(true);
-    } else setHasChildren(false);
-  }, [modelViewManager?.Tree, elements]);
+  // useEffect(() => {
+  //   if (!modelViewManager?.Tree || !elements) return;
+  //   const steps = groupElementsByProperty(elements, "BuildingStep");
+  //   console.log("stationbox: getting children", steps);
+  // }, [modelViewManager?.Tree, elements]);
 
   const toggleChildVisibility = useCallback(
     (e: React.MouseEvent) => {
@@ -131,7 +120,6 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
   }, [modelViewManager, name]);
 
   const setSelected = () => {
-
     setIsSelected(true);
     if (modelViewManager?.SelectedGroup?.groupName === name || !modelViewManager || !elements || !name) return;
 
@@ -150,9 +138,9 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
 
   const handelDoubleClick = () => {
     setSelected();
-    if (hasChildren) setChildVisible((prev) => !prev);
-    if(!elements || !components) return;
-    zoomToSelected(elements,components);
+    if (children) setChildVisible((prev) => !prev);
+    if (!elements || !components) return;
+    zoomToSelected(elements, components);
   };
 
   const nonSelectableTextStyle = {
@@ -211,25 +199,19 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
         >
           {isVisible ? <VisibilityOutlinedIcon /> : <VisibilityOffOutlinedIcon />}
         </IconButton>
-        {hasChildren && (
+        {children && (
           <IconButton size="small" sx={{ marginLeft: "4px", color: colors.grey[500] }} onClick={toggleChildVisibility}>
             {childVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           </IconButton>
         )}
       </Box>
-      {/* {childVisible && buildingSteps && (
+      {childVisible && children && (
         <Box component="div" sx={{ marginLeft: "5px", marginTop: "10px" }}>
-          {Array.from(buildingSteps).map(([buildingStep, stepElements]) => (
-            <BuildingStepBox
-              key={buildingStep}
-              child={undefined}
-              groupType={"BuildingStep"}
-              groupName={buildingStep}
-              elements={stepElements}
-            />
+          {children.map((node) => (
+            <BuildingStepBox key={node.id} node={node} />
           ))}
         </Box>
-      )} */}
+      )}
     </Box>
   );
 };

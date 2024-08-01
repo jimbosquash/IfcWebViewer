@@ -1,38 +1,50 @@
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { tokens } from "../../../theme";
-import { buildingElement, GroupingType, SelectionGroup } from "../../../utilities/BuildingElementUtilities";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
-import { useState, useEffect, useContext, useCallback } from "react";
+import { useState, useEffect, useContext, useCallback, useRef } from "react";
 import { ComponentsContext } from "../../../context/ComponentsContext";
-import { VisibilityState } from "../../../utilities/types";
+import { buildingElement, GroupingType, SelectionGroup, VisibilityState } from "../../../utilities/types";
+import { GroupPanelProps } from "./StationBox";
+import { TreeNode, TreeUtils } from "../../../utilities/Tree";
 
-interface GroupBoxProps {
-  groupName: string;
-  elements: buildingElement[];
-  child: GroupBoxProps | undefined;
-  groupType: GroupingType;
-}
 
-export const BuildingStepBox = (props: GroupBoxProps) => {
-  const { groupName, elements, groupType } = props;
+
+export const BuildingStepBox: React.FC<GroupPanelProps> = ({node}) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [modelViewManager, setModelViewManager] = useState<ModelViewManager | undefined>();
-  const [visibilitySate, setVisibilityState] = useState(modelViewManager?.GroupVisibility?.get(groupName));
   const [isHovered, setIsHovered] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   const components = useContext(ComponentsContext);
+  const treeNode = useRef<TreeNode<buildingElement>>();
+  const [name, setName] = useState<string | undefined>();
+  const [elements, setElements] = useState<buildingElement[]>();
+  const [isVisible, setIsVisible] = useState<boolean>(
+    node.id !== undefined && modelViewManager?.GroupVisibility?.get(node.id) !== VisibilityState.Hidden
+  );
+
+  useEffect(() => {
+    if (!node) return;
+
+    treeNode.current = node;
+    setName(node.name);
+
+    const foundElements = TreeUtils.getChildren(node, (child) => child.type === "BuildingElement");
+    const t = foundElements.map((n) => n.data).filter((data): data is buildingElement => data !== null);
+    // console.log("Station group box has elements:", t);
+    setElements(t);
+  }, [node]);
 
   useEffect(() => {
     if (!components) return;
     const viewManager = components.get(ModelViewManager);
-
     viewManager.onGroupVisibilitySet.add((data) => handleVisibilityyUpdate(data));
     viewManager.onSelectedGroupChanged.add((data) => handleSelectedGroupChanged(data));
     setModelViewManager(viewManager);
-    setVisibilityState(modelViewManager?.GroupVisibility?.get(groupName));
+    if (name) 
+      setIsVisible(modelViewManager?.GroupVisibility?.get(name) !== VisibilityState.Hidden);
 
     return () => {
       viewManager.onGroupVisibilitySet.remove((data) => handleVisibilityyUpdate(data));
@@ -40,42 +52,49 @@ export const BuildingStepBox = (props: GroupBoxProps) => {
     };
   }, [components]);
 
+
   const handleVisibilityyUpdate = (data: Map<String, VisibilityState>) => {
-    const visibilityState = data.get(groupName);
+    // console.log("handling visibility update:", data);
+    if (!node.id) return;
+    const visibilityState = data.get(node.id);
+
     if (visibilityState === undefined) return;
 
-    setVisibilityState(visibilityState);
+    setIsVisible(visibilityState !== VisibilityState.Hidden);
   };
 
   const handleSelectedGroupChanged = (data: SelectionGroup) => {
-    setIsSelected(groupName === data.groupName);
+    setIsSelected(name === data.groupName);
   };
 
+  
   const setSelected = () => {
-    if (modelViewManager) {
-      modelViewManager.SelectedGroup = {
-        groupType: groupType,
-        groupName: groupName,
-        elements: elements,
-      };
-      setIsSelected(true);
-      if (!modelViewManager.GroupVisibility?.get(groupName)) {
-        ToggleVisibility();
-      }
-      //todo highlight and zoom to selected
-    }
+
+    setIsSelected(true);
+    if (modelViewManager?.SelectedGroup?.groupName === name || !modelViewManager || !elements || !name) return;
+
+    modelViewManager.SelectedGroup = {
+      id: node.id,
+      groupType: "Station",
+      groupName: name,
+      elements: elements,
+    };
+    if (modelViewManager.GroupVisibility?.get(node.id) !== VisibilityState.Visible) ToggleVisibility();
+
+    //todo highlight and zoom to selected
   };
 
   const ToggleVisibility = useCallback(() => {
-    if (modelViewManager?.GroupVisibility) {
-      const newVisGroups = new Map(modelViewManager.GroupVisibility);
-      const vis = newVisGroups.get(groupName);
-      const newVisState = vis === "Hidden" ? "Visible" : "Hidden";
-      newVisGroups.set(groupName, newVisState );
-      modelViewManager.GroupVisibility = newVisGroups;
-      setVisibilityState( newVisState);
+    if (modelViewManager?.GroupVisibility && node.id) {
+      console.log("Toggle visibility", modelViewManager.GroupVisibility);
+      const currentVisibility = modelViewManager.GroupVisibility.get(node.id);
+      const newVisState =
+        currentVisibility === VisibilityState.Hidden ? VisibilityState.Visible : VisibilityState.Hidden;
+      modelViewManager.setVisibility(node.id, newVisState, true);
+      setIsVisible(newVisState !== VisibilityState.Hidden);
+      // update visibility
     }
-  }, [modelViewManager, groupName]);
+  }, [modelViewManager, name]);
 
   const nonSelectableTextStyle = {
     userSelect: 'none',
@@ -86,7 +105,7 @@ export const BuildingStepBox = (props: GroupBoxProps) => {
 
   return (
     <>
-      <Box key={groupName} component="div" style={{ marginBottom: "2px" }}>
+      <Box key={name} component="div" style={{ marginBottom: "2px" }}>
         <Box
           component="div"
           onDoubleClick={() => setSelected()}
@@ -112,9 +131,9 @@ export const BuildingStepBox = (props: GroupBoxProps) => {
           alignItems="center"
           justifyContent="space-between"
         >
-          <Typography noWrap maxWidth={"150px"} variant="h6" sx={{ flexGrow: 1 , ...nonSelectableTextStyle}}>{`Step: ${groupName}`}</Typography>
+          <Typography noWrap maxWidth={"150px"} variant="h6" sx={{ flexGrow: 1 , ...nonSelectableTextStyle}}>{`${treeNode.current?.type.toString()}: ${name}`}</Typography>
           <Typography color={colors.grey[500]} noWrap variant="body2" sx={{ marginLeft: "20px", ...nonSelectableTextStyle}}>
-            el : {elements.length}
+            el : {elements?.length}
           </Typography>
           <IconButton
             size="small"
@@ -124,7 +143,7 @@ export const BuildingStepBox = (props: GroupBoxProps) => {
               ToggleVisibility();
             }}
           >
-            {visibilitySate ? <VisibilityOutlinedIcon /> : <VisibilityOffOutlinedIcon />}
+            {isVisible ? <VisibilityOutlinedIcon /> : <VisibilityOffOutlinedIcon />}
           </IconButton>
         </Box>
       </Box>

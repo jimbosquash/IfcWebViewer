@@ -31,10 +31,6 @@ const TaskOverViewPanel = () => {
     };
   }, [components]);
 
-  useEffect(() => {
-    console.log("TaskOverViewPanel : changing station visibility");
-  }, [stationsVisible]);
-
   const handleTreeChange = (data: Tree<buildingElement>) => {
     console.log("task over view panel handeling new groups:", data);
     if (!data) return;
@@ -42,16 +38,13 @@ const TaskOverViewPanel = () => {
     const groups = data.root.children; // these are top level displays
     console.log("taskOver setting groups:", groups);
     if (groups) {
+      // make sure groups are of same type
+      console.log("task over view: groups:", groups)
       setGroups(Array.from(groups.values()));
       setPanelVisibility(true);
     } else setPanelVisibility(false);
   };
 
-  useEffect(() => {
-    console.log("taskViewPanel: new Stations:", groups);
-
-    return () => {};
-  }, [groups]);
 
   const HeaderBoxStyle = {
     // backgroundColor: colors.primary[400],
