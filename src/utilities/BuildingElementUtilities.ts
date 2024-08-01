@@ -1,93 +1,54 @@
+import { Tree, TreeNode, TreeUtils } from "./Tree";
+import { SelectionGroup, buildingElement, GroupingType, KnowGroupType } from "./types";
+import * as OBC from "@thatopen/components";
+import { ModelCache } from "../bim-components/modelCache";
+import { GetFragmentIdMaps } from "./IfcUtilities";
 
-export interface buildingElement {
-    expressID: number;
-    GlobalID: string;
-    type: number;
-    name: string;
-    modelID: string; // the fraggroup id
-    properties: {name: string, value: string}[]
-}
 
-export interface SelectionGroup {
-  groupType: GroupingType;
-    groupName: string;
-    elements: buildingElement[];
-}
-
-export type GroupingType = "Station" | "BuildingStep" | "Assembly" | "Unknown";
-
-export function GetNextGroup(current: SelectionGroup | undefined, groups: Map<string, Map<string, buildingElement[]>>): SelectionGroup | undefined {
-  if (!groups) return undefined;
-
-  // If no current group, return the first station group
-  if (!current) {
-    const stations = groups.get("Station");
-    if (!stations || stations.size === 0) return undefined;
-    
-    const [firstStationName, firstStationElements] = stations.entries().next().value;
-    return { groupType: "Station", groupName: firstStationName, elements: firstStationElements };
-  }
-
-  const groupType = groups.get(current.groupType);
-  if (!groupType) {
-    console.log("Get next group failed. grouping type not found", current.groupType);
-    return undefined;
-  }
-
-  // Convert keys to array for easier manipulation
-  const groupKeys = Array.from(groupType.keys());
-  const currentIndex = groupKeys.indexOf(current.groupName);
-  
-  // If current group not found or it's the last group, cycle to the first group
-  const nextIndex = (currentIndex === -1 || currentIndex === groupKeys.length - 1) ? 0 : currentIndex + 1;
-  const nextGroupKey = groupKeys[nextIndex];
-
-  const elements = groupType.get(nextGroupKey);
-  if (elements) {
-    return { groupType: current.groupType, groupName: nextGroupKey, elements };
-  }
-
-  return undefined;
-}
-
+// takes in the current grou, the building elements to search from (select by matching type) and the direction
 export function GetAdjacentGroup(
   current: SelectionGroup | undefined,
-  groups: Map<string, Map<string, buildingElement[]>>,
+  tree: Tree<buildingElement> | undefined,
   direction: 'next' | 'previous' = 'next'
 ): SelectionGroup | undefined {
-  if (!groups) return undefined;
+  if (!tree) return undefined;
 
   // If no current group, return the first or last station group based on direction
   if (!current) {
-    const stations = groups.get("Station");
-    if (!stations || stations.size === 0) return undefined;
-    
-    const stationEntries = Array.from(stations.entries());
-    const [stationName, stationElements] = direction === 'next' ? stationEntries[0] : stationEntries[stationEntries.length - 1];
-    return { groupType: "Station", groupName: stationName, elements: stationElements };
+
+    const station = tree.getFirstOrUndefinedNode(n => n.type === KnowGroupType.Station.toString());
+    if (!station) return undefined;
+
+    const el = TreeUtils.getChildren(station, n => n.type === KnowGroupType.BuildingElement.toString())
+      .map(n => n.data)
+      .filter((data): data is NonNullable<typeof data> => data != null)
+      .flat();
+
+    return { groupType: "Station", id: station.id, groupName: station.name, elements: el };
   }
 
-  const groupType = groups.get(current.groupType);
-  if (!groupType) {
+  const groupOfType = tree.getNodes(n => n.type === current.groupType).map(n => n.id);
+  console.log("Group of same type", groupOfType);
+
+  if (!groupOfType) {
     console.log("Get adjacent group failed. grouping type not found", current.groupType);
     return undefined;
   }
 
-  const groupKeys = Array.from(groupType.keys());
-  const currentIndex = groupKeys.indexOf(current.groupName);
-  
+  const currentIndex = groupOfType.indexOf(current.id);
+
   let adjacentIndex: number;
   if (direction === 'next') {
-    adjacentIndex = (currentIndex === -1 || currentIndex === groupKeys.length - 1) ? 0 : currentIndex + 1;
+    adjacentIndex = (currentIndex === -1 || currentIndex === groupOfType.length - 1) ? 0 : currentIndex + 1;
   } else {
-    adjacentIndex = (currentIndex === -1 || currentIndex === 0) ? groupKeys.length - 1 : currentIndex - 1;
+    adjacentIndex = (currentIndex === -1 || currentIndex === 0) ? groupOfType.length - 1 : currentIndex - 1;
   }
-  
-  const adjacentGroupKey = groupKeys[adjacentIndex];
-  const elements = groupType.get(adjacentGroupKey);
 
-  if (elements) {
-    return { groupType: current.groupType, groupName: adjacentGroupKey, elements };
+  const newNode = tree.getNode(groupOfType[adjacentIndex]);
+  console.log("New group selection",currentIndex, newNode);
+
+  if (newNode) {
+    return { groupType: newNode.type, id: newNode.id, groupName: newNode.name, elements: TreeUtils.getChildrenNonNullData(newNode) };
   }
 
   return undefined;
@@ -95,31 +56,100 @@ export function GetAdjacentGroup(
 
 export const setUpGroup = (elements: buildingElement[]) => {
   // make the groups and then pack them together
-  let stations = groupElements(elements,"Station")
-  let steps = groupElements(elements,"BuildingStep")
-  const groupMap = new Map<string,Map<string,buildingElement[]>>();
-  groupMap.set("Station",stations);
-  groupMap.set("BuildingStep",steps); 
+  let stations = groupElementsByProperty(elements, "Station")
+  let steps = groupElementsByProperty(elements, "BuildingStep")
+  const groupMap = new Map<string, Map<string, buildingElement[]>>();
+  groupMap.set("Station", stations);
+  groupMap.set("BuildingStep", steps);
   return groupMap;
-  } 
+}
+const isGroupingType = (value: any): value is GroupingType => {
+  return ["Station", "BuildingStep", "Assembly", "Unknown"].includes(value);
+};
 
-export const groupElements = (buildingElements: buildingElement[],groupType: GroupingType) : Map<string,buildingElement[]> => {
-    if(buildingElements)
-    {
-      return buildingElements.reduce((acc, element) => {
-        const propertyName = element.properties.find(prop => prop.name === groupType)?.value || 'Unknown'; 
-        if(propertyName === 'Unknown')
-          return acc;
-        if (!acc.has(propertyName)) {
-          acc.set(propertyName, []);
-        }
-        acc.get(propertyName)!.push(element);
-        return acc;
-      }, new Map<string, buildingElement[]>());
+export const zoomToSelected = (elements : buildingElement[] | undefined, components: OBC.Components) => {
+  if (!components || !elements) return;
+  const cache = components.get(ModelCache);
+  if (!cache.world) return;
+
+  const fragments = components.get(OBC.FragmentsManager);
+  const bbox = components.get(OBC.BoundingBoxer);
+  bbox.reset();
+
+  const idMaps = GetFragmentIdMaps(elements,components);
+
+  if(!idMaps) return;
+  idMaps.forEach(idMap => {
+    for(const fragID in idMap) {
+      const fragment = fragments.list.get(fragID);
+
+      if(!fragment) continue;
+
+      const ids = idMap[fragID];
+      bbox.addMesh(fragment.mesh, ids);
+      console.log("zooming to selected",fragment)
+
     }
-    return new Map<string, buildingElement[]>();
+  });
+  
+  const sphere = bbox.getSphere();
+  const i = Infinity;
+  const mi = -Infinity;
+  const { x, y, z } = sphere.center;
+  const isInf = sphere.radius === i || x === i || y === i || z === i;
+  const isMInf = sphere.radius === mi || x === mi || y === mi || z === mi;
+  const isZero = sphere.radius === 0;
+  if (isInf || isMInf || isZero) {
+    return;
+  }
+  sphere.radius *= 0.8;
+  const camera = cache.world.camera as OBC.OrthoPerspectiveCamera;
+
+  setTimeout(async () => {
+    camera.controls.fitToSphere(sphere, true);
+  }, 10);
+};
+
+export const setUpTree = (elements: buildingElement[], nodeOrder: string[] = ["Station", "BuildingStep"]) => {
+
+  const tree = new Tree<buildingElement>("Project", "Project");
+  const root = tree.getNode("Project")
+
+
+
+  const createSubTree = (parentNode: TreeNode<buildingElement>, currentElements: buildingElement[], currentLevel: number) => {
+    if (currentLevel >= nodeOrder.length) {
+      // We've reached the leaf level, add elements as leaf nodes
+      currentElements.forEach((element, index) => {
+        tree.addNode(parentNode.id, `${parentNode.id}_${index}`, element.name, "BuildingElement", element, true);
+      });
+      return;
+    }
+
+    const currentNodeType = nodeOrder[currentLevel];
+    const groupedElements = groupElementsByProperty(currentElements, currentNodeType);
+
+    groupedElements.forEach((groupElements, groupValue) => {
+      const nodeId = `${parentNode.id}_${currentNodeType}_${groupValue}`;
+      tree.addNode(parentNode.id, nodeId, groupValue, currentNodeType);
+      createSubTree(tree.getNode(nodeId)!, groupElements, currentLevel + 1);
+    });
   };
 
-  const isGroupingType = (value: any): value is GroupingType => {
-    return ["Station", "BuildingStep", "Assembly", "Unknown"].includes(value);
-  };
+  if (root)
+    createSubTree(root, elements, 0)
+
+  return tree;
+}
+
+export const groupElementsByProperty = (elements: buildingElement[], property: string): Map<string, buildingElement[]> => {
+  const grouped = new Map<string, buildingElement[]>();
+  elements.forEach(element => {
+    const value = element.properties.find(prop => prop.name === property)?.value || 'Unknown';
+    if (!grouped.has(value)) {
+      grouped.set(value, []);
+    }
+    grouped.get(value)!.push(element);
+  });
+  return grouped;
+};

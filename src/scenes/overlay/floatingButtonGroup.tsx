@@ -11,13 +11,13 @@ import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import ZoomInMapOutlined from "@mui/icons-material/ZoomInMapOutlined";
 import CameraEnhance from "@mui/icons-material/CameraEnhance";
-import { GetAdjacentGroup, SelectionGroup } from "../../utilities/BuildingElementUtilities";
+import { GetAdjacentGroup, zoomToSelected } from "../../utilities/BuildingElementUtilities";
 import { ComponentsContext } from "../../context/ComponentsContext";
 import { CommentIconButton } from "./src/commentIconButton";
 import { ModelViewManager } from "../../bim-components/modelViewer";
 import { ModelCache } from "../../bim-components/modelCache";
 import Stats from "stats.js";
-import { VisibilityMode } from "../../utilities/types";
+import { SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
 
 interface floatingButtonProps {
   togglePropertyPanelVisibility: () => void;
@@ -51,27 +51,29 @@ const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelV
 
     const current = viewManager.SelectedGroup;
 
-    if (!viewManager.Groups) return;
-
     if (!current) {
       console.log("No group selected, default will be used");
     }
-    const newGroup = GetAdjacentGroup(current, viewManager.Groups, adjacency);
+    console.log("Setting adjacent",current);
+
+    const newGroup = GetAdjacentGroup(current, viewManager.Tree, adjacency);
     //todo: fix this up for switch statement
     if (newGroup) {
       updateVisibility(viewManager,newGroup)
       viewManager.SelectedGroup = newGroup;
+      //zoomToSelected(viewManager.getBuildingElements(newGroup.id),components);
     }
   };
 
+  // set up visibility map depending on mode setting
   const updateVisibility = (viewManager: ModelViewManager, group: SelectionGroup) => {
-    if (viewManager.VisibilityMode === "Isolate") {
-      const visMap = IsolateSelected(viewManager.components, group);
-      viewManager.GroupVisibility = visMap;
-    } else if (viewManager.VisibilityMode === "Passive") {
-      const visMap = ShowSelected(viewManager.components, group);
-      viewManager.GroupVisibility = visMap;
-    }
+
+    if (viewManager.VisibilityMode === VisibilityMode.Isolate) 
+      IsolateSelected(viewManager.components, group);
+    // } else if (viewManager.VisibilityMode === VisibilityMode.Passive) {
+
+    //   const visMap = ShowSelected(viewManager.components, group);      
+    // }
   };
 
   const handelVisibilityModeChange = () => {
@@ -84,30 +86,24 @@ const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelV
     //trigger display of current elements again
   };
 
+  // to do, create a change so all stations or other elements on the same level are isolated
   const IsolateSelected = (components: OBC.Components, selected: SelectionGroup) => {
     const viewManager = components.get(ModelViewManager);
-    const visMap = new Map(viewManager.GroupVisibility);
-    visMap.forEach((visState, groupName) => visMap.set(groupName, "Visible"));
-    const matchingGroupType = viewManager.Groups?.get(selected.groupType)?.keys();
-    if (!matchingGroupType) return;
+    viewManager.isolate(selected);
 
-    for (let groupName of Array.from(matchingGroupType)) {
-      if (groupName !== selected.groupName) visMap.set(groupName, "Hidden");
-    }
-    return visMap;
   };
 
-  const ShowSelected = (components: OBC.Components, selected: SelectionGroup) => {
-    const viewManager = components.get(ModelViewManager);
-    const matchingGroupType = viewManager.Groups?.get(selected.groupType)?.keys();
-    if (!matchingGroupType) return;
-    const visMap = new Map(viewManager.GroupVisibility);
+  // const ShowSelected = (components: OBC.Components, selected: SelectionGroup) => {
+  //   const viewManager = components.get(ModelViewManager);
+  //   const matchingGroupType = viewManager.Groups?.get(selected.groupType)?.keys();
+  //   if (!matchingGroupType) return;
+  //   const visMap = new Map(viewManager.GroupVisibility);
 
-    for (let groupName of Array.from(matchingGroupType)) {
-      if (groupName === selected.groupName) visMap.set(groupName, "Visible");
-    }
-    return visMap;
-  };
+  //   for (let groupName of Array.from(matchingGroupType)) {
+  //     if (groupName === selected.groupName) visMap.set(groupName, VisibilityState.Visible);
+  //   }
+  //   return visMap;
+  // };
 
   const zoomAll = () => {
     if (!components) return;
@@ -174,8 +170,8 @@ const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelV
     // togge between isol
     const viewManager = components?.get(ModelViewManager);
     if (!viewManager) return;
-    if (viewManager.VisibilityMode === "Isolate") viewManager.VisibilityMode = "Passive";
-    else if (viewManager.VisibilityMode === "Passive") viewManager.VisibilityMode = "Isolate";
+    if (viewManager.VisibilityMode === VisibilityMode.Isolate) viewManager.VisibilityMode = VisibilityMode.Passive;
+    else if (viewManager.VisibilityMode === VisibilityMode.Passive) viewManager.VisibilityMode = VisibilityMode.Isolate;
   };
 
   return (
@@ -227,7 +223,7 @@ const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelV
               <NavigateNextIcon fontSize="large" />
             </IconButton>
             <IconButton style={floatingButtonStyle} onClick={() => toggleVisibilityMode()}>
-              {visibilityMode === "Passive" ? <Group fontSize="large" /> : <ViewArray fontSize="large" />}
+              {visibilityMode === VisibilityMode.Passive ? <Group fontSize="large" /> : <ViewArray fontSize="large" />}
             </IconButton>
             <CommentIconButton />
           </ButtonGroup>

@@ -1,66 +1,96 @@
 
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
+import { FragmentIdMap } from "@thatopen/fragments";
 import * as WEBIFC from "web-ifc";
-import { buildingElement } from "./BuildingElementUtilities";
+import { ModelCache } from "../bim-components/modelCache";
+import { buildingElement } from "./types";
 
 
 
 
 interface taskOverviewProps {
     buildingElements: buildingElement[];
-    ifcModel : FRAGS.FragmentsGroup;
+    ifcModel: FRAGS.FragmentsGroup;
     components: OBC.Components;
 
 }
 
-export function GetFragmentsFromExpressIds(expressIds: number[],fragments: OBC.FragmentsManager,ifcModel : FRAGS.FragmentsGroup | undefined) : Map<FRAGS.Fragment,number[]>
-{
-    if(!ifcModel)
+export function GetFragmentIdMaps(elements: buildingElement[], components: OBC.Components) {
+    
+    if (!components) return;
+    
+    const cache = components.get(ModelCache);
+    if (!cache) return;
+
+    let result: FragmentIdMap[] = [];
+
+    const elementsByModel = elements.reduce((acc, e) => {
+        const modelId = e.modelID;
+        if(!acc.has(modelId)) {
+            acc.set(modelId,[])
+        }
+        acc.get(modelId)!.push(e.expressID)
+        return acc;
+
+    }, new Map<string, number[]>);
+
+    
+    elementsByModel.forEach((expressIds, modelId) => {
+        const model = cache.getModel(modelId);
+        if(!model) return;
+        const fragIdMap = model?.getFragmentMap(expressIds);
+        result = result.concat(fragIdMap)
+    });
+    return result;
+
+}
+
+export function GetFragmentsFromExpressIds(expressIds: number[], fragments: OBC.FragmentsManager, ifcModel: FRAGS.FragmentsGroup | undefined): Map<FRAGS.Fragment, number[]> {
+    if (!ifcModel)
         return new Map<FRAGS.Fragment, number[]>();
 
-    const elementTypeIds = ifcModel.getFragmentMap(expressIds);    
-    const elementTypesFragment = getFragmentsByKeys(fragments.list,Object.keys(elementTypeIds))
+    const elementTypeIds = ifcModel.getFragmentMap(expressIds);
+    const elementTypesFragment = getFragmentsByKeys(fragments.list, Object.keys(elementTypeIds))
     //console.log("element types of task",elementTypesFragment)
 
-    const result = getOverlappingMap(elementTypesFragment,expressIds);
+    const result = getOverlappingMap(elementTypesFragment, expressIds);
     return result;
-    
+
     function getFragmentsByKeys(
         fragmentMap: Map<string, FRAGS.Fragment>,
         keys: string[]
-      ): FRAGS.Fragment[] {
-        
-        return keys.reduce<FRAGS.Fragment[]>((result, key) => {
-          const fragment = fragmentMap.get(key);
-          if (fragment) {
-            result.push(fragment);
-          }
-          return result;
-        }, []);
-      }
+    ): FRAGS.Fragment[] {
 
-      function getOverlappingMap(elementTypesFragment: FRAGS.Fragment[], expressIds: number[]): Map<FRAGS.Fragment, number[]> {
+        return keys.reduce<FRAGS.Fragment[]>((result, key) => {
+            const fragment = fragmentMap.get(key);
+            if (fragment) {
+                result.push(fragment);
+            }
+            return result;
+        }, []);
+    }
+
+    function getOverlappingMap(elementTypesFragment: FRAGS.Fragment[], expressIds: number[]): Map<FRAGS.Fragment, number[]> {
         const overlappingMap = new Map<FRAGS.Fragment, number[]>();
-      
+
         for (const elementType of elementTypesFragment) {
-          const overlappingArray = expressIds.filter(id1 => elementType.ids.has(id1));
-          //console.log('instance ids to set state', expressIds, 'element type ids:', elementType.ids);
-          
-          overlappingMap.set(elementType,overlappingArray);
+            const overlappingArray = expressIds.filter(id1 => elementType.ids.has(id1));
+            //console.log('instance ids to set state', expressIds, 'element type ids:', elementType.ids);
+
+            overlappingMap.set(elementType, overlappingArray);
         }
-      
+
         return overlappingMap;
-      }
+    }
 
 }
 
 
 
-export function getStationBarChartArray(elements: buildingElement[]) : any[]
-{
+export function getStationBarChartArray(elements: buildingElement[]): any[] {
     // group by station
-    
+
     const groupedByStation: Record<string, Record<string, buildingElement[]>> = {};
 
 
@@ -68,28 +98,27 @@ export function getStationBarChartArray(elements: buildingElement[]) : any[]
         const stationFilter = element.properties.find(prop => prop.name === "Station")
         const productCodeFilter = element.properties.find(prop => prop.name === "Productcode")
 
-        if(stationFilter && productCodeFilter)
-        {
+        if (stationFilter && productCodeFilter) {
             const station = stationFilter.value;
             const productCode = productCodeFilter.value;
 
             var codeCategory: string = "";// = "Other"
-            if(productCode.includes('UN')){
+            if (productCode.includes('UN')) {
                 codeCategory = "UN"
-            } 
-            else if (productCode.includes("EP")){
+            }
+            else if (productCode.includes("EP")) {
                 codeCategory = "EP"
-            } 
+            }
             else if (productCode.includes("CE")) {
                 codeCategory = "CE"
             }
 
 
-            if(!groupedByStation[station]) {
+            if (!groupedByStation[station]) {
                 groupedByStation[station] = {}
             }
 
-            if(!groupedByStation[station][codeCategory]) {
+            if (!groupedByStation[station][codeCategory]) {
                 groupedByStation[station][codeCategory] = [];
             }
 
@@ -112,22 +141,21 @@ interface StationObj {
     [key: string]: string | Number;
 };
 
-function convertToStationArray(groupedByStation: Record<string, Record<string, buildingElement[]>>) : any[] {
+function convertToStationArray(groupedByStation: Record<string, Record<string, buildingElement[]>>): any[] {
     const stationSummary: any[] = [];
 
-    for (const station in groupedByStation)
-    {
-        if(groupedByStation.hasOwnProperty(station)) {
+    for (const station in groupedByStation) {
+        if (groupedByStation.hasOwnProperty(station)) {
             const stationObj: StationObj = {
                 station: station,
                 CE: 0,
                 UN: 0,
                 EP: 0,
                 Other: 0,
-                };
+            };
 
-            for(const category in groupedByStation[station]) {
-                if(groupedByStation[station].hasOwnProperty(category)) {
+            for (const category in groupedByStation[station]) {
+                if (groupedByStation[station].hasOwnProperty(category)) {
                     stationObj[category] = groupedByStation[station][category].length
                 }
             }
@@ -135,30 +163,27 @@ function convertToStationArray(groupedByStation: Record<string, Record<string, b
 
         }
     }
-    console.log("grouped by station and code ",stationSummary);
+    console.log("grouped by station and code ", stationSummary);
     return stationSummary;
 
 }
 
 
-  
-export function getEPElementCount(elements: buildingElement[])
-{
+
+export function getEPElementCount(elements: buildingElement[]) {
     return elements.filter(element => element.properties.some(property => property.value.includes("EP-"))).length;
 }
 
 
-export function getUniqueElementCount(elements: buildingElement[])
-{
+export function getUniqueElementCount(elements: buildingElement[]) {
     const groupedByProductCode: Record<string, buildingElement[]> = {};
 
 
     elements.forEach(element => {
-        const codeFilter = element.properties.find(prop => prop.name ==="Productcode")
-        if(codeFilter)
-        {
+        const codeFilter = element.properties.find(prop => prop.name === "Productcode")
+        if (codeFilter) {
             const productCode = codeFilter.value;
-            if(!groupedByProductCode[productCode]) {
+            if (!groupedByProductCode[productCode]) {
                 groupedByProductCode[productCode] = []
             }
             groupedByProductCode[productCode].push(element)
@@ -168,10 +193,8 @@ export function getUniqueElementCount(elements: buildingElement[])
     return Object.keys(groupedByProductCode).length;
 }
 
-export async function GetBuildingElements(loadedModel : FRAGS.FragmentsGroup, components : OBC.Components | undefined)
-{
-    if(!components)
-    {
+export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, components: OBC.Components | undefined) {
+    if (!components) {
         console.log('compoenets not set, getBuildingELements exiting')
         return [];
     }
@@ -183,33 +206,33 @@ export async function GetBuildingElements(loadedModel : FRAGS.FragmentsGroup, co
 
     const foundElements: buildingElement[] = [];
     const elements = loadedModel.getLocalProperties();
-    await OBC.IfcPropertiesUtils.getRelationMap(loadedModel,WEBIFC.IFCRELDEFINESBYPROPERTIES,(async (propertySetID, _relatedElementsIDs) => { 
+    await OBC.IfcPropertiesUtils.getRelationMap(loadedModel, WEBIFC.IFCRELDEFINESBYPROPERTIES, (async (propertySetID, _relatedElementsIDs) => {
 
         _relatedElementsIDs.forEach(reltingElement => {
-            if(elements)
-            {
+            if (elements) {
                 const element = elements[reltingElement]
                 // console.log("element related",element)
                 // console.log("element ifc properties",elements)
 
-                const newElement : buildingElement = {
-                                expressID: element.expressID,
-                                GlobalID: element.GlobalId.value,
-                                type: element.type,
-                                name: element.Name.value,
-                                properties: [],
-                                modelID: loadedModel.uuid
-                            };   
-                            
-                OBC.IfcPropertiesUtils.getPsetProps(loadedModel,propertySetID,(async (propertyId) => {
+                const newElement: buildingElement = {
+                    expressID: element.expressID,
+                    GlobalID: element.GlobalId.value,
+                    type: element.type,
+                    name: element.Name.value,
+                    properties: [],
+                    modelID: loadedModel.uuid
+                };
+
+                OBC.IfcPropertiesUtils.getPsetProps(loadedModel, propertySetID, (async (propertyId) => {
                     const property = elements[propertyId];
-                    if(!property)
+                    if (!property)
                         return;
 
                     newElement.properties.push({
                         name: property.Name.value,
-                        value: property.NominalValue.value})
-                
+                        value: property.NominalValue.value
+                    })
+
                     // const propertyName = property.Name?.value;
                     // const propertyValue = property.NominalValue?.value;
                     // if (propertyName) {
@@ -222,7 +245,7 @@ export async function GetBuildingElements(loadedModel : FRAGS.FragmentsGroup, co
                 foundElements.push(newElement)
             }
         })
-    } ))
+    }))
     // console.log("building Elements",foundElements)
     return foundElements;
 }

@@ -1,33 +1,71 @@
 import { Box, Typography, IconButton, useTheme } from "@mui/material";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState, useRef } from "react";
 import { tokens } from "../../../theme";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import BuildingStepBox from "./BuildingStepBox";
-import { buildingElement, groupElements, SelectionGroup } from "../../../utilities/BuildingElementUtilities";
+import { groupElementsByProperty, zoomToSelected } from "../../../utilities/BuildingElementUtilities";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { ComponentsContext } from "../../../context/ComponentsContext";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
-import { VisibilityState } from "../../../utilities/types";
+import { buildingElement, SelectionGroup, VisibilityState } from "../../../utilities/types";
+import { TreeNode, TreeUtils } from "../../../utilities/Tree";
+import { ModelCache } from "../../../bim-components/modelCache";
+import * as OBC from "@thatopen/components";
+import { FragmentsGroup } from "@thatopen/fragments";
+import * as FRAGS from "@thatopen/fragments";
+import { GetFragmentIdMaps } from "../../../utilities/IfcUtilities";
+
 
 interface GroupBoxProps {
   groupName: string;
   elements: buildingElement[];
-  child: GroupBoxProps;
+  child: GroupBoxProps | undefined;
 }
 
-const StationBox: React.FC<GroupBoxProps> = ({ groupName, elements }) => {
+interface GroupPanelProps {
+  node: TreeNode<buildingElement>;
+}
+
+const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useContext(ComponentsContext);
   const [buildingSteps, setBuildingSteps] = useState<Map<string, buildingElement[]>>();
-  const [hasChildren, setHasChildren] = useState<boolean>(false)
+  const [hasChildren, setHasChildren] = useState<boolean>(false);
   const [childVisible, setChildVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
+  const [name, setName] = useState<string | undefined>();
+  const [elements, setElements] = useState<buildingElement[]>();
   const [modelViewManager, setModelViewManager] = useState<ModelViewManager | undefined>();
-  const [isVisible, setIsVisible] = useState(modelViewManager?.GroupVisibility?.get(groupName) || false);
+  const [isVisible, setIsVisible] = useState<boolean>(
+    node.id !== undefined && modelViewManager?.GroupVisibility?.get(node.id) !== VisibilityState.Hidden
+  );
+
+  const treeNode = useRef<TreeNode<buildingElement>>();
+
+  useEffect(() => {
+    if(!modelViewManager) return;
+    const visState = modelViewManager.GroupVisibility?.get(node.id);
+    if(visState === VisibilityState.Visible)
+      setIsVisible(true);
+    else
+      setIsVisible(false);
+  },)
+  
+  useEffect(() => {
+    if (!node) return;
+
+    treeNode.current = node;
+    setName(node.name);
+
+    const foundElements = TreeUtils.getChildren(node, (child) => child.type === "BuildingElement");
+    const t = foundElements.map((n) => n.data).filter((data): data is buildingElement => data !== null);
+    // console.log("Station group box has elements:", t);
+    setElements(t);
+  }, [node]);
 
   useEffect(() => {
     if (!components) return;
@@ -40,7 +78,7 @@ const StationBox: React.FC<GroupBoxProps> = ({ groupName, elements }) => {
     viewManager.onGroupVisibilitySet.add((data) => handleVisibilityyUpdate(data));
     viewManager.onSelectedGroupChanged.add((data) => handleSelectedGroupChanged(data));
     setModelViewManager(viewManager);
-    setIsVisible(modelViewManager?.GroupVisibility?.get(groupName) || true);
+    if (name) setIsVisible(modelViewManager?.GroupVisibility?.get(name) !== VisibilityState.Hidden);
 
     return () => {
       viewManager.onGroupVisibilitySet.remove((data) => handleVisibilityyUpdate(data));
@@ -49,79 +87,78 @@ const StationBox: React.FC<GroupBoxProps> = ({ groupName, elements }) => {
   }, [components]);
 
   useEffect(() => {
-    if (!modelViewManager?.Groups) return;
-    const steps = groupElements(elements, "BuildingStep");
-    console.log("stationbox: getting children", steps)
-    if (steps.size > 0) 
-      {
-        setBuildingSteps(steps);
-        setHasChildren(true);
-      }
-    else
-      setHasChildren(false)
-  }, [modelViewManager?.Groups, elements]);
+    if (!modelViewManager?.Groups || !elements) return;
+    const steps = groupElementsByProperty(elements, "BuildingStep");
+    console.log("stationbox: getting children", steps);
+    if (steps.size > 0) {
+      setBuildingSteps(steps);
+      setHasChildren(true);
+    } else setHasChildren(false);
+  }, [modelViewManager?.Tree, elements]);
 
   const toggleChildVisibility = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
       setChildVisible((prev) => !prev);
     },
-    [modelViewManager, groupName]
+    [modelViewManager, name]
   );
 
   const handleSelectedGroupChanged = (data: SelectionGroup) => {
-    setIsSelected(groupName === data.groupName);
+    setIsSelected(name === data.groupName);
   };
 
   const handleVisibilityyUpdate = (data: Map<String, VisibilityState>) => {
-    const visibilityState = data.get(groupName);
+    if (!name) return;
+    const visibilityState = data.get(name);
     if (visibilityState === undefined) return;
 
     // console.log("stationbox: handling visibility update:", data, visibilityState);
-    setIsVisible(visibilityState);
+    setIsVisible(visibilityState !== VisibilityState.Hidden);
   };
 
   const ToggleVisibility = useCallback(() => {
-    if (modelViewManager?.GroupVisibility) {
-      const newVisGroups = new Map(modelViewManager.GroupVisibility);
-      const vis = newVisGroups.get(groupName);
-      const newVisState = vis === "Hidden" ? "Visible" : "Hidden";
-      newVisGroups.set(groupName, newVisState);
-      modelViewManager.GroupVisibility = newVisGroups;
-      setIsVisible(!vis);
+    if (modelViewManager?.GroupVisibility && node.id) {
+      console.log("Toggle visibility", modelViewManager.GroupVisibility);
+      const currentVisibility = modelViewManager.GroupVisibility.get(node.id);
+      const newVisState =
+        currentVisibility === VisibilityState.Hidden ? VisibilityState.Visible : VisibilityState.Hidden;
+      modelViewManager.setVisibility(node.id, newVisState, true);
+      setIsVisible(newVisState !== VisibilityState.Hidden);
+      // update visibility
     }
-  }, [modelViewManager, groupName]);
+  }, [modelViewManager, name]);
 
   const setSelected = () => {
-    if (modelViewManager) {
-      modelViewManager.SelectedGroup = {
-        groupType: "Station",
-        groupName: groupName,
-        elements: elements,
-      };
-      setIsSelected(true);
-      if (!modelViewManager.GroupVisibility?.get(groupName)) {
-        ToggleVisibility();
-      }
 
-      //todo highlight and zoom to selected
-    }
+    setIsSelected(true);
+    if (modelViewManager?.SelectedGroup?.groupName === name || !modelViewManager || !elements || !name) return;
+
+    modelViewManager.SelectedGroup = {
+      id: node.id,
+      groupType: "Station",
+      groupName: name,
+      elements: elements,
+    };
+    if (modelViewManager.GroupVisibility?.get(node.id) !== VisibilityState.Visible) ToggleVisibility();
+
+    //todo highlight and zoom to selected
   };
 
-  const displayName = groupName.startsWith("Prefab -") ? groupName.slice("Prefab -".length) : groupName;
+  const displayName = name?.startsWith("Prefab -") ? name.slice("Prefab -".length) : name;
 
   const handelDoubleClick = () => {
     setSelected();
-    if(hasChildren)
-      setChildVisible((prev) => !prev);
-    
-  }
+    if (hasChildren) setChildVisible((prev) => !prev);
+    if(!elements || !components) return;
+    zoomToSelected(elements,components);
+  };
 
   const nonSelectableTextStyle = {
-    userSelect: 'none',
-    WebkitUserSelect: 'none', // For Safari
-    MozUserSelect: 'none', // For Firefox
-    msUserSelect: 'none', // For Internet Explorer/Edge
+    userSelect: "none",
+    WebkitUserSelect: "none", // For Safari
+    MozUserSelect: "none", // For Firefox
+    msUserSelect: "none", // For Internet Explorer/Edge
   };
 
   return (
@@ -147,11 +184,21 @@ const StationBox: React.FC<GroupBoxProps> = ({ groupName, elements }) => {
           justifyContent: "space-between",
         }}
       >
-        <Typography noWrap  maxWidth="105px" variant={isSelected ? "h5" : "h6" } sx={{ flexGrow: 1 ,...nonSelectableTextStyle}}>
+        <Typography
+          noWrap
+          maxWidth="105px"
+          variant={isSelected ? "h5" : "h6"}
+          sx={{ flexGrow: 1, ...nonSelectableTextStyle }}
+        >
           {displayName}
         </Typography>
-        <Typography color={colors.primary[300]} noWrap variant="body2" sx={{ marginLeft: "10px" , ...nonSelectableTextStyle}}>
-          el : {elements.length}
+        <Typography
+          color={colors.primary[300]}
+          noWrap
+          variant="body2"
+          sx={{ marginLeft: "10px", ...nonSelectableTextStyle }}
+        >
+          el : {elements?.length}
         </Typography>
         <IconButton
           size="small"
@@ -159,7 +206,6 @@ const StationBox: React.FC<GroupBoxProps> = ({ groupName, elements }) => {
           onClick={(e) => {
             e.stopPropagation();
             ToggleVisibility();
-            // console.log("click handle vis toggle",modelViewManager)
           }}
         >
           {isVisible ? <VisibilityOutlinedIcon /> : <VisibilityOffOutlinedIcon />}
@@ -170,13 +216,19 @@ const StationBox: React.FC<GroupBoxProps> = ({ groupName, elements }) => {
           </IconButton>
         )}
       </Box>
-      {childVisible && buildingSteps && (
+      {/* {childVisible && buildingSteps && (
         <Box component="div" sx={{ marginLeft: "5px", marginTop: "10px" }}>
           {Array.from(buildingSteps).map(([buildingStep, stepElements]) => (
-            <BuildingStepBox key={buildingStep} child={undefined} groupType={"BuildingStep"} groupName={buildingStep} elements={stepElements} />
+            <BuildingStepBox
+              key={buildingStep}
+              child={undefined}
+              groupType={"BuildingStep"}
+              groupName={buildingStep}
+              elements={stepElements}
+            />
           ))}
         </Box>
-      )}
+      )} */}
     </Box>
   );
 };

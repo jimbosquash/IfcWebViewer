@@ -1,7 +1,7 @@
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
-import { buildingElement } from "../../utilities/BuildingElementUtilities";
 import { GetBuildingElements } from "../../utilities/IfcUtilities";
+import { buildingElement } from "../../utilities/types";
 import { ModelViewManager } from "../modelViewer";
 
 export class ModelCache extends OBC.Component {
@@ -15,6 +15,13 @@ export class ModelCache extends OBC.Component {
     private _world: OBC.World | null = null;
 
     private _buildingElements: buildingElement[] | undefined;
+
+    getModel(modelId : string): FRAGS.FragmentsGroup | undefined {
+        if(!modelId) return;
+
+        if(this._models.has(modelId))
+            return this._models.get(modelId);
+    }
 
     constructor(components: OBC.Components) {
         super(components);
@@ -59,7 +66,6 @@ export class ModelCache extends OBC.Component {
             this.onBuildingElementsChanged.trigger(this._buildingElements);
 
             this.components.get(ModelViewManager).setUpGroups(this._buildingElements);
-            this.components.get(ModelViewManager).enabled = true;
             this.components.get(OBC.FragmentsManager).onFragmentsDisposed.add((data) => {
                 this.delete(data.groupID)
                 console.log("fragmentunloaded", data)
