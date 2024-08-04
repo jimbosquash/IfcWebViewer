@@ -8,6 +8,7 @@ import Overlay from "../overlay";
 import { ModelCache } from "../../bim-components/modelCache";
 import { ModelViewManager } from "../../bim-components/modelViewer";
 
+
 export const ThreeScene = () => {
   const mountRef = useRef<HTMLDivElement>(null);
   const components = useContext(ComponentsContext);

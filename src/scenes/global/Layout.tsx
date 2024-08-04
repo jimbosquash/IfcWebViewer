@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { RefProvider } from "../../context/RefContext";
 import { InfoPanelDataProvider } from "../../context/InfoPanelContext";
@@ -6,15 +6,32 @@ import { SideMenu } from "../sideMenu";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import { IconButton } from "@mui/material";
+import { ComponentsContext } from "../../context/ComponentsContext";
+import { ModelViewManager } from "../../bim-components/modelViewer";
+import { ModelCache } from "../../bim-components/modelCache";
 
 const Layout = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const components = useContext(ComponentsContext);
 
   const toggleSidebar = () => {
     console.log("side bar button clicked");
     setIsSidebarExpanded(!isSidebarExpanded);
   };
+
+  useEffect(() => {
+    if (!components) return;
+
+    const viewManager = components.get(ModelCache);
+    viewManager.onModelAdded.add(() => setIsSidebarExpanded(false))
+
+    return () => {
+
+      viewManager.onModelAdded.remove(() => setIsSidebarExpanded(false))
+
+    }
+  }, [components])
 
   return (
     <RefProvider containerRef={containerRef}>

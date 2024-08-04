@@ -58,7 +58,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
 
 
     if (validChildren.length > 1) {
-          console.log("setting up children:", validChildren)
+      console.log("setting up children:", validChildren)
 
       // setChildren(validChildren);
     }
@@ -95,6 +95,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
 
   const handleSelectedGroupChanged = (data: SelectionGroup) => {
     setIsSelected(name === data.groupName);
+    console.log("stationbox: setting selected:", name, name === data.groupName);
   };
 
   const handleVisibilityyUpdate = (data: Map<String, VisibilityState>) => {
@@ -176,13 +177,14 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
         <Typography
           noWrap
           maxWidth="105px"
+          color={isSelected ? colors.primary[300] : colors.grey[600]}
           variant={isSelected ? "h5" : "h6"}
           sx={{ flexGrow: 1, ...nonSelectableTextStyle }}
         >
           {displayName}
         </Typography>
         <Typography
-          color={colors.primary[300]}
+          color={isSelected ? colors.primary[300] : colors.grey[600]}
           noWrap
           variant="body2"
           sx={{ marginLeft: "10px", ...nonSelectableTextStyle }}
@@ -191,8 +193,9 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
         </Typography>
         <IconButton
           size="small"
+          color={isSelected ? colors.primary[300] : colors.grey[600]}
           sx={{ marginLeft: "8px", color: colors.grey[500] }}
-          onClick={(e) => {
+          onClick={(e: any) => {
             e.stopPropagation();
             ToggleVisibility();
           }}
