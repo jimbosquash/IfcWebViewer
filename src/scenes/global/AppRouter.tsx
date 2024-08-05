@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./Layout";
 import { ThreeScene } from "../viewer/threeScene";
-import TopBar from "./TopBar";
+import TopBar from "../global/TopBar";
 import TopBarContextProvider from "../../context/TopBarContext";
 
 export const AppRouter = () => {
