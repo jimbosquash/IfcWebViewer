@@ -14,8 +14,10 @@ interface TopBarContextType {
   sidePanelType: SidePanelType;
   isSidePanelVisible: boolean;
   isAssemblyBrowserVisible: boolean;
+  isPropertiesPanelVisible: boolean;
   toggleSidePanel: (type: SidePanelType | boolean) => void;
   toggleAssemblyBrowserPanel: (isVisble: boolean | undefined) => void;
+  togglePropertiesPanel: (isVisble: boolean | undefined) => void;
 }
 
 // Create the context
@@ -29,10 +31,18 @@ export const TopBarContextProvider: React.FC<SidePanelProviderProps> = ({ childr
   const [sidePanelType, setSidePanelType] = useState<SidePanelType>(SidePanelType.SETTINGS);
   const [isSidePanelVisible, setIsSidePanelVisible] = useState<boolean>(false);
   const [isAssemblyBrowserVisible, setIsAssemblyBrowserVisible] = useState<boolean>(false);
+  const [isPropertiesPanelVisible, setIsPropertiesPanelVisible] = useState<boolean>(false);
 
-  const toggleAssemblyBrowserPanel = (isVisble: boolean | undefined = undefined): void => {
-    if(isVisble === undefined) setIsAssemblyBrowserVisible(!isAssemblyBrowserVisible)
-    else if((isAssemblyBrowserVisible && !isVisble) || (!isAssemblyBrowserVisible && isVisble))
+  const togglePropertiesPanel = (isVisible: boolean | undefined = undefined): void => {
+    if(isVisible === undefined) setIsPropertiesPanelVisible(!isPropertiesPanelVisible)
+    else if((isPropertiesPanelVisible && !isVisible) || (!isPropertiesPanelVisible && isVisible))
+    setIsPropertiesPanelVisible(isPropertiesPanelVisible)
+  }
+
+
+    const toggleAssemblyBrowserPanel = (isVisible: boolean | undefined = undefined): void => {
+    if(isVisible === undefined) setIsAssemblyBrowserVisible(!isAssemblyBrowserVisible)
+    else if((isAssemblyBrowserVisible && !isVisible) || (!isAssemblyBrowserVisible && isVisible))
         setIsAssemblyBrowserVisible(isAssemblyBrowserVisible)
   }
 
@@ -58,8 +68,10 @@ export const TopBarContextProvider: React.FC<SidePanelProviderProps> = ({ childr
     sidePanelType,
     isSidePanelVisible,
     isAssemblyBrowserVisible,
+    isPropertiesPanelVisible,
     toggleSidePanel,
-    toggleAssemblyBrowserPanel
+    toggleAssemblyBrowserPanel,
+    togglePropertiesPanel
   };
 
   return (

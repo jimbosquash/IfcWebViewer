@@ -22,7 +22,7 @@ interface floatingButtonProps {
   toggleGroupsPanelVisibility: () => void;
 }
 
-const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelVisibility }: floatingButtonProps) => {
+const FloatingButtonGroup = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
@@ -175,10 +175,6 @@ const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelV
           }}
         >
           <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "45px" }}>
-
-            <IconButton style={floatingButtonStyle} onClick={() => togglePropertyPanelVisibility()}>
-              <DescriptionOutlined fontSize="small" />
-            </IconButton>
 
             <IconButton style={floatingButtonStyle} onClick={() => setCameraProjection()}>
               <CameraEnhance fontSize="small" />

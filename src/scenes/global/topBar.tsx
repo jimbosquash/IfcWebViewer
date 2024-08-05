@@ -10,7 +10,7 @@ export const TopBar = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
-  const { toggleSidePanel, isAssemblyBrowserVisible, isSidePanelVisible, toggleAssemblyBrowserPanel } =
+  const { toggleSidePanel, isAssemblyBrowserVisible, isSidePanelVisible,isPropertiesPanelVisible, togglePropertiesPanel, toggleAssemblyBrowserPanel } =
     useTopBarContext();
 
   const activeButtonStyle = {
@@ -45,6 +45,14 @@ export const TopBar = () => {
                 sx={{ ...buttonStyle, ...(isAssemblyBrowserVisible ? activeButtonStyle : {}) }}
               >
                 Assembly Browser
+              </Button>
+
+              <Button
+                onClick={() => togglePropertiesPanel(undefined)}
+                color="inherit"
+                sx={{ ...buttonStyle, ...(isPropertiesPanelVisible ? activeButtonStyle : {}) }}
+              >
+                Properties
               </Button>
             </Box>
 

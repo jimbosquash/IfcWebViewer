@@ -4,23 +4,19 @@ import { useComponentsContext } from "../../context/ComponentsContext";
 import FloatingButtonGroup from "./floatingButtonGroup";
 import * as OBC from "@thatopen/components";
 import AssemblyBrowser from "./src/AssemblyBrowser";
-import { tokens } from "../../theme";
 import FloatingDataGrid from "./src/draggabeDataGrid";
 import { ModelViewManager } from "../../bim-components/modelViewer";
 import { InfoPanel } from "./src/InfoPanel";
 import { useTopBarContext } from "../../context/TopBarContext";
 
 const Overlay = () => {
-  const [isGroupPanelVisible, setIsGroupPanelVisible] = useState(true);
-  const [isPropertyPanelVisible, setIsPropertyPanelVisible] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [fileName, setFileName] = useState<string>("");
   const components = useComponentsContext();
   const [hasModel, setHasModel] = useState<boolean>(false);
   const viewManager = useRef<ModelViewManager>();
   const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-  const { isAssemblyBrowserVisible } = useTopBarContext();
+  const { isAssemblyBrowserVisible, isPropertiesPanelVisible } = useTopBarContext();
 
   useEffect(() => {
     if (!components) return;
@@ -65,10 +61,7 @@ const Overlay = () => {
       </div>
 
       <div style={{ pointerEvents: "auto" }}>
-        <FloatingButtonGroup
-          togglePropertyPanelVisibility={() => setIsPropertyPanelVisible(!isPropertyPanelVisible)}
-          toggleGroupsPanelVisibility={() => setIsGroupPanelVisible(!isGroupPanelVisible)}
-        />
+        <FloatingButtonGroup/>
       </div>
 
       {isAssemblyBrowserVisible && (
@@ -77,7 +70,7 @@ const Overlay = () => {
         </div>
       )}
 
-      {isPropertyPanelVisible && (
+      {isPropertiesPanelVisible && (
         <div style={{ pointerEvents: "auto" }}>
           {/* <FloatingPropertiesPanel /> */}
           <FloatingDataGrid />
