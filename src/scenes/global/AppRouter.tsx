@@ -1,27 +1,25 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./Layout";
 import { ThreeScene } from "../viewer/threeScene";
-import ThreeLandingPage from "../landingPage/threeLandingPage";
+import { TopBar } from "./TopBar";
+import TopBarContextProvider from "../../context/TopBarContext";
 
 export const AppRouter = () => {
   return (
     <BrowserRouter>
-      <div style={{ display: "flex", height: "100%" }}>
-        <main style={{ flex: 1, padding: "0" }}>
+    <TopBarContextProvider>
+      <div style={{ display: "flex",flexDirection: "column",height: "100%", width: "100vw" }}>
+        <TopBar/>
+        <main style={{ flex: 1, padding: "0",display: "flex", overflow: "hidden" }}>
           <Routes>
             {/* <Route path='/' element={<LandingPage/>} /> */}
             <Route path="/*" element={<Layout />}>
               <Route path="" element={<ThreeScene />} />
-              {/* <Route path='' element={<ThreeViewer/>} /> */}
-              {/* <Route path='' element={<WebComponentViewer/>} /> */}
-              {/* <Route path='' element={<ThreeScene/>} /> */}
-              {/* <Route path='dashboard' element={<DashBoard loadedBuildingElements={buildingElements}/>} /> */}
-              {/* <Route path='' element={<ViewerFiber/>} /> */}
-              {/* <Route path='dashboard' element={<ThreeLandingPage/>} /> */}
             </Route>
           </Routes>
         </main>
       </div>
+      </TopBarContextProvider>
     </BrowserRouter>
   );
 };

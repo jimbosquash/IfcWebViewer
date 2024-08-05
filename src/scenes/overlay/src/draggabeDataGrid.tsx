@@ -1,12 +1,11 @@
-import { useContext, useMemo, useRef, useState } from "react";
-// import "../??styles.css";
+import { useRef, useState } from "react";
 import { Box, useTheme } from "@mui/material";
-import { DataGrid, GridColDef, GridColumnVisibilityModel, GridValueGetter } from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridColumnVisibilityModel } from "@mui/x-data-grid";
 import { useEffect } from "react";
 import React from "react";
 import { tokens } from "../../../theme";
 import { buildingElement, SelectionGroup } from "../../../utilities/types";
-import { ComponentsContext } from "../../../context/ComponentsContext";
+import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 
 interface GroupedElement extends buildingElement {
@@ -17,11 +16,9 @@ interface GroupedElement extends buildingElement {
 // it is assumed that the data is an object representing an aray of building elements
 export const FloatingDataGrid: React.FC = (): JSX.Element => {
   const [columns, setColumns] = useState<GridColDef[]>([]);
-  const components = useContext(ComponentsContext);
+  const components = useComponentsContext();
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [groupedElements, setGroupedElements] = useState<FlattenedGroupedElement[]>([]);
-  const [elements, setElements] = useState<buildingElement[]>([]);
   const [rows, setRows] = useState<{ [key: string]: string }[]>([]);
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>();
   const viewManager = useRef<ModelViewManager>();

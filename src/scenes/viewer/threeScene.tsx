@@ -1,17 +1,16 @@
 import "../../styles.css";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef } from "react";
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
-import { ComponentsContext } from "../../context/ComponentsContext";
+import { useComponentsContext } from "../../context/ComponentsContext";
 import { SetUpWorld } from "./src/SetUpWorld";
 import Overlay from "../overlay";
 import { ModelCache } from "../../bim-components/modelCache";
-import { ModelViewManager } from "../../bim-components/modelViewer";
 
 
 export const ThreeScene = () => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const components = useContext(ComponentsContext);
+  const components = useComponentsContext();
 
   const fragments = components?.get(OBC.FragmentsManager);
   if (fragments) {

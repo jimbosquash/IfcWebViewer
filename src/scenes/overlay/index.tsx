@@ -1,27 +1,26 @@
-import { Snackbar, Alert, useTheme, Button } from "@mui/material";
-import { useContext, useEffect, useRef, useState } from "react";
-import { FloatingPropertiesPanel } from "../../components/FloatingPropertiesPanel";
-import { ComponentsContext } from "../../context/ComponentsContext";
-import Topbar from "../global/topBar";
+import { Snackbar, Alert, useTheme } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
+import { useComponentsContext } from "../../context/ComponentsContext";
 import FloatingButtonGroup from "./floatingButtonGroup";
 import * as OBC from "@thatopen/components";
-import TaskOverViewPanel from "./src/taskOverviewPanel";
-import { FloatingUploadIfcButton } from "../../components/uploadButton";
+import AssemblyBrowser from "./src/AssemblyBrowser";
 import { tokens } from "../../theme";
 import FloatingDataGrid from "./src/draggabeDataGrid";
 import { ModelViewManager } from "../../bim-components/modelViewer";
+import { InfoPanel } from "./src/InfoPanel";
+import { useTopBarContext } from "../../context/TopBarContext";
 
 const Overlay = () => {
   const [isGroupPanelVisible, setIsGroupPanelVisible] = useState(true);
   const [isPropertyPanelVisible, setIsPropertyPanelVisible] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [fileName, setFileName] = useState<string>("");
-  const components = useContext(ComponentsContext);
+  const components = useComponentsContext();
   const [hasModel, setHasModel] = useState<boolean>(false);
   const viewManager = useRef<ModelViewManager>();
   const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
-
+  const colors = tokens(theme.palette.mode);
+  const { isAssemblyBrowserVisible } = useTopBarContext();
 
   useEffect(() => {
     if (!components) return;
@@ -45,10 +44,10 @@ const Overlay = () => {
   };
 
   const handleLoadedModel = () => {
-    setHasModel(true)
-    console.log('overlay handel opening',hasModel)
-    setSnackbarOpen(true)
-  }
+    setHasModel(true);
+    console.log("overlay handel opening", hasModel);
+    setSnackbarOpen(true);
+  };
 
   return (
     <div
@@ -59,30 +58,32 @@ const Overlay = () => {
         right: 0,
         bottom: 0,
         pointerEvents: "none",
-        // overflow: "auto", // This allows scrolling within the Overlay if content exceeds its size
       }}
     >
-      
       <div style={{ pointerEvents: "auto" }}>
-        <Topbar />
+        <InfoPanel />
       </div>
+
       <div style={{ pointerEvents: "auto" }}>
         <FloatingButtonGroup
           togglePropertyPanelVisibility={() => setIsPropertyPanelVisible(!isPropertyPanelVisible)}
           toggleGroupsPanelVisibility={() => setIsGroupPanelVisible(!isGroupPanelVisible)}
         />
       </div>
-      {isGroupPanelVisible && (
+
+      {isAssemblyBrowserVisible && (
         <div style={{ pointerEvents: "auto" }}>
-          <TaskOverViewPanel />
+          <AssemblyBrowser />
         </div>
       )}
+
       {isPropertyPanelVisible && (
         <div style={{ pointerEvents: "auto" }}>
           {/* <FloatingPropertiesPanel /> */}
           <FloatingDataGrid />
         </div>
       )}
+
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={5000}
@@ -97,31 +98,3 @@ const Overlay = () => {
   );
 };
 export default Overlay;
-
-
-// {!hasModel && <div 
-//   // style={{
-//   //   position: "fixed",
-//   //   bottom: "50%",
-//   //   left: "50%",
-//   //   zIndex: 1000,
-//   //   width: 450,
-//   //   height: 35,
-//   //   cursor: "grab",
-//   //   display: "inline-block",
-//   // }}
-//   ><Button
-//   onClick={() => {console.log("btn click")}}
-//   sx={{
-//       backgroundColor: colors.blueAccent[700],
-//       color: colors.grey[100],
-//       zIndex: 1000,
-//       fontSize: "14px",
-//       fontWeight: "bold",
-//       cursor: "grab",
-//       padding: "10px 20px",
-//   }}>
-//   {/* <UploadOutlinedIcon sx={{ mr: "10px" }} /> */}
-//   Upload .IFC
-// </Button>
-//   </div>}

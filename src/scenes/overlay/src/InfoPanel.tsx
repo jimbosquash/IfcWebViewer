@@ -1,9 +1,9 @@
 import { Box, Typography, useTheme } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
-import { ComponentsContext } from "../../../context/ComponentsContext";
+import { useComponentsContext } from "../../../context/ComponentsContext";
 import { tokens } from "../../../theme";
-import { GroupingType, SelectionGroup } from "../../../utilities/BuildingElementUtilities";
+import { GroupingType, SelectionGroup } from "../../../utilities/types";
 
 interface InfoPanelProps {
   moduleName: string;
@@ -14,7 +14,7 @@ interface InfoPanelProps {
 export const InfoPanel = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const components = useContext(ComponentsContext);
+  const components = useComponentsContext();
   const [infoPanelData, setPanelData] = useState<InfoPanelProps>();
   const [isVisible, setVsibility] = useState<boolean>(false);
   const [showToolTip, setShowToolTip] = useState<boolean>(false);
@@ -45,24 +45,33 @@ export const InfoPanel = () => {
   };
 
   const infoBoxStyle: React.CSSProperties = {
-    position: "absolute",
     top: "20px",
     left: "50%",
     transform: "translateX(-50%)",
+    flexDirection: "row",
+    maxWidth: "550px",
+    overflow: "hidden",
+    right:'auto',
     display: "flex",
-    backgroundColor: "{colors.grey[500]}",
     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
     borderRadius: "10px",
+    backgroundColor: colors.grey[1000],
+    color:colors.primary[200],
     padding: "10px",
     zIndex: 1000,
+    position: 'absolute',
+    alignItems: 'left',
+    width: 'auto',
+    transformOrigin: "left center",
+    whiteSpace: 'nowrap',
   };
 
   
 
   const subBoxStyle: React.CSSProperties = {
-    flex: 1,
-    padding: "6px",
-    textAlign: "center",
+    // flex: 1,
+    // padding: "6px",
+    // textAlign: "center",
   };
 
   const nonSelectableTextStyle = {
@@ -74,20 +83,34 @@ export const InfoPanel = () => {
   
   return (
     <> {isVisible && 
-      <Box component="div"  sx={infoBoxStyle} >
+      <Box component="div"
+      
+      sx={infoBoxStyle} 
+      
+      >
       {infoPanelData && (
         <>
           <Typography
-          width="100px"
             component="div"
-            sx={{ ...subBoxStyle, ...nonSelectableTextStyle }}
+            sx={{ ...subBoxStyle, 
+              ...nonSelectableTextStyle,
+              whiteSpace: 'nowrap',
+              width: '100px',
+              minWidth: '100px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis', }}
             onClick={() => setShowToolTip(!showToolTip)}
           >
             {infoPanelData.groupType}
           </Typography>
           <Typography
             component="div"
-            sx={{ ...subBoxStyle, ...nonSelectableTextStyle }}
+            sx={{ ...subBoxStyle, 
+              ...nonSelectableTextStyle,
+              flexGrow: 1,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis', }}
             onClick={() => setShowToolTip(!showToolTip)}
           >
             {infoPanelData.groupName}

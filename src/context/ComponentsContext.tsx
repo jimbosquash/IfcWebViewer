@@ -1,8 +1,8 @@
-import { createContext, ReactNode } from 'react';
+import { createContext, ReactNode, useContext } from 'react';
 import * as OBC from "@thatopen/components";
 
 
-export const ComponentsContext = createContext<OBC.Components | null>(null);
+const ComponentsContext = createContext<OBC.Components | null>(null);
 
 
 interface ComponentsProviderProps {
@@ -17,3 +17,12 @@ export const ComponentsProvider = ({children, components} : ComponentsProviderPr
         </ComponentsContext.Provider>
       );
 }
+
+// Custom hook for using the context
+export const useComponentsContext = (): OBC.Components => {
+  const context = useContext(ComponentsContext);
+  if (!context) {
+    console.log('useComponentsContext must be used within a ComponentsContextProvider');
+  }
+  return context;
+};

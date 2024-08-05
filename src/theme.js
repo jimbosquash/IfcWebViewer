@@ -15,6 +15,7 @@ export const tokens = (mode) => ({
           700: "#3d3d3d",
           800: "#292929",
           900: "#141414",
+          1000: "#141414" // basicly black
         },
         primary: {
           100: "#2A2E2C", // background
@@ -76,6 +77,8 @@ export const tokens = (mode) => ({
           700: "#a3a3a3",
           800: "#c2c2c2",
           900: "#e0e0e0",
+          1000: "#fcfcfc" // basicly white same as background
+
         },
         primary: {
           100: "#fcfcfc", // back ground

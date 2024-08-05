@@ -3,83 +3,95 @@ import { Outlet } from "react-router-dom";
 import { RefProvider } from "../../context/RefContext";
 import { InfoPanelDataProvider } from "../../context/InfoPanelContext";
 import { SideMenu } from "../sideMenu";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
-import { IconButton } from "@mui/material";
-import { ComponentsContext } from "../../context/ComponentsContext";
-import { ModelViewManager } from "../../bim-components/modelViewer";
+import { useComponentsContext } from "../../context/ComponentsContext";
 import { ModelCache } from "../../bim-components/modelCache";
+import { useTopBarContext } from "../../context/TopBarContext";
+import { AnimatePresence, motion } from "framer-motion";
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+
 
 const Layout = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
-  const components = useContext(ComponentsContext);
+  const components = useComponentsContext();
+  const { sidePanelType, isSidePanelVisible,toggleSidePanel } = useTopBarContext();
+  const [showHoverArrow, setShowHoverArrow] = useState(false);
 
-  const toggleSidebar = () => {
-    console.log("side bar button clicked");
-    setIsSidebarExpanded(!isSidebarExpanded);
-  };
+
 
   useEffect(() => {
     if (!components) return;
 
     const viewManager = components.get(ModelCache);
-    viewManager.onModelAdded.add(() => setIsSidebarExpanded(false))
+    viewManager.onModelAdded.add(() => toggleSidePanel(false));
 
     return () => {
+      viewManager.onModelAdded.remove(() => toggleSidePanel(false));
+    };
+  }, [components]);
 
-      viewManager.onModelAdded.remove(() => setIsSidebarExpanded(false))
 
-    }
-  }, [components])
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (e.clientX < 20 && !isSidePanelVisible) {
+        setShowHoverArrow(true);
+      } else {
+        setShowHoverArrow(false);
+      }
+    };
 
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [isSidePanelVisible]);
+
+  
   return (
     <RefProvider containerRef={containerRef}>
       <div style={{ display: "flex", height: "100%", width: "100%", position: "relative" }}>
-        <div
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: isSidePanelVisible ? 250 : 0 }}
+          transition={{ duration: 0.3 }}
           style={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            width: isSidebarExpanded ? "250px" : "0px",
-            transition: "width 0.3s",
             backgroundColor: "#f0f0f0",
             position: "relative",
-            zIndex: 2, // Give sidebar a z-index
+            zIndex: 2,
             overflow: "hidden",
           }}
         >
-          <SideMenu isVisible={isSidebarExpanded} />
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            bottom: 0,
-            left: isSidebarExpanded ? "250px" : "0px",
-            width: "40px",
-            transition: "left 0.3s",
-            zIndex: 3, // Higher than sidebar but lower than possible modals
-            pointerEvents: "none", // Allow clicks to pass through
-          }}
-        >
-          <IconButton
-            onClick={toggleSidebar}
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: 0,
-              transform: "translateY(-50%)",
-              width: "40px",
-              height: "40px",
-              cursor: "pointer",
-              pointerEvents: "auto", // Make sure the button itself is clickable
-            }}
-          >
-            {isSidebarExpanded ? <NavigateBeforeIcon /> : <NavigateNextIcon />}
-          </IconButton>
-        </div>
+          {isSidePanelVisible && <SideMenu type={sidePanelType} />}
+        </motion.div>
+
+        <AnimatePresence>
+          {(isSidePanelVisible || showHoverArrow) && (
+            <motion.button
+              initial={{ x: isSidePanelVisible ? 250 : -40, opacity: isSidePanelVisible ? 1 : 0 }}
+              animate={{ x: isSidePanelVisible ? 250 : 0, opacity: 1 }}
+              exit={{ x: -40, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={() => toggleSidePanel(!isSidePanelVisible)}
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'white',
+                padding: '8px',
+                borderRadius: '0 4px 4px 0',
+                boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
+                zIndex: 3,
+              }}
+            >
+              {isSidePanelVisible ? <FaChevronLeft /> : <FaChevronRight />}
+            </motion.button>
+          )}
+        </AnimatePresence>
+
         <div
           ref={containerRef}
           className="layoutMain"
@@ -89,7 +101,7 @@ const Layout = () => {
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
-            zIndex: 1, // Lower than sidebar and button
+            zIndex: 1,
           }}
         >
           <InfoPanelDataProvider>

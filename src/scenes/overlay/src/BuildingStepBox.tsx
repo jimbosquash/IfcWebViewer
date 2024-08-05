@@ -4,7 +4,7 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 import { useState, useEffect, useContext, useCallback, useRef } from "react";
-import { ComponentsContext } from "../../../context/ComponentsContext";
+import { useComponentsContext } from "../../../context/ComponentsContext";
 import { buildingElement, GroupingType, SelectionGroup, VisibilityState } from "../../../utilities/types";
 import { GroupPanelProps } from "./StationBox";
 import { TreeNode, TreeUtils } from "../../../utilities/Tree";
@@ -19,7 +19,7 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({node}) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   const [childVisible, setChildVisible] = useState(false);
-  const components = useContext(ComponentsContext);
+  const components = useComponentsContext();
   const treeNode = useRef<TreeNode<buildingElement>>();
   const [name, setName] = useState<string | undefined>();
   const [elements, setElements] = useState<buildingElement[]>();

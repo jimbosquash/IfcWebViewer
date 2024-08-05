@@ -1,5 +1,4 @@
 import * as BUI from "@thatopen/ui";
-import * as CUI from "@thatopen/ui-obc";
 import { useEffect, useRef } from "react";
 
 

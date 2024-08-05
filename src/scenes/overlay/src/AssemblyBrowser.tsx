@@ -4,15 +4,16 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { useContext, useEffect, useState } from "react";
 import StationBox from "./StationBox";
-import { ComponentsContext } from "../../../context/ComponentsContext";
+import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 import { Tree, TreeNode } from "../../../utilities/Tree";
 import { buildingElement } from "../../../utilities/types";
+import { nonSelectableTextStyle } from "../../../styles";
 
-const TaskOverViewPanel = () => {
+const AssemblyBrowser = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const components = useContext(ComponentsContext);
+  const components = useComponentsContext();
   const [groups, setGroups] = useState<TreeNode<buildingElement>[]>();
   const [isPanelVisible, setPanelVisibility] = useState<boolean>(false);
   const [stationsVisible, setStationsVisible] = useState<boolean>(true);
@@ -48,7 +49,7 @@ const TaskOverViewPanel = () => {
 
   const HeaderBoxStyle = {
     // backgroundColor: colors.primary[400],
-    boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+    // boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
     // border: '1px solid #ccc',
     padding: "5px",
     width: "240px",
@@ -64,7 +65,7 @@ const TaskOverViewPanel = () => {
           className="draggable-panel"
           style={{
             position: "absolute",
-            top: "10%",
+            top: "0%",
             left: 0,
             zIndex: 500,
             padding: "15px",
@@ -74,14 +75,18 @@ const TaskOverViewPanel = () => {
           <Box
             component="div"
             className="panel-header"
-            style={HeaderBoxStyle}
+            sx={{...HeaderBoxStyle, ...nonSelectableTextStyle}}
             display="flex"
             alignItems="center"
             justifyContent="space-between"
           >
             <Typography noWrap variant="h6" sx={{ flexGrow: 1 }}>
               {" "}
-              Station groups
+              Assembly Browser
+            </Typography>
+
+            <Typography noWrap variant="h6" sx={{textAlign:"right",flexGrow: 1, color: colors.grey[700] }}>
+              {groups?.length}
             </Typography>
             <IconButton
               size="small"
@@ -117,4 +122,4 @@ const TaskOverViewPanel = () => {
   );
 };
 
-export default TaskOverViewPanel;
+export default AssemblyBrowser;

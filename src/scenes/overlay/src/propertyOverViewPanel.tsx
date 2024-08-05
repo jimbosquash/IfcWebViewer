@@ -3,7 +3,7 @@ import Draggable from "react-draggable";
 import { tokens } from "../../../theme";
 import TocIcon from "@mui/icons-material/Toc";
 import ElementTable from "../../../components/ElementTable";
-import { buildingElement } from "../../../utilities/BuildingElementUtilities";
+import { buildingElement } from "../../../utilities/types";
 
 interface PropertyOverViewProps {
     buildingElements : buildingElement[] | undefined;

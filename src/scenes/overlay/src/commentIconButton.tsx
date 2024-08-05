@@ -6,14 +6,14 @@ import { IconButton } from "@mui/material"
 import ChatBubbleOutlineRounded from "@mui/icons-material/ChatBubbleOutlineRounded";
 import ChatBubbleRounded from "@mui/icons-material/ChatBubbleRounded";
 import { useState, useContext, useEffect, useRef } from "react";
-import { ComponentsContext } from "../../../context/ComponentsContext";
+import { useComponentsContext } from "../../../context/ComponentsContext";
 import { Comments } from "../../../bim-components/comments";
 import { Comment } from "../../../bim-components/comments/src/commet";
 import { ModelCache } from "../../../bim-components/modelCache";
 
 export const CommentIconButton = () => {
     const [isCommentsEnabled, setIsCommentsEnabled] = useState(false);
-    const components = useContext(ComponentsContext);
+    const components = useComponentsContext();
     const modelCache = useRef<ModelCache>();
     const [world,setWorld] = useState<OBC.World>();
 

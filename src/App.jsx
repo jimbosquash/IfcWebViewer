@@ -5,7 +5,6 @@ import {useState, useRef, useEffect} from "react"
 import {useMode, ColorModeContext} from "./theme"
 import * as OBC from "@thatopen/components";
 import {ComponentsProvider} from './context/ComponentsContext'
-import {ModelStateProvider} from './context/ModelStateContext'
 import { AppRouter } from './scenes/global/AppRouter';
 import * as FRAGS from "@thatopen/fragments";
 

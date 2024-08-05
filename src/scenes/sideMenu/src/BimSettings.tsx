@@ -1,12 +1,12 @@
 import * as OBC from "@thatopen/components";
 import * as BUI from "@thatopen/ui";
 import * as CUI from "@thatopen/ui-obc";
-import { useContext, useEffect, useRef, useState } from "react";
-import { ComponentsContext } from "../../../context/ComponentsContext";
+import { useEffect, useRef, useState } from "react";
+import { useComponentsContext } from "../../../context/ComponentsContext";
 import { UploadButton } from "../../../bim-components/src/uploadButton";
 
 export const BimSettings = () => {
-  const components = useContext(ComponentsContext);
+  const components = useComponentsContext();
   const panelSection = useRef<HTMLDivElement | null>(null);
   const [isSetUp, setIsSetUp] = useState<boolean>(false);
 

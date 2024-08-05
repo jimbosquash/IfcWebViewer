@@ -1,9 +1,8 @@
 import { Box, ButtonGroup, IconButton, useTheme } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { tokens } from "../../theme";
 import * as THREE from "three";
 import * as OBC from "@thatopen/components";
-import TocIcon from "@mui/icons-material/Toc";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import Group from "@mui/icons-material/Group";
 import ViewArray from "@mui/icons-material/ViewArray";
@@ -12,7 +11,7 @@ import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import ZoomInMapOutlined from "@mui/icons-material/ZoomInMapOutlined";
 import CameraEnhance from "@mui/icons-material/CameraEnhance";
 import { GetAdjacentGroup } from "../../utilities/BuildingElementUtilities";
-import { ComponentsContext } from "../../context/ComponentsContext";
+import { useComponentsContext } from "../../context/ComponentsContext";
 import { CommentIconButton } from "./src/commentIconButton";
 import { ModelViewManager } from "../../bim-components/modelViewer";
 import { ModelCache } from "../../bim-components/modelCache";
@@ -26,7 +25,7 @@ interface floatingButtonProps {
 const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelVisibility }: floatingButtonProps) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const components = useContext(ComponentsContext);
+  const components = useComponentsContext();
   const [visibilityMode, setVisibilityMode] = useState<VisibilityMode>();
 
   useEffect(() => {
@@ -175,12 +174,8 @@ const FloatingButtonGroup = ({ togglePropertyPanelVisibility, toggleGroupsPanelV
             display: "inline-block",
           }}
         >
-          <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400] }}>
-            <div>{/* <DragIndicatorIcon /> */}</div>
+          <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "45px" }}>
 
-            <IconButton style={floatingButtonStyle} onClick={() => toggleGroupsPanelVisibility()}>
-              <TocIcon fontSize="medium" />
-            </IconButton>
             <IconButton style={floatingButtonStyle} onClick={() => togglePropertyPanelVisibility()}>
               <DescriptionOutlined fontSize="small" />
             </IconButton>

@@ -49,8 +49,9 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     };
     containerRef.addEventListener("resize", resizeWorld);
 
-    const helper = new ViewHelper(world.camera.three, world.renderer.three.domElement);
-    world.scene.three.add(helper);
+    // tring to user helper from three examples (look for einteractive example)
+    // const helper = new ViewHelper(world.camera.three, world.renderer.three.domElement);
+    // world.scene.three.add(helper);
 
 
     return world;

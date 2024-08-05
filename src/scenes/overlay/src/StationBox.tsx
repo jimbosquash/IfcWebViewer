@@ -4,13 +4,14 @@ import { tokens } from "../../../theme";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import BuildingStepBox from "./BuildingStepBox";
-import { groupElementsByProperty, zoomToSelected } from "../../../utilities/BuildingElementUtilities";
+import { zoomToSelected } from "../../../utilities/BuildingElementUtilities";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import { ComponentsContext } from "../../../context/ComponentsContext";
+import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 import { buildingElement, KnowGroupType, SelectionGroup, VisibilityState } from "../../../utilities/types";
 import { TreeNode, TreeUtils } from "../../../utilities/Tree";
+import { nonSelectableTextStyle } from "../../../styles";
 
 export interface GroupPanelProps {
   node: TreeNode<buildingElement>;
@@ -19,7 +20,7 @@ export interface GroupPanelProps {
 const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const components = useContext(ComponentsContext);
+  const components = useComponentsContext();
   const [childVisible, setChildVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
@@ -144,12 +145,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
     zoomToSelected(elements, components);
   };
 
-  const nonSelectableTextStyle = {
-    userSelect: "none",
-    WebkitUserSelect: "none", // For Safari
-    MozUserSelect: "none", // For Firefox
-    msUserSelect: "none", // For Internet Explorer/Edge
-  };
+
 
   return (
     <Box component="div">
@@ -193,7 +189,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
         </Typography>
         <IconButton
           size="small"
-          color={isSelected ? colors.primary[300] : colors.grey[600]}
+          color={isSelected ? "primary" : "secondary"}
           sx={{ marginLeft: "8px", color: colors.grey[500] }}
           onClick={(e: any) => {
             e.stopPropagation();
