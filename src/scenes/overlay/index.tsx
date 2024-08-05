@@ -1,5 +1,5 @@
 import { Snackbar, Alert, useTheme, Button } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { FloatingPropertiesPanel } from "../../components/FloatingPropertiesPanel";
 import { ComponentsContext } from "../../context/ComponentsContext";
 import Topbar from "../global/topBar";
@@ -8,6 +8,8 @@ import * as OBC from "@thatopen/components";
 import TaskOverViewPanel from "./src/taskOverviewPanel";
 import { FloatingUploadIfcButton } from "../../components/uploadButton";
 import { tokens } from "../../theme";
+import FloatingDataGrid from "./src/draggabeDataGrid";
+import { ModelViewManager } from "../../bim-components/modelViewer";
 
 const Overlay = () => {
   const [isGroupPanelVisible, setIsGroupPanelVisible] = useState(true);
@@ -16,6 +18,7 @@ const Overlay = () => {
   const [fileName, setFileName] = useState<string>("");
   const components = useContext(ComponentsContext);
   const [hasModel, setHasModel] = useState<boolean>(false);
+  const viewManager = useRef<ModelViewManager>();
   const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
@@ -23,9 +26,11 @@ const Overlay = () => {
   useEffect(() => {
     if (!components) return;
     const fragments = components.get(OBC.FragmentsManager);
-    if (!fragments) return;
+    viewManager.current = components.get(ModelViewManager);
+    if (!fragments || !viewManager.current) return;
 
     fragments.onFragmentsLoaded.add((data) => handleLoadedModel());
+    viewManager.current.onSelectedGroupChanged.add((data) => handleLoadedModel());
 
     return () => {
       fragments.onFragmentsLoaded.remove((data) => handleLoadedModel());
@@ -74,7 +79,8 @@ const Overlay = () => {
       )}
       {isPropertyPanelVisible && (
         <div style={{ pointerEvents: "auto" }}>
-          <FloatingPropertiesPanel />
+          {/* <FloatingPropertiesPanel /> */}
+          <FloatingDataGrid />
         </div>
       )}
       <Snackbar

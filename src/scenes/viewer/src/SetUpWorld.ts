@@ -72,7 +72,7 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     {highlighter.setup({ world })}
     highlighter.zoomToSelection = true
     // highlighter.backupColor = new THREE.Color('#A0C3AF')
-    console.log("high light colors",highlighter.colors);
+    // console.log("high light colors",highlighter.colors);
     highlighter.colors.set('hover',new THREE.Color('#3e4396'))
     const resizeWorld = () => {
       world.renderer?.resize();
