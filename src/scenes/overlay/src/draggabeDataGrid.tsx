@@ -4,11 +4,11 @@ import { DataGrid, GridColDef, GridColumnVisibilityModel } from "@mui/x-data-gri
 import { useEffect } from "react";
 import React from "react";
 import { tokens } from "../../../theme";
-import { buildingElement, SelectionGroup } from "../../../utilities/types";
+import { BuildingElement, SelectionGroup } from "../../../utilities/types";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 
-interface GroupedElement extends buildingElement {
+interface GroupedElement extends BuildingElement {
   instances: number;
   id: number;
 }
@@ -75,7 +75,7 @@ export const FloatingDataGrid: React.FC = (): JSX.Element => {
   }
 
 
-  function createRows(data: buildingElement[]): { [key: string]: string }[] {
+  function createRows(data: BuildingElement[]): { [key: string]: string }[] {
     return data.map((element, index) => {
       const row: { [key: string]: string } = {
         id: (index + 1).toString(),
@@ -91,7 +91,7 @@ export const FloatingDataGrid: React.FC = (): JSX.Element => {
 
   }
 
-  const createColumns = (buildingElements: buildingElement[]) => {
+  const createColumns = (buildingElements: BuildingElement[]) => {
     if (Object.values(buildingElements).length > 0) {
       var newColumns = Object.keys(Object.values(buildingElements)[0]).map((key) => ({
         field: key,

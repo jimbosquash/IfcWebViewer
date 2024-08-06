@@ -5,10 +5,10 @@ import * as FRAGS from "@thatopen/fragments";
 import { FragmentIdMap } from "@thatopen/fragments";
 import * as WEBIFC from "web-ifc";
 import { ModelCache } from "../bim-components/modelCache";
-import { buildingElement } from "./types";
+import { BuildingElement } from "./types";
 
 // allows you to pass these idmaps into helpful functions with @thatopen
-export function GetFragmentIdMaps(elements: buildingElement[], components: OBC.Components) {
+export function GetFragmentIdMaps(elements: BuildingElement[], components: OBC.Components) {
 
     if (!components) return;
 
@@ -79,10 +79,10 @@ export function GetFragmentsFromExpressIds(expressIds: number[], fragments: OBC.
 }
 
 
-export function getStationBarChartArray(elements: buildingElement[]): any[] {
+export function getStationBarChartArray(elements: BuildingElement[]): any[] {
     // group by station
 
-    const groupedByStation: Record<string, Record<string, buildingElement[]>> = {};
+    const groupedByStation: Record<string, Record<string, BuildingElement[]>> = {};
 
 
     elements.forEach(element => {
@@ -132,7 +132,7 @@ interface StationObj {
     [key: string]: string | Number;
 };
 
-function convertToStationArray(groupedByStation: Record<string, Record<string, buildingElement[]>>): any[] {
+function convertToStationArray(groupedByStation: Record<string, Record<string, BuildingElement[]>>): any[] {
     const stationSummary: any[] = [];
 
     for (const station in groupedByStation) {
@@ -161,13 +161,13 @@ function convertToStationArray(groupedByStation: Record<string, Record<string, b
 
 
 
-export function getEPElementCount(elements: buildingElement[]) {
+export function getEPElementCount(elements: BuildingElement[]) {
     return elements.filter(element => element.properties.some(property => property.value.includes("EP-"))).length;
 }
 
 
-export function getUniqueElementCount(elements: buildingElement[]) {
-    const groupedByProductCode: Record<string, buildingElement[]> = {};
+export function getUniqueElementCount(elements: BuildingElement[]) {
+    const groupedByProductCode: Record<string, BuildingElement[]> = {};
 
 
     elements.forEach(element => {
@@ -195,7 +195,7 @@ export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, com
     // await indexer.process(loadedModel);
     // console.log("indexer",indexer)
 
-    const foundElements = new Map<number, buildingElement>();// = Map<number,buildingElement[]>;
+    const foundElements = new Map<number, BuildingElement>();// = Map<number,buildingElement[]>;
     const elements = loadedModel.getLocalProperties();
     await OBC.IfcPropertiesUtils.getRelationMap(loadedModel, WEBIFC.IFCRELDEFINESBYPROPERTIES, (async (propertySetID, _relatedElementsIDs) => {
 

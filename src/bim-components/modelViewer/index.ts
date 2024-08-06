@@ -1,11 +1,13 @@
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
+import * as OBF from "@thatopen/components-front"
 import * as THREE from 'three'
 import { setUpTree } from "../../utilities/BuildingElementUtilities";
 import { GetFragmentsFromExpressIds } from "../../utilities/IfcUtilities";
-import { buildingElement, SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
+import { BuildingElement, SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
 import { Tree, TreeNode, TreeUtils } from "../../utilities/Tree";
 import { _roots } from "@react-three/fiber";
+import { ModelCache } from "../modelCache";
 
 
 
@@ -13,9 +15,9 @@ export class ModelViewManager extends OBC.Component {
     private _enabled = false;
     private _isSetup = false;
     static uuid = "0f5e514e-5c1c-4097-a9cc-6620c2e28378" as const;
-    private _tree?: Tree<buildingElement>;
-    readonly onTreeChanged = new OBC.Event<Tree<buildingElement> | undefined>();
-    readonly onBuildingElementsChanged = new OBC.Event<buildingElement[]>();
+    private _tree?: Tree<BuildingElement>;
+    readonly onTreeChanged = new OBC.Event<Tree<BuildingElement> | undefined>();
+    readonly onBuildingElementsChanged = new OBC.Event<BuildingElement[]>();
     readonly onGroupVisibilitySet = new OBC.Event<Map<string, VisibilityState>>();
     readonly onSelectedGroupChanged = new OBC.Event<SelectionGroup>();
     readonly onVisibilityModeChanged = new OBC.Event<VisibilityMode>();
@@ -34,7 +36,7 @@ export class ModelViewManager extends OBC.Component {
         // Add any additional logic needed when setting the selection group
     }
 
-    get Tree(): Tree<buildingElement> | undefined {
+    get Tree(): Tree<BuildingElement> | undefined {
         return this._tree;
     }
 
@@ -51,7 +53,7 @@ export class ModelViewManager extends OBC.Component {
 
     }
 
-    getBuildingElements = (groupId: string): buildingElement[] | undefined => {
+    getBuildingElements = (groupId: string): BuildingElement[] | undefined => {
         if (!groupId || !this._tree) return;
 
         const groupNode = this._tree.getNode(groupId);
@@ -61,7 +63,7 @@ export class ModelViewManager extends OBC.Component {
         return TreeUtils.getChildrenNonNullData(groupNode)
     }
 
-    setUpGroups = (buildingElements: buildingElement[] | undefined, groupVisibility?: Map<string, VisibilityState>): void => {
+    setUpGroups = (buildingElements: BuildingElement[] | undefined, groupVisibility?: Map<string, VisibilityState>): void => {
         if (!buildingElements) {
             this.onTreeChanged.trigger(undefined);
             return;
@@ -118,25 +120,23 @@ export class ModelViewManager extends OBC.Component {
     }
 
     // displays all tree nodes before the args node
-    SequentiallyVisible(group: SelectionGroup){
+    SequentiallyVisible(group: SelectionGroup) {
         if (!group.id) return;
 
         const node = this._tree?.getNode(group.id);
         const sameNodeTypes = this._tree?.getNodes(n => n.type === node?.type)
         if (!sameNodeTypes) return;
 
-        const visibleNodes: TreeNode<buildingElement>[] = [];
-        const hiddenNodes: TreeNode<buildingElement>[] = [];
+        const visibleNodes: TreeNode<BuildingElement>[] = [];
+        const hiddenNodes: TreeNode<BuildingElement>[] = [];
         let nodeFound = false;
 
         sameNodeTypes.forEach(otherNode => {
-            if(nodeFound)
-            {
+            if (nodeFound) {
                 hiddenNodes.push(otherNode)
                 return;
             }
-            if(otherNode === node)
-            {
+            if (otherNode === node) {
                 visibleNodes.push(otherNode)
                 nodeFound = true;
                 return;
@@ -151,7 +151,7 @@ export class ModelViewManager extends OBC.Component {
         // make each node, their parent and children are visible
         visibleNodes.forEach(treeNode => {
             this.setVisibility(treeNode.id, VisibilityState.Visible, false)
-            if(treeNode.parent)
+            if (treeNode.parent)
                 this.setVisibility(treeNode.parent.id, VisibilityState.Visible, false)
 
             node?.children.forEach(childNode => { this.setVisibility(childNode.id, VisibilityState.Visible, false) })
@@ -162,6 +162,44 @@ export class ModelViewManager extends OBC.Component {
         this.updateVisibility();
 
 
+    }
+
+    async select(group: SelectionGroup) {
+        if (!group.id || !this.components) return;
+        console.log("high light these elements")
+
+        const highlighter = this.components.get(OBF.Highlighter);
+        const modelCache = this.components.get(ModelCache);
+    
+        const node = this._tree?.getNode(group.id);
+        if (!node) return;
+    
+        const buildingElements = TreeUtils.getChildren(node, n => n.data !== null && n.type === "BuildingElement");
+    
+        const elementsByModelId = new Map<string, BuildingElement[]>();
+        for (const tNode of buildingElements) {
+            const groupID = tNode.data?.modelID;
+            if (!groupID || !tNode.data) continue;
+            if (!elementsByModelId.has(groupID)) {
+                elementsByModelId.set(groupID, []);
+            }
+            elementsByModelId.get(groupID)!.push(tNode.data);
+        }
+    
+        await highlighter.clear('select');
+    
+        const highlightPromises = Array.from(elementsByModelId.entries()).map(async ([modelId, elements]) => {
+            const model = modelCache.getModel(modelId);
+            if (!model) return;
+    
+            const expressIds = elements.flatMap(e => e.expressID);
+            const elementTypeIds = model.getFragmentMap(expressIds);
+            console.log("high light these elements",elementTypeIds)
+            await highlighter.highlightByID("select", elementTypeIds,false,false);
+        });
+
+    
+        await Promise.all(highlightPromises);
     }
 
     isolate(group: SelectionGroup) {
@@ -186,25 +224,25 @@ export class ModelViewManager extends OBC.Component {
     }
 
     // sets new value if key if found matching groupname. if update is true then 3d scene will update visibility based on change
-    setVisibility(id: string, state: VisibilityState, updateVisibility: boolean = false) {
+    setVisibility(nodeId: string, state: VisibilityState, updateVisibility: boolean = false) {
 
-        if (!this._treeVisibility || !id || !this._treeVisibility?.has(id)) {
-            console.log("failed to change visibility,name not found:", id, this._treeVisibility?.keys())
+        if (!this._treeVisibility || !nodeId || !this._treeVisibility?.has(nodeId)) {
+            console.log("failed to change visibility,name not found:", nodeId, this._treeVisibility?.keys())
             return;
         }
-        if (this._treeVisibility.get(id) === state) {
-            console.log("failed to change visibility, state already the same:", this._treeVisibility.get(id))
+        if (this._treeVisibility.get(nodeId) === state) {
+            console.log("failed to change visibility, state already the same:", this._treeVisibility.get(nodeId))
             return;
         }
 
-        this._treeVisibility.set(id, state);
+        this._treeVisibility.set(nodeId, state);
 
         if (updateVisibility) this.updateVisibility();
     }
 
     //private white = new THREE.Color(1, 1, 1);
 
-    private SetVisibility(fragments: OBC.FragmentsManager, elements: buildingElement[] | undefined, visibility: VisibilityState): void {
+    private SetVisibility(fragments: OBC.FragmentsManager, elements: BuildingElement[] | undefined, visibility: VisibilityState): void {
 
         if (!elements) return;
         const elementsByModelId = this.groupElementsByModelId(elements);
@@ -294,7 +332,7 @@ export class ModelViewManager extends OBC.Component {
     // };
 
     // if color = true color will be reset to original
-    private SetColor(fragments: OBC.FragmentsManager, elements: buildingElement[], color: boolean | THREE.Color = false): void {
+    private SetColor(fragments: OBC.FragmentsManager, elements: BuildingElement[], color: boolean | THREE.Color = false): void {
         const elementsByModelId = this.groupElementsByModelId(elements);
 
         fragments.groups.forEach(model => {
@@ -309,14 +347,14 @@ export class ModelViewManager extends OBC.Component {
         });
     }
 
-    private groupElementsByModelId(elements: buildingElement[]): Map<string, buildingElement[]> {
+    private groupElementsByModelId(elements: BuildingElement[]): Map<string, BuildingElement[]> {
         return elements.reduce((acc, element) => {
             if (!acc.has(element.modelID)) {
                 acc.set(element.modelID, []);
             }
             acc.get(element.modelID)!.push(element);
             return acc;
-        }, new Map<string, buildingElement[]>());
+        }, new Map<string, BuildingElement[]>());
     }
 
     private updateVisibility = () => {
@@ -341,13 +379,13 @@ export class ModelViewManager extends OBC.Component {
         }
     };
 
-    private getAllElements(): buildingElement[] | undefined {
+    private getAllElements(): BuildingElement[] | undefined {
         if (!this._tree?.root.id) return;
         return this.getBuildingElements(this._tree?.root.id);
     }
 
     // search element tree and group building elements by visibility state of their highest parent node 
-    private groupElementsByVisibilityState(): Map<VisibilityState, buildingElement[]> | undefined {
+    private groupElementsByVisibilityState(): Map<VisibilityState, BuildingElement[]> | undefined {
 
         if (!this._tree || !this._treeVisibility) return undefined;
 
@@ -355,13 +393,13 @@ export class ModelViewManager extends OBC.Component {
         // 2. if parent node is ghost, children node of type visible and ghost will be ghost, and hidden remains hidden
         // 3. if parent node is visble nothing changes 
 
-        const result = new Map<VisibilityState, buildingElement[]>();
+        const result = new Map<VisibilityState, BuildingElement[]>();
         result.set(VisibilityState.Visible, []);
         result.set(VisibilityState.Hidden, []);
         result.set(VisibilityState.Ghost, []);
 
 
-        const traverseNode = (node: TreeNode<buildingElement>, parentState: VisibilityState) => {
+        const traverseNode = (node: TreeNode<BuildingElement>, parentState: VisibilityState) => {
 
             if (!this._tree || !this._treeVisibility) return undefined;
 

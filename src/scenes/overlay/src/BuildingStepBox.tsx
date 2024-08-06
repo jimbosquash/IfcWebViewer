@@ -5,7 +5,7 @@ import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 import { useState, useEffect, useContext, useCallback, useRef } from "react";
 import { useComponentsContext } from "../../../context/ComponentsContext";
-import { buildingElement, GroupingType, SelectionGroup, VisibilityState } from "../../../utilities/types";
+import { BuildingElement, GroupingType, SelectionGroup, VisibilityState } from "../../../utilities/types";
 import { GroupPanelProps } from "./StationBox";
 import { TreeNode, TreeUtils } from "../../../utilities/Tree";
 import { zoomToSelected } from "../../../utilities/BuildingElementUtilities";
@@ -20,10 +20,10 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({node}) => {
   const [isSelected, setIsSelected] = useState(false);
   const [childVisible, setChildVisible] = useState(false);
   const components = useComponentsContext();
-  const treeNode = useRef<TreeNode<buildingElement>>();
+  const treeNode = useRef<TreeNode<BuildingElement>>();
   const [name, setName] = useState<string | undefined>();
-  const [elements, setElements] = useState<buildingElement[]>();
-  const [children, setChildren] = useState<TreeNode<buildingElement>[]>();
+  const [elements, setElements] = useState<BuildingElement[]>();
+  const [children, setChildren] = useState<TreeNode<BuildingElement>[]>();
   const [isVisible, setIsVisible] = useState<boolean>(
     node.id !== undefined && modelViewManager?.GroupVisibility?.get(node.id) !== VisibilityState.Hidden
   );
@@ -35,7 +35,7 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({node}) => {
     setName(node.name);
 
     const foundElements = TreeUtils.getChildren(node, (child) => child.type === "BuildingElement");
-    const t = foundElements.map((n) => n.data).filter((data): data is buildingElement => data !== null);
+    const t = foundElements.map((n) => n.data).filter((data): data is BuildingElement => data !== null);
     // console.log("Station group box has elements:", t);
     setElements(t);
   }, [node]);

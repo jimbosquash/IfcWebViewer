@@ -3,10 +3,10 @@ import Draggable from "react-draggable";
 import { tokens } from "../../../theme";
 import TocIcon from "@mui/icons-material/Toc";
 import ElementTable from "../../../components/ElementTable";
-import { buildingElement } from "../../../utilities/types";
+import { BuildingElement } from "../../../utilities/types";
 
 interface PropertyOverViewProps {
-    buildingElements : buildingElement[] | undefined;
+    buildingElements : BuildingElement[] | undefined;
 }
 
 export const PropertyOverViewPanel = ({buildingElements} : PropertyOverViewProps) => {

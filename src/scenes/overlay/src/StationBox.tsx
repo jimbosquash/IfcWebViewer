@@ -9,12 +9,12 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
-import { buildingElement, KnowGroupType, SelectionGroup, VisibilityState } from "../../../utilities/types";
+import { BuildingElement, KnowGroupType, SelectionGroup, VisibilityState } from "../../../utilities/types";
 import { TreeNode, TreeUtils } from "../../../utilities/Tree";
 import { nonSelectableTextStyle } from "../../../styles";
 
 export interface GroupPanelProps {
-  node: TreeNode<buildingElement>;
+  node: TreeNode<BuildingElement>;
 }
 
 const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
@@ -25,14 +25,14 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   const [name, setName] = useState<string | undefined>();
-  const [elements, setElements] = useState<buildingElement[]>();
-  const [children, setChildren] = useState<TreeNode<buildingElement>[]>();
+  const [elements, setElements] = useState<BuildingElement[]>();
+  const [children, setChildren] = useState<TreeNode<BuildingElement>[]>();
   const [modelViewManager, setModelViewManager] = useState<ModelViewManager | undefined>();
   const [isVisible, setIsVisible] = useState<boolean>(
     node.id !== undefined && modelViewManager?.GroupVisibility?.get(node.id) !== VisibilityState.Hidden
   );
 
-  const treeNode = useRef<TreeNode<buildingElement>>();
+  const treeNode = useRef<TreeNode<BuildingElement>>();
 
   useEffect(() => {
     if (!modelViewManager) return;
@@ -48,7 +48,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
     setName(node.name);
 
     const foundElements = TreeUtils.getChildren(node, (child) => child.type === "BuildingElement");
-    const t = foundElements.map((n) => n.data).filter((data): data is buildingElement => data !== null);
+    const t = foundElements.map((n) => n.data).filter((data): data is BuildingElement => data !== null);
     // console.log("Station group box has elements:", t);
     setElements(t);
 
@@ -96,7 +96,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
 
   const handleSelectedGroupChanged = (data: SelectionGroup) => {
     setIsSelected(name === data.groupName);
-    console.log("stationbox: setting selected:", name, name === data.groupName);
+    // console.log("stationbox: setting selected:", name, name === data.groupName);
   };
 
   const handleVisibilityyUpdate = (data: Map<String, VisibilityState>) => {
@@ -111,7 +111,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
 
   const ToggleVisibility = useCallback(() => {
     if (modelViewManager?.GroupVisibility && node.id) {
-      console.log("Toggle visibility", modelViewManager.GroupVisibility);
+      // console.log("Toggle visibility", modelViewManager.GroupVisibility);
       const currentVisibility = modelViewManager.GroupVisibility.get(node.id);
       const newVisState =
         currentVisibility === VisibilityState.Hidden ? VisibilityState.Visible : VisibilityState.Hidden;
@@ -143,6 +143,9 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
     if (children) setChildVisible((prev) => !prev);
     if (!elements || !components) return;
     zoomToSelected(elements, components);
+    // ToggleVisibility();
+    if(modelViewManager?.SelectedGroup)
+      modelViewManager?.select(modelViewManager?.SelectedGroup);
   };
 
 

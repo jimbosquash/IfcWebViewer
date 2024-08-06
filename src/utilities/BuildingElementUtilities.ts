@@ -1,5 +1,5 @@
 import { Tree, TreeNode, TreeUtils } from "./Tree";
-import { SelectionGroup, buildingElement, KnowGroupType } from "./types";
+import { SelectionGroup, BuildingElement, KnowGroupType } from "./types";
 import * as OBC from "@thatopen/components";
 import { ModelCache } from "../bim-components/modelCache";
 import { GetFragmentIdMaps } from "./IfcUtilities";
@@ -8,7 +8,7 @@ import { GetFragmentIdMaps } from "./IfcUtilities";
 // takes in the current grou, the building elements to search from (select by matching type) and the direction
 export function GetAdjacentGroup(
   current: SelectionGroup | undefined,
-  tree: Tree<buildingElement> | undefined,
+  tree: Tree<BuildingElement> | undefined,
   direction: 'next' | 'previous' = 'next'
 ): SelectionGroup | undefined {
   if (!tree) return undefined;
@@ -54,17 +54,17 @@ export function GetAdjacentGroup(
   return undefined;
 }
 
-export const setUpGroup = (elements: buildingElement[]) => {
+export const setUpGroup = (elements: BuildingElement[]) => {
   // make the groups and then pack them together
   let stations = groupElementsByProperty(elements, "Station")
   let steps = groupElementsByProperty(elements, "BuildingStep")
-  const groupMap = new Map<string, Map<string, buildingElement[]>>();
+  const groupMap = new Map<string, Map<string, BuildingElement[]>>();
   groupMap.set("Station", stations);
   groupMap.set("BuildingStep", steps);
   return groupMap;
 }
 
-export const zoomToSelected = (elements : buildingElement[] | undefined, components: OBC.Components) => {
+export const zoomToSelected = (elements : BuildingElement[] | undefined, components: OBC.Components) => {
   if (!components || !elements) return;
   const cache = components.get(ModelCache);
   if (!cache.world) return;
@@ -107,14 +107,14 @@ export const zoomToSelected = (elements : buildingElement[] | undefined, compone
   }, 10);
 };
 
-export const setUpTree = (elements: buildingElement[], nodeOrder: string[] = ["Station", "BuildingStep"]) => {
+export const setUpTree = (elements: BuildingElement[], nodeOrder: string[] = ["Station", "BuildingStep"]) => {
 
-  const tree = new Tree<buildingElement>("Project", "Project");
+  const tree = new Tree<BuildingElement>("Project", "Project");
   const root = tree.getNode("Project")
 
 
 
-  const createSubTree = (parentNode: TreeNode<buildingElement>, currentElements: buildingElement[], currentLevel: number) => {
+  const createSubTree = (parentNode: TreeNode<BuildingElement>, currentElements: BuildingElement[], currentLevel: number) => {
     if (currentLevel >= nodeOrder.length) {
       // We've reached the leaf level, add elements as leaf nodes
       currentElements.forEach((element, index) => {
@@ -140,8 +140,8 @@ export const setUpTree = (elements: buildingElement[], nodeOrder: string[] = ["S
   return tree;
 }
 
-export const groupElementsByProperty = (elements: buildingElement[], property: string): Map<string, buildingElement[]> => {
-  const grouped = new Map<string, buildingElement[]>();
+export const groupElementsByProperty = (elements: BuildingElement[], property: string): Map<string, BuildingElement[]> => {
+  const grouped = new Map<string, BuildingElement[]>();
   elements.forEach(element => {
     const value = element.properties.find(prop => prop.name === property)?.value || 'Unknown';
     if(value === "Unknown")

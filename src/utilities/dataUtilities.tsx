@@ -1,13 +1,13 @@
-import { buildingElement } from "./types";
+import { BuildingElement } from "./types";
 
 
 
 
-export function getStationBarChartArray(elements: buildingElement[]) : any[]
+export function getStationBarChartArray(elements: BuildingElement[]) : any[]
 {
     // group by station
     
-    const groupedByStation: Record<string, Record<string, buildingElement[]>> = {};
+    const groupedByStation: Record<string, Record<string, BuildingElement[]>> = {};
 
 
     elements.forEach(element => {
@@ -60,7 +60,7 @@ type StationSummary = {
     [key: string]: number | string; // Allow for dynamic category properties
   };
 
-function convertToStationArray(groupedByStation: Record<string, Record<string, buildingElement[]>>) : any[] {
+function convertToStationArray(groupedByStation: Record<string, Record<string, BuildingElement[]>>) : any[] {
     const stationSummary: any[] = [];
 
     for (const station in groupedByStation)
@@ -88,7 +88,7 @@ function convertToStationArray(groupedByStation: Record<string, Record<string, b
 
 }
 
-export function getTotalValue(propertyName: string,buildingElements: buildingElement[]) : number {
+export function getTotalValue(propertyName: string,buildingElements: BuildingElement[]) : number {
     const totalObject = buildingElements.reduce((sumElement,item) => {
         const price = item.properties.find(prop => prop.name === propertyName);
         const numPrice =  price ? parseFloat(price?.value) : 0 
@@ -98,7 +98,7 @@ export function getTotalValue(propertyName: string,buildingElements: buildingEle
     return totalObject.total;
 }
 
-export function convertToPieChartValue(groupedElements: Record<string, buildingElement[]>) {
+export function convertToPieChartValue(groupedElements: Record<string, BuildingElement[]>) {
     const pieChartValue = Object.entries(groupedElements).map(([key, elements], index) => ({
         id: key,
         label: key,
@@ -108,7 +108,7 @@ export function convertToPieChartValue(groupedElements: Record<string, buildingE
     return pieChartValue;
 }
 
-export function groupByProperty(elements: buildingElement[], propertyName: string): Record<string, buildingElement[]> {
+export function groupByProperty(elements: BuildingElement[], propertyName: string): Record<string, BuildingElement[]> {
     return elements.reduce((acc, element) => {
       const materialProperty = element.properties.find(prop => prop.name.toLowerCase() === propertyName.toLowerCase());
       const material = materialProperty ? materialProperty.value : 'Unknown';
@@ -120,5 +120,5 @@ export function groupByProperty(elements: buildingElement[], propertyName: strin
       acc[material].push(element);
       
       return acc;
-    }, {} as Record<string, buildingElement[]>);
+    }, {} as Record<string, BuildingElement[]>);
   }

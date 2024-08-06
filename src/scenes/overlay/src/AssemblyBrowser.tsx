@@ -7,14 +7,14 @@ import StationBox from "./StationBox";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 import { Tree, TreeNode } from "../../../utilities/Tree";
-import { buildingElement } from "../../../utilities/types";
+import { BuildingElement } from "../../../utilities/types";
 import { nonSelectableTextStyle } from "../../../styles";
 
 const AssemblyBrowser = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
-  const [groups, setGroups] = useState<TreeNode<buildingElement>[]>();
+  const [groups, setGroups] = useState<TreeNode<BuildingElement>[]>();
   const [isPanelVisible, setPanelVisibility] = useState<boolean>(false);
   const [stationsVisible, setStationsVisible] = useState<boolean>(true);
 
@@ -32,7 +32,7 @@ const AssemblyBrowser = () => {
     };
   }, [components]);
 
-  const handleTreeChange = (data: Tree<buildingElement>) => {
+  const handleTreeChange = (data: Tree<BuildingElement>) => {
     console.log("task over view panel handeling new groups:", data);
     if (!data) return;
 

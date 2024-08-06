@@ -1,7 +1,7 @@
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import { GetBuildingElements } from "../../utilities/IfcUtilities";
-import { buildingElement } from "../../utilities/types";
+import { BuildingElement } from "../../utilities/types";
 import { ModelViewManager } from "../modelViewer";
 
 export class ModelCache extends OBC.Component {
@@ -10,11 +10,11 @@ export class ModelCache extends OBC.Component {
     static uuid = "005d1863-99d7-453d-96ef-c07b309758ce" as const;
     readonly onModelAdded = new OBC.Event<FRAGS.FragmentsGroup>()
     readonly onModelStartRemoving = new OBC.Event<FRAGS.FragmentsGroup>()
-    readonly onBuildingElementsChanged = new OBC.Event<buildingElement[]>()
+    readonly onBuildingElementsChanged = new OBC.Event<BuildingElement[]>()
     readonly onWorldSet = new OBC.Event<OBC.World>()
     private _world: OBC.World | null = null;
 
-    private _buildingElements: buildingElement[] | undefined;
+    private _buildingElements: BuildingElement[] | undefined;
 
     getModel(modelId : string): FRAGS.FragmentsGroup | undefined {
         if(!modelId) return;

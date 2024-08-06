@@ -26,10 +26,10 @@ export interface SelectionGroup {
     id: string; // used for tree nodeMap searching
     groupType: GroupingType;
     groupName: string;
-    elements: buildingElement[];
+    elements: BuildingElement[];
   }
 
-  export interface buildingElement {
+  export interface BuildingElement {
     expressID: number;
     GlobalID: string;
     type: number;

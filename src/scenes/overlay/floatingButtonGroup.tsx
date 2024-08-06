@@ -42,7 +42,7 @@ const FloatingButtonGroup = () => {
     };
   }, [components]);
 
-  const setAdjacentGroup = (adjacency: "previous" | "next") => {
+  const setAdjacentGroup = async (adjacency: "previous" | "next") => {
     console.log();
     if (!components) return;
 
@@ -56,21 +56,32 @@ const FloatingButtonGroup = () => {
     // console.log("Setting adjacent",current);
 
     const newGroup = GetAdjacentGroup(current, viewManager.Tree, adjacency);
-    //todo: fix this up for switch statement
+
     if (newGroup) {
-      updateVisibility(viewManager,newGroup)
-      viewManager.SelectedGroup = newGroup;
-      //zoomToSelected(viewManager.getBuildingElements(newGroup.id),components);
+      try {
+        await updateVisibility(viewManager, newGroup);
+        viewManager.SelectedGroup = newGroup;
+        //zoomToSelected(viewManager.getBuildingElements(newGroup.id),components);
+      } catch (error) {
+        console.error("Error updating visibility:", error);
+        // Handle the error appropriately (e.g., show an error message to the user)
+      }
     }
   };
-
   // set up visibility map depending on mode setting
-  const updateVisibility = (viewManager: ModelViewManager, group: SelectionGroup) => {
 
-    if (viewManager.VisibilityMode === VisibilityMode.Isolate) 
-      IsolateSelected(viewManager.components, group); 
-    if (viewManager.VisibilityMode === VisibilityMode.Passive) {
-      viewManager.SequentiallyVisible(group);      
+  const updateVisibility = async (viewManager: ModelViewManager, group: SelectionGroup) => {
+    try {
+      if (viewManager.VisibilityMode === VisibilityMode.Isolate) {
+        IsolateSelected(viewManager.components, group);
+      }
+      if (viewManager.VisibilityMode === VisibilityMode.Passive) {
+        viewManager.SequentiallyVisible(group);
+        await viewManager.select(group);
+      }
+    } catch (error) {
+      console.error("Error updating visibility:", error);
+      // Handle the error appropriately (e.g., show an error message to the user)
     }
   };
 
@@ -175,11 +186,10 @@ const FloatingButtonGroup = () => {
           }}
         >
           <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "45px" }}>
-
             <IconButton style={floatingButtonStyle} onClick={() => setCameraProjection()}>
               <CameraEnhance fontSize="small" />
             </IconButton>
-            <CameraButton/>
+            <CameraButton />
             {/* 
             <IconButton style={floatingButtonStyle} onClick={() => setCameraMode()}>
               <CameraEnhance fontSize="small" />
