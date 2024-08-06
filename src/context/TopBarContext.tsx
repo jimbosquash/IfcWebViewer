@@ -43,7 +43,7 @@ export const TopBarContextProvider: React.FC<SidePanelProviderProps> = ({ childr
     const toggleAssemblyBrowserPanel = (isVisible: boolean | undefined = undefined): void => {
     if(isVisible === undefined) setIsAssemblyBrowserVisible(!isAssemblyBrowserVisible)
     else if((isAssemblyBrowserVisible && !isVisible) || (!isAssemblyBrowserVisible && isVisible))
-        setIsAssemblyBrowserVisible(isAssemblyBrowserVisible)
+        setIsAssemblyBrowserVisible(isVisible)
   }
 
 

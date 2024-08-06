@@ -89,6 +89,7 @@ export class Tree<T> {
         return this.getNodes(node => node.isLeaf && node.type === type);
     }
 
+    
     getNodes(predicate: (node: TreeNode<T>) => boolean): TreeNode<T>[] {
         const result: TreeNode<T>[] = [];
 

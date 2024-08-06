@@ -1,6 +1,7 @@
 import * as OBC from "@thatopen/components";
+import * as FRAGS from "@thatopen/fragments";
 import * as THREE from 'three'
-import {  setUpTree } from "../../utilities/BuildingElementUtilities";
+import { setUpTree } from "../../utilities/BuildingElementUtilities";
 import { GetFragmentsFromExpressIds } from "../../utilities/IfcUtilities";
 import { buildingElement, SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
 import { Tree, TreeNode, TreeUtils } from "../../utilities/Tree";
@@ -50,12 +51,12 @@ export class ModelViewManager extends OBC.Component {
 
     }
 
-    getBuildingElements = (groupId: string) : buildingElement[] | undefined => {
-        if(!groupId || !this._tree) return;
+    getBuildingElements = (groupId: string): buildingElement[] | undefined => {
+        if (!groupId || !this._tree) return;
 
         const groupNode = this._tree.getNode(groupId);
 
-        if(!groupNode) return;
+        if (!groupNode) return;
 
         return TreeUtils.getChildrenNonNullData(groupNode)
     }
@@ -116,16 +117,70 @@ export class ModelViewManager extends OBC.Component {
         this.updateVisibility();
     }
 
-    isolate(group: SelectionGroup) {
-        if(!group.id) return;
+    // displays all tree nodes before the args node
+    SequentiallyVisible(group: SelectionGroup){
+        if (!group.id) return;
 
         const node = this._tree?.getNode(group.id);
         const sameNodeTypes = this._tree?.getNodes(n => n.type === node?.type)
-        if(!sameNodeTypes) return;
+        if (!sameNodeTypes) return;
 
-        sameNodeTypes.forEach(element => {
-            this.setVisibility(element.id,element.id === group.id ? VisibilityState.Visible : VisibilityState.Hidden,false)
+        const visibleNodes: TreeNode<buildingElement>[] = [];
+        const hiddenNodes: TreeNode<buildingElement>[] = [];
+        let nodeFound = false;
+
+        sameNodeTypes.forEach(otherNode => {
+            if(nodeFound)
+            {
+                hiddenNodes.push(otherNode)
+                return;
+            }
+            if(otherNode === node)
+            {
+                visibleNodes.push(otherNode)
+                nodeFound = true;
+                return;
+            }
+            visibleNodes.push(otherNode)
         });
+
+        hiddenNodes.forEach(treeNode => {
+            this.setVisibility(treeNode.id, VisibilityState.Hidden, false)
+        });
+
+        // make each node, their parent and children are visible
+        visibleNodes.forEach(treeNode => {
+            this.setVisibility(treeNode.id, VisibilityState.Visible, false)
+            if(treeNode.parent)
+                this.setVisibility(treeNode.parent.id, VisibilityState.Visible, false)
+
+            node?.children.forEach(childNode => { this.setVisibility(childNode.id, VisibilityState.Visible, false) })
+        });
+
+        node?.children.forEach(childNode => { this.setVisibility(childNode.id, VisibilityState.Visible, false) })
+        this.onGroupVisibilitySet.trigger(this._treeVisibility);
+        this.updateVisibility();
+
+
+    }
+
+    isolate(group: SelectionGroup) {
+        if (!group.id) return;
+
+        const node = this._tree?.getNode(group.id);
+        const sameNodeTypes = this._tree?.getNodes(n => n.type === node?.type)
+        if (!sameNodeTypes) return;
+
+        sameNodeTypes.forEach(treeNode => {
+            this.setVisibility(treeNode.id, treeNode.id === group.id ? VisibilityState.Visible : VisibilityState.Hidden, false)
+        });
+
+        // make parent visible // note: should be recursive in future
+        if (node?.parent)
+            this.setVisibility(node.parent.id, VisibilityState.Visible, false)
+
+        console.log('geting children of isolated node', node?.children)
+        node?.children.forEach(childNode => { this.setVisibility(childNode.id, VisibilityState.Visible, false) })
         this.onGroupVisibilitySet.trigger(this._treeVisibility);
         this.updateVisibility();
     }
@@ -147,21 +202,96 @@ export class ModelViewManager extends OBC.Component {
         if (updateVisibility) this.updateVisibility();
     }
 
+    //private white = new THREE.Color(1, 1, 1);
 
     private SetVisibility(fragments: OBC.FragmentsManager, elements: buildingElement[] | undefined, visibility: VisibilityState): void {
 
         if (!elements) return;
         const elementsByModelId = this.groupElementsByModelId(elements);
 
+        //const transWhite = this.white.multiplyScalar(10);
         fragments.groups.forEach(model => {
             const elementsForModel = elementsByModelId.get(model.uuid);
             if (elementsForModel) {
                 const allFragments = GetFragmentsFromExpressIds(elementsForModel.map(element => element.expressID), fragments, model);
-                // console.log("Setting visibility", visibility)
-                allFragments.forEach((ids, frag) => frag.setVisibility(visibility !== VisibilityState.Hidden, ids));
+                if (visibility === VisibilityState.Visible) {
+                    allFragments.forEach((ids, frag) => frag.setVisibility(true, ids));
+                    // allFragments.forEach((ids, frag) => frag.resetColor(ids));
+                }
+                else {
+                    allFragments.forEach((ids, frag) => frag.setVisibility(false, ids));
+                    // allFragments.forEach((ids, frag) => frag.setColor(transWhite, ids));
+                }
             }
         });
     }
+
+    // private setMeshGhost = (fragment: FRAGS.Fragment, ids: number[]): void => {
+    //     if (!fragment || !ids) {
+    //         console.warn('Invalid model or model has no children');
+    //         return;
+    //     }
+
+    //     for (const itemID of ids) {
+    //         if (!fragment.ids.has(itemID)) {
+    //             continue;
+    //         }
+    //         const instances = fragment.itemToInstances.get(itemID);
+    //         if (!instances) {
+    //             throw new Error("Instances not found!");
+    //         }
+
+
+    //         for (const instance of new Set(instances)) {
+    //             if (!originalsExist) {
+    //                 const originalColor = new THREE.Color();
+    //                 this.mesh.getColorAt(instance, originalColor);
+    //                 originals.set(instance, originalColor);
+    //             }
+
+    //             fragment.mesh.setColorAt(instance, color);
+    //             fragment.mesh.cust
+
+    //             if (override) {
+    //                 originals.set(instance, color);
+    //             }
+    //         }
+    //     }
+
+
+    //     try {
+    //         for (let i = 0; i < model.children.length; i++) {
+    //             const child = model.children[i];
+
+    //             if (child instanceof THREE.InstancedMesh) {
+    //                 if (child.instanceColor !== null) {
+    //                     const oldColor = child.instanceColor.array;
+
+    //                     if (oldColor.length < 3) {
+    //                         console.warn(`Invalid color data for child ${i}`);
+    //                         continue;
+    //                     }
+    //                     // console.log("material type:",child.material);
+    //                     let mat = child.material as THREE.MeshLambertMaterial;
+    //                     mat.side = THREE.DoubleSide;
+
+    //                     // const material = new THREE.MeshStandardMaterial({
+    //                     //   color: new THREE.Color(oldColor[0], oldColor[1], oldColor[2]),
+    //                     //   side: THREE.DoubleSide
+    //                     // });
+
+    //                     // child.material = material;
+    //                 } else {
+    //                     console.warn(`Child ${i} has no instance color`);
+    //                 }
+    //             } else {
+    //                 console.log(`Child ${i} is not an InstancedMesh`);
+    //             }
+    //         }
+    //     } catch (error) {
+    //         console.error('Error in setMeshFaceDoubleSided:', error);
+    //     }
+    // };
 
     // if color = true color will be reset to original
     private SetColor(fragments: OBC.FragmentsManager, elements: buildingElement[], color: boolean | THREE.Color = false): void {
@@ -207,11 +337,12 @@ export class ModelViewManager extends OBC.Component {
         if (visibilityTypes) {
             this.SetVisibility(fragments, visibilityTypes.get(VisibilityState.Visible), VisibilityState.Visible);
             this.SetVisibility(fragments, visibilityTypes.get(VisibilityState.Hidden), VisibilityState.Hidden);
+            this.SetVisibility(fragments, visibilityTypes.get(VisibilityState.Ghost), VisibilityState.Ghost);
         }
     };
 
     private getAllElements(): buildingElement[] | undefined {
-        if(!this._tree?.root.id) return;
+        if (!this._tree?.root.id) return;
         return this.getBuildingElements(this._tree?.root.id);
     }
 

@@ -16,6 +16,7 @@ import { CommentIconButton } from "./src/commentIconButton";
 import { ModelViewManager } from "../../bim-components/modelViewer";
 import { ModelCache } from "../../bim-components/modelCache";
 import { SelectionGroup, VisibilityMode } from "../../utilities/types";
+import CameraButton from "./src/cameraButton";
 
 interface floatingButtonProps {
   togglePropertyPanelVisibility: () => void;
@@ -67,11 +68,10 @@ const FloatingButtonGroup = () => {
   const updateVisibility = (viewManager: ModelViewManager, group: SelectionGroup) => {
 
     if (viewManager.VisibilityMode === VisibilityMode.Isolate) 
-      IsolateSelected(viewManager.components, group);
-    // } else if (viewManager.VisibilityMode === VisibilityMode.Passive) {
-
-    //   const visMap = ShowSelected(viewManager.components, group);      
-    // }
+      IsolateSelected(viewManager.components, group); 
+    if (viewManager.VisibilityMode === VisibilityMode.Passive) {
+      viewManager.SequentiallyVisible(group);      
+    }
   };
 
   const handelVisibilityModeChange = () => {
@@ -179,6 +179,7 @@ const FloatingButtonGroup = () => {
             <IconButton style={floatingButtonStyle} onClick={() => setCameraProjection()}>
               <CameraEnhance fontSize="small" />
             </IconButton>
+            <CameraButton/>
             {/* 
             <IconButton style={floatingButtonStyle} onClick={() => setCameraMode()}>
               <CameraEnhance fontSize="small" />

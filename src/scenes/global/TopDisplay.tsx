@@ -1,17 +1,38 @@
 import { AppBar, Box, Button, IconButton, Toolbar, useTheme } from "@mui/material";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { ColorModeContext, tokens } from "../../theme";
 import { SidePanelType, useTopBarContext } from "../../context/TopBarContext";
+import { useComponentsContext } from "../../context/ComponentsContext";
+import { ModelCache } from "../../bim-components/modelCache";
 
 export const TopDisplay = () => {
   const colorMode = useContext(ColorModeContext);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const components = useComponentsContext();
+  const {
+    toggleSidePanel,
+    isAssemblyBrowserVisible,
+    isSidePanelVisible,
+    isPropertiesPanelVisible,
+    togglePropertiesPanel,
+    toggleAssemblyBrowserPanel,
+  } = useTopBarContext();
 
-  const { toggleSidePanel, isAssemblyBrowserVisible, isSidePanelVisible,isPropertiesPanelVisible, togglePropertiesPanel, toggleAssemblyBrowserPanel } =
-    useTopBarContext();
+  useEffect(() => {
+    // add load listener
+    if (!components) return;
+
+    toggleSidePanel(true)
+    const cache = components.get(ModelCache);
+    cache.onModelAdded.add(() => toggleAssemblyBrowserPanel(true));
+    return () => {
+      //dettach
+      cache.onModelAdded.remove(() => toggleAssemblyBrowserPanel(true));
+    };
+  }, [components]);
 
   const activeButtonStyle = {
     backgroundColor: colors.primary[800],
@@ -57,7 +78,7 @@ export const TopDisplay = () => {
             </Box>
 
             {/* center content */}
-            <Box component="div" sx={{...buttonStyle}}>
+            <Box component="div" sx={{ ...buttonStyle }}>
               <IconButton onClick={colorMode.toggleColorMode}>
                 {theme.palette.mode === "dark" ? <DarkModeOutlinedIcon /> : <LightModeOutlinedIcon />}
               </IconButton>
@@ -69,4 +90,4 @@ export const TopDisplay = () => {
   );
 };
 
- export default TopDisplay;
+export default TopDisplay;

@@ -1,6 +1,9 @@
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
 import * as THREE from 'three';
+import * as BUI from "@thatopen/ui";
+import * as CUI from "@thatopen/ui-obc";
+
 import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper';
 
 export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement | null | undefined, name: string): OBC.SimpleWorld<OBC.SimpleScene, OBC.OrthoPerspectiveCamera, OBF.PostproductionRenderer> | undefined {
@@ -22,11 +25,23 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     world.camera.projection.set('Orthographic');
     world.camera.enabled = true;
     const light = new THREE.AmbientLight(0x424242, 30)
-    // const directionalLight = new THREE.PointLight( 0xffffff );
-    // directionalLight.position.y = 3;
-    // directionalLight.position.z = 3;
-    // directionalLight.intensity = 1000;
     world.scene.three.add(light);
+
+    BUI.Manager.init();
+    CUI.Manager.init();
+    const viewCube = document.createElement("bim-view-cube");
+    viewCube.frontText = "Front";
+    viewCube.topText = "Top";
+    viewCube.backText = "Back";
+    viewCube.leftText = "Left";
+    viewCube.rightText = "Right";
+    viewCube.size = 120;
+    viewCube.camera = world.camera.three;
+    containerRef.append(viewCube);
+
+    world.camera.controls.addEventListener("update", () => viewCube.updateOrientation());
+
+
     const worldGrid = components.get(OBC.Grids).create(world)
     worldGrid.material.uniforms.uColor.value = new THREE.Color(0x424242)
     worldGrid.material.uniforms.uSize1.value = 2
