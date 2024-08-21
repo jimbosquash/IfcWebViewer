@@ -1,4 +1,4 @@
-import { Box, ButtonGroup, IconButton, useTheme } from "@mui/material";
+import { Box, ButtonGroup, IconButton, Tooltip, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import { tokens } from "../../theme";
 import * as THREE from "three";
@@ -17,6 +17,7 @@ import { ModelViewManager } from "../../bim-components/modelViewer";
 import { ModelCache } from "../../bim-components/modelCache";
 import { SelectionGroup, VisibilityMode } from "../../utilities/types";
 import CameraButton from "./src/cameraButton";
+import { CameraButtonPanel } from "./src/cameraButtonPanel";
 
 interface floatingButtonProps {
   togglePropertyPanelVisibility: () => void;
@@ -186,33 +187,54 @@ const FloatingButtonGroup = () => {
           }}
         >
           <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "45px" }}>
-            <IconButton style={floatingButtonStyle} onClick={() => setCameraProjection()}>
+            {/* <IconButton style={floatingButtonStyle} onClick={() => setCameraProjection()}>
               <CameraEnhance fontSize="small" />
-            </IconButton>
-            <CameraButton />
+            </IconButton> */}
+            {/* <CameraButtonPanel/> */}
+            <Tooltip title="Camer Properties">
+              <CameraButton />
+            </Tooltip>
+
             {/* 
             <IconButton style={floatingButtonStyle} onClick={() => setCameraMode()}>
               <CameraEnhance fontSize="small" />
             </IconButton> */}
 
-            <IconButton
-              style={floatingButtonStyle}
-              onClick={() => {
-                setCamView();
-              }}
-            >
-              <ZoomInMapOutlined fontSize="small" />
-            </IconButton>
-            <IconButton style={floatingButtonStyle} onClick={() => setAdjacentGroup("previous")}>
-              <NavigateBeforeIcon fontSize="large" />
-            </IconButton>
-            <IconButton style={floatingButtonStyle} onClick={() => setAdjacentGroup("next")}>
-              <NavigateNextIcon fontSize="large" />
-            </IconButton>
-            <IconButton style={floatingButtonStyle} onClick={() => toggleVisibilityMode()}>
-              {visibilityMode === VisibilityMode.Passive ? <Group fontSize="large" /> : <ViewArray fontSize="large" />}
-            </IconButton>
-            <CommentIconButton />
+            <Tooltip title="Plan View">
+              <IconButton
+                style={floatingButtonStyle}
+                onClick={() => {
+                  setCamView();
+                }}
+              >
+                {" "}
+                <ZoomInMapOutlined fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Previous group">
+              <IconButton style={floatingButtonStyle} onClick={() => setAdjacentGroup("previous")}>
+                <NavigateBeforeIcon fontSize="large" />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Next group">
+              <IconButton style={floatingButtonStyle} onClick={() => setAdjacentGroup("next")}>
+                <NavigateNextIcon fontSize="large" />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="visibility mode">
+              <IconButton style={floatingButtonStyle} onClick={() => toggleVisibilityMode()}>
+                {visibilityMode === VisibilityMode.Passive ? (
+                  <Group fontSize="large" />
+                ) : (
+                  <ViewArray fontSize="large" />
+                )}
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Add comment">
+              <CommentIconButton />
+            </Tooltip>
           </ButtonGroup>
         </div>
       </Box>
