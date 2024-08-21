@@ -1,4 +1,4 @@
-import { Box, ButtonGroup, IconButton, Tooltip, useTheme } from "@mui/material";
+import { Box, Button, ButtonGroup, Divider, IconButton, Tooltip, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import { tokens } from "../../theme";
 import * as THREE from "three";
@@ -7,9 +7,7 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import Group from "@mui/icons-material/Group";
 import ViewArray from "@mui/icons-material/ViewArray";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
-import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import ZoomInMapOutlined from "@mui/icons-material/ZoomInMapOutlined";
-import CameraEnhance from "@mui/icons-material/CameraEnhance";
 import { GetAdjacentGroup } from "../../utilities/BuildingElementUtilities";
 import { useComponentsContext } from "../../context/ComponentsContext";
 import { CommentIconButton } from "./src/commentIconButton";
@@ -17,7 +15,8 @@ import { ModelViewManager } from "../../bim-components/modelViewer";
 import { ModelCache } from "../../bim-components/modelCache";
 import { SelectionGroup, VisibilityMode } from "../../utilities/types";
 import CameraButton from "./src/cameraButton";
-import { CameraButtonPanel } from "./src/cameraButtonPanel";
+import { VisibilityPropertiesButton } from "./src/visibilityPropertiesButton";
+import { PlanViewButton } from "./src/planViewButton";
 
 interface floatingButtonProps {
   togglePropertyPanelVisibility: () => void;
@@ -82,7 +81,6 @@ const FloatingButtonGroup = () => {
       }
     } catch (error) {
       console.error("Error updating visibility:", error);
-      // Handle the error appropriately (e.g., show an error message to the user)
     }
   };
 
@@ -92,43 +90,11 @@ const FloatingButtonGroup = () => {
 
     viewManager.VisibilityMode;
     setVisibilityMode(viewManager.VisibilityMode);
-
-    //trigger display of current elements again
   };
 
   const IsolateSelected = (components: OBC.Components, selected: SelectionGroup) => {
     const viewManager = components.get(ModelViewManager);
     viewManager.isolate(selected);
-  };
-
-  const zoomAll = () => {
-    if (!components) return;
-    const cache = components.get(ModelCache);
-    if (!cache.world) return;
-
-    setTimeout(async () => {
-      if (!cache.world?.meshes) return;
-      let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
-      cam.fit(cache.world?.meshes, 0.5);
-    }, 50);
-  };
-
-  const setCameraProjection = () => {
-    const cache = components?.get(ModelCache);
-    if (!cache?.world) return;
-    let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
-
-    console.log("cam mode setting:", cam.projection.current);
-
-    if (cam.projection.current === "Perspective") {
-      cam.projection.set("Orthographic");
-      cam.set("Orbit" as OBC.NavModeID);
-    } else {
-      cam.projection.set("Perspective");
-      cam.set("Orbit" as OBC.NavModeID);
-    }
-
-    zoomAll();
   };
 
   const setCamView = () => {
@@ -186,52 +152,40 @@ const FloatingButtonGroup = () => {
             display: "inline-block",
           }}
         >
-          <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "45px" }}>
-            {/* <IconButton style={floatingButtonStyle} onClick={() => setCameraProjection()}>
-              <CameraEnhance fontSize="small" />
-            </IconButton> */}
-            {/* <CameraButtonPanel/> */}
-            <Tooltip title="Camer Properties">
-              <CameraButton />
-            </Tooltip>
+          <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "40px" }}>
+            <CameraButton />
+            <VisibilityPropertiesButton />
 
-            {/* 
-            <IconButton style={floatingButtonStyle} onClick={() => setCameraMode()}>
-              <CameraEnhance fontSize="small" />
-            </IconButton> */}
+            <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
 
-            <Tooltip title="Plan View">
-              <IconButton
-                style={floatingButtonStyle}
-                onClick={() => {
-                  setCamView();
-                }}
-              >
-                {" "}
-                <ZoomInMapOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
             <Tooltip title="Previous group">
-              <IconButton style={floatingButtonStyle} onClick={() => setAdjacentGroup("previous")}>
+              <Button
+                style={{ color: colors.grey[400], border: "0" }}
+                variant="contained"
+                sx={{
+                  backgroundColor: colors.primary[400],
+                }}
+                onClick={() => setAdjacentGroup("previous")}
+              >
                 <NavigateBeforeIcon fontSize="large" />
-              </IconButton>
+              </Button>
             </Tooltip>
-
             <Tooltip title="Next group">
-              <IconButton style={floatingButtonStyle} onClick={() => setAdjacentGroup("next")}>
+              <Button
+                style={{ color: colors.grey[400], border: "0" }}
+                variant="contained"
+                sx={{
+                  backgroundColor: colors.primary[400],
+                }}
+                onClick={() => setAdjacentGroup("next")}
+              >
                 <NavigateNextIcon fontSize="large" />
-              </IconButton>
+              </Button>
             </Tooltip>
 
-            <Tooltip title="visibility mode">
-              <IconButton style={floatingButtonStyle} onClick={() => toggleVisibilityMode()}>
-                {visibilityMode === VisibilityMode.Passive ? (
-                  <Group fontSize="large" />
-                ) : (
-                  <ViewArray fontSize="large" />
-                )}
-              </IconButton>
-            </Tooltip>
+            <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
+
+            <PlanViewButton />
             <Tooltip title="Add comment">
               <CommentIconButton />
             </Tooltip>

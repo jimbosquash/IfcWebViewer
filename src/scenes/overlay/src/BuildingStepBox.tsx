@@ -9,10 +9,9 @@ import { BuildingElement, GroupingType, SelectionGroup, VisibilityState } from "
 import { GroupPanelProps } from "./StationBox";
 import { TreeNode, TreeUtils } from "../../../utilities/Tree";
 import { zoomToSelected } from "../../../utilities/BuildingElementUtilities";
+import { RiBox3Line } from "react-icons/ri";
 
-
-
-export const BuildingStepBox: React.FC<GroupPanelProps> = ({node}) => {
+export const BuildingStepBox: React.FC<GroupPanelProps> = ({ node }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [modelViewManager, setModelViewManager] = useState<ModelViewManager | undefined>();
@@ -46,15 +45,13 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({node}) => {
     viewManager.onGroupVisibilitySet.add((data) => handleVisibilityyUpdate(data));
     viewManager.onSelectedGroupChanged.add((data) => handleSelectedGroupChanged(data));
     setModelViewManager(viewManager);
-    if (name) 
-      setIsVisible(modelViewManager?.GroupVisibility?.get(name) !== VisibilityState.Hidden);
+    if (name) setIsVisible(modelViewManager?.GroupVisibility?.get(name) !== VisibilityState.Hidden);
 
     return () => {
       viewManager.onGroupVisibilitySet.remove((data) => handleVisibilityyUpdate(data));
       viewManager.onSelectedGroupChanged.remove((data) => handleSelectedGroupChanged(data));
     };
   }, [components]);
-
 
   const handleVisibilityyUpdate = (data: Map<String, VisibilityState>) => {
     // console.log("handling visibility update:", data);
@@ -70,9 +67,7 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({node}) => {
     setIsSelected(name === data.groupName);
   };
 
-  
   const setSelected = () => {
-
     setIsSelected(true);
     if (modelViewManager?.SelectedGroup?.groupName === name || !modelViewManager || !elements || !name) return;
 
@@ -107,10 +102,10 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({node}) => {
   };
 
   const nonSelectableTextStyle = {
-    userSelect: 'none',
-    WebkitUserSelect: 'none', // For Safari
-    MozUserSelect: 'none', // For Firefox
-    msUserSelect: 'none', // For Internet Explorer/Edge
+    userSelect: "none",
+    WebkitUserSelect: "none", // For Safari
+    MozUserSelect: "none", // For Firefox
+    msUserSelect: "none", // For Internet Explorer/Edge
   };
 
   return (
@@ -141,8 +136,19 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({node}) => {
           alignItems="center"
           justifyContent="space-between"
         >
-          <Typography noWrap maxWidth={"150px"} variant="h6" sx={{ flexGrow: 1 , ...nonSelectableTextStyle}}>{`${treeNode.current?.type.toString()}: ${name}`}</Typography>
-          <Typography color={colors.grey[500]} noWrap variant="body2" sx={{ marginLeft: "20px", ...nonSelectableTextStyle}}>
+          <RiBox3Line color={isSelected ? colors.primary[100] : colors.grey[500]} size="20px" />
+          <Typography
+            noWrap
+            maxWidth={"150px"}
+            variant={isSelected ? "h6" : "body2"}
+            sx={{ flexGrow: 1, ...nonSelectableTextStyle, ml:1 }}
+          >{`${treeNode.current?.type.toString()}: ${name}`}</Typography>
+          <Typography
+            color={colors.grey[500]}
+            noWrap
+            variant="body2"
+            sx={{ marginLeft: "20px", ...nonSelectableTextStyle }}
+          >
             el : {elements?.length}
           </Typography>
           <IconButton

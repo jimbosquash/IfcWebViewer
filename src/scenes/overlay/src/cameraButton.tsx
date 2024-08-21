@@ -5,12 +5,11 @@ import {
   Popover,
   Box,
   ToggleButton,
-  ToggleButtonGroup,
   Typography,
   Paper,
-  styled,
-  toggleButtonGroupClasses,
   Divider,
+  useTheme,
+  IconButton,
 } from "@mui/material";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import CameraIndoor from "@mui/icons-material/CameraIndoor";
@@ -18,52 +17,59 @@ import * as OBC from "@thatopen/components";
 
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelCache } from "../../../bim-components/modelCache";
-import { BackHand, CameraOutdoor, Cameraswitch } from "@mui/icons-material";
+import {
+  BackHand,
+  BorderAll,
+  CameraOutdoor,
+  Cameraswitch,
+  Help,
+  HelpCenterOutlined,
+  HelpSharp,
+  QuestionMark,
+} from "@mui/icons-material";
+import { tokens } from "../../../theme";
+import StyledToggleButtonGroup from "../../../components/StyledToggleButtonGroup";
 
 type projectionType = "Orthographic" | "Perspective";
 type NavigationType = "Orbit" | "Plan";
 
 const CameraButton = () => {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState<boolean>(false);
   const [selectedNavigation, setSelectedNavigation] = useState<NavigationType | null>();
   const [selectedProjection, setSelectedProjection] = useState<projectionType | null>();
 
-
   useEffect(() => {
     //get starting properties
-    if(!components) return;
+    if (!components) return;
     const cache = components?.get(ModelCache);
     if (!cache?.world) return;
     let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
-    if(!cam) return;
+    if (!cam) return;
 
-    console.log("mode", cam.mode.id)
-    setSelectedNavigation(cam.mode.id as NavigationType)
-    setSelectedProjection(cam.projection.current)
-    console.log("Orientation", cam.projection.current)
+    console.log("mode", cam.mode.id);
+    setSelectedNavigation(cam.mode.id as NavigationType);
+    setSelectedProjection(cam.projection.current);
+    console.log("Orientation", cam.projection.current);
 
-    cam.projection.onChanged.add(() => setSelectedProjection(cam.projection.current))
+    cam.projection.onChanged.add(() => setSelectedProjection(cam.projection.current));
 
-    return(() => {
-      cam.projection.onChanged.remove(() => setSelectedProjection(cam.projection.current))
-
-    })
-
-
-  },[components])
-  
+    return () => {
+      cam.projection.onChanged.remove(() => setSelectedProjection(cam.projection.current));
+    };
+  },);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
-    setOpen(!open)
-
+    setOpen(!open);
   };
 
   const handleClose = () => {
     setAnchorEl(null);
-    setOpen(false)
+    setOpen(false);
   };
 
   const handleProjection = (event: React.MouseEvent<HTMLElement>, newProjection: projectionType | null) => {
@@ -129,25 +135,14 @@ const CameraButton = () => {
   // const open = Boolean(anchorEl);
   const id = open ? "camera-popover" : undefined;
 
-  const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
-    [`& .${toggleButtonGroupClasses.grouped}`]: {
-      margin: theme.spacing(0.5),
-      border: 0,
-      borderRadius: theme.shape.borderRadius,
-      [`&.${toggleButtonGroupClasses.disabled}`]: {
-        border: 0,
-      },
-    },
-    [`& .${toggleButtonGroupClasses.middleButton},& .${toggleButtonGroupClasses.lastButton}`]: {
-      marginLeft: -1,
-      borderLeft: "1px solid transparent",
-    },
-  }));
-
   return (
     <>
       <Tooltip title="Camera Options">
-        <Button onClick={handleClick} color="secondary" variant={open ? "contained" : "outlined"}>
+        <Button
+          onClick={handleClick}
+          style={{ color: colors.grey[200], backgroundColor: colors.primary[400], border: "0" }}
+          variant="contained"
+        >
           <CameraAltIcon />
         </Button>
       </Tooltip>
@@ -167,6 +162,16 @@ const CameraButton = () => {
         marginThreshold={90}
       >
         <Paper sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+
+        <Box component={"div"} sx={{ display: "flex", flexDirection: "column", alignItems: "top" }}>
+            <IconButton size="small" sx={{ alignSelf: "top" }}>
+              <HelpSharp />
+            </IconButton>
+            {/* <Typography color="main" variant="caption" sx={{ mt: 0 }}>
+              PROJECTION
+            </Typography> */}
+          </Box>
+
           <Box component={"div"} sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <StyledToggleButtonGroup
               aria-label="Small sizes"
@@ -243,7 +248,12 @@ const CameraButton = () => {
               ORIENTATION
             </Typography>
           </Box>
+
+          {/* <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} /> */}
         </Paper>
+
+        
+
       </Popover>
     </>
   );

@@ -12,6 +12,9 @@ import { ModelViewManager } from "../../../bim-components/modelViewer";
 import { BuildingElement, KnowGroupType, SelectionGroup, VisibilityState } from "../../../utilities/types";
 import { TreeNode, TreeUtils } from "../../../utilities/Tree";
 import { nonSelectableTextStyle } from "../../../styles";
+import { BsBoxes, BsFileMinus, BsPlus } from "react-icons/bs";
+import { PlusOne } from "@mui/icons-material";
+import { PiMinus, PiPlus } from "react-icons/pi";
 
 export interface GroupPanelProps {
   node: TreeNode<BuildingElement>;
@@ -96,7 +99,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
 
   const handleSelectedGroupChanged = (data: SelectionGroup) => {
     setIsSelected(name === data.groupName);
-    // console.log("stationbox: setting selected:", name, name === data.groupName);
+    if(name === data.groupName) console.log("stationbox: setting selected:", name, name === data.groupName);
   };
 
   const handleVisibilityyUpdate = (data: Map<String, VisibilityState>) => {
@@ -123,8 +126,10 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
 
   const setSelected = () => {
     setIsSelected(true);
-    if (modelViewManager?.SelectedGroup?.groupName === name || !modelViewManager || !elements || !name) return;
-
+    if (modelViewManager?.SelectedGroup?.groupName === name || !modelViewManager || !elements || !name) {
+     console.log('set selection but returning early')
+      return;
+    }
     modelViewManager.SelectedGroup = {
       id: node.id,
       groupType: "Station",
@@ -168,22 +173,23 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
           display: "flex",
           alignItems: "center",
           border: isSelected ? "1px solid #ccc" : "none",
-          backgroundColor: isSelected ? colors.primary[400] : colors.grey[900],
-          transition: "all 0.3s ease",
+          backgroundColor: isSelected ? colors.blueAccent[600] : colors.grey[900],
+          transition: "all 0.2s ease",
           justifyContent: "space-between",
         }}
       >
+        <BsBoxes color={isSelected ? colors.primary[100] : colors.grey[500]} size="10"/>
         <Typography
           noWrap
           maxWidth="105px"
-          color={isSelected ? colors.primary[300] : colors.grey[600]}
-          variant={isSelected ? "h5" : "h6"}
-          sx={{ flexGrow: 1, ...nonSelectableTextStyle }}
+          color={isSelected ? colors.primary[100] : colors.grey[600]}
+          variant={isSelected ? "h6" : "body2"}
+          sx={{ flexGrow: 1, ...nonSelectableTextStyle, ml:1, alignContent:"left" }}
         >
           {displayName}
         </Typography>
         <Typography
-          color={isSelected ? colors.primary[300] : colors.grey[600]}
+          color={isSelected ? colors.primary[100] : colors.grey[600]}
           noWrap
           variant="body2"
           sx={{ marginLeft: "10px", ...nonSelectableTextStyle }}
@@ -193,7 +199,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
         <IconButton
           size="small"
           color={isSelected ? "primary" : "secondary"}
-          sx={{ marginLeft: "8px", color: colors.grey[500] }}
+          sx={{ marginLeft: "8px", color: isSelected ? colors.primary[100] : colors.grey[500] }}
           onClick={(e: any) => {
             e.stopPropagation();
             ToggleVisibility();
@@ -202,8 +208,8 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
           {isVisible ? <VisibilityOutlinedIcon /> : <VisibilityOffOutlinedIcon />}
         </IconButton>
         {children && (
-          <IconButton size="small" sx={{ marginLeft: "4px", color: colors.grey[500] }} onClick={toggleChildVisibility}>
-            {childVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          <IconButton size="small" sx={{ marginLeft: "4px", color: isSelected ? colors.primary[100] : colors.grey[500] }} onClick={toggleChildVisibility}>
+            {childVisible ? <PiMinus /> : <PiPlus />}
           </IconButton>
         )}
       </Box>

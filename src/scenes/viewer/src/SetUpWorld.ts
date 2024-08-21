@@ -42,13 +42,13 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     world.camera.controls.addEventListener("update", () => viewCube.updateOrientation());
 
 
-    const worldGrid = components.get(OBC.Grids).create(world)
-    worldGrid.material.uniforms.uColor.value = new THREE.Color(0x424242)
-    worldGrid.material.uniforms.uSize1.value = 2
-    worldGrid.material.uniforms.uSize2.value = 8
+    // const worldGrid = components.get(OBC.Grids).create(world)
+    // worldGrid.material.uniforms.uColor.value = new THREE.Color(0x424242)
+    // worldGrid.material.uniforms.uSize1.value = 2
+    // worldGrid.material.uniforms.uSize2.value = 8
 
     postproduction.enabled = true;
-    postproduction.customEffects.excludedMeshes.push(worldGrid.three);
+    //postproduction.customEffects.excludedMeshes.push(worldGrid.three);
     postproduction.setPasses({ custom: true, ao: true, gamma: true })
     postproduction.customEffects.lineColor = 0x17191c
 
