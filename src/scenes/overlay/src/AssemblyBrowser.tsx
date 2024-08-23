@@ -67,7 +67,7 @@ const AssemblyBrowser = () => {
             position: "absolute",
             top: "0%",
             left: 0,
-            zIndex: 500,
+            zIndex: 50,
             padding: "15px",
             width: 350,
           }}

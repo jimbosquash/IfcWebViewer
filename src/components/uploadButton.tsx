@@ -1,7 +1,7 @@
 import { Button, useTheme } from "@mui/material";
 import * as OBC from "@thatopen/components";
 import { useContext } from "react";
-import { ComponentsContext } from "../context/ComponentsContext";
+import { useComponentsContext } from "../context/ComponentsContext";
 import { uploadIfcFromUserInput } from "../bim-components/src/uploadButton";
 import { ModelCache } from "../bim-components/modelCache";
 import { tokens } from "../theme";
@@ -9,7 +9,7 @@ import UploadOutlinedIcon from "@mui/icons-material/UploadOutlined";
 
 
 export const FloatingUploadIfcButton: React.FC = () => {
-    const components = useContext(ComponentsContext);
+    const components = useComponentsContext();
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 

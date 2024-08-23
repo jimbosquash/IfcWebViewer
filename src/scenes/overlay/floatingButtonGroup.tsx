@@ -1,13 +1,10 @@
-import { Box, Button, ButtonGroup, Divider, IconButton, Tooltip, useTheme } from "@mui/material";
+import { Box, Button, ButtonGroup, Divider, Tooltip, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import { tokens } from "../../theme";
 import * as THREE from "three";
 import * as OBC from "@thatopen/components";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import Group from "@mui/icons-material/Group";
-import ViewArray from "@mui/icons-material/ViewArray";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
-import ZoomInMapOutlined from "@mui/icons-material/ZoomInMapOutlined";
 import { GetAdjacentGroup } from "../../utilities/BuildingElementUtilities";
 import { useComponentsContext } from "../../context/ComponentsContext";
 import { CommentIconButton } from "./src/commentIconButton";
@@ -17,6 +14,10 @@ import { SelectionGroup, VisibilityMode } from "../../utilities/types";
 import CameraButton from "./src/cameraButton";
 import { VisibilityPropertiesButton } from "./src/visibilityPropertiesButton";
 import { PlanViewButton } from "./src/planViewButton";
+import SaveButton from "../../components/exportIfcButton";
+import { FragmentsGroup } from "@thatopen/fragments";
+import { TaskManager } from "../../bim-components/taskManager";
+
 
 interface floatingButtonProps {
   togglePropertyPanelVisibility: () => void;
@@ -28,23 +29,34 @@ const FloatingButtonGroup = () => {
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
   const [visibilityMode, setVisibilityMode] = useState<VisibilityMode>();
+  const [newIfcFile, setnewIfcFile] = useState<Uint8Array>();
 
   useEffect(() => {
     if (!components) return;
 
     const viewManager = components.get(ModelViewManager);
     if (!viewManager) return;
+    const fragments = components.get(OBC.FragmentsManager);
+    const cache = components.get(ModelCache);
 
     viewManager.onVisibilityModeChanged.add(handelVisibilityModeChange);
+    //fragments.onFragmentsLoaded.add((data) => handleLoadedModel(data));
+    // cache.onModelAdded.add((data) => handleLoadedModel(data));
 
     return () => {
       viewManager.onVisibilityModeChanged.remove(handelVisibilityModeChange);
+      //fragments.onFragmentsLoaded.remove((data) => handleLoadedModel(data));
+      // cache.onModelAdded.remove((data) => handleLoadedModel(data));
+
+      
+
     };
   }, [components]);
 
+ 
+
   const setAdjacentGroup = async (adjacency: "previous" | "next") => {
     console.log();
-    if (!components) return;
 
     const viewManager = components.get(ModelViewManager);
 
@@ -68,7 +80,6 @@ const FloatingButtonGroup = () => {
       }
     }
   };
-  // set up visibility map depending on mode setting
 
   const updateVisibility = async (viewManager: ModelViewManager, group: SelectionGroup) => {
     try {
@@ -97,44 +108,18 @@ const FloatingButtonGroup = () => {
     viewManager.isolate(selected);
   };
 
-  const setCamView = () => {
-    const cache = components?.get(ModelCache);
-    if (!cache?.world) return;
+  const handleTaskCreate = async() => {
+    const taskManager = components.get(TaskManager);
+    const cache = components.get(ModelCache);
+    if(!taskManager) return;
+    const testData = taskManager.getTestData();
+    console.log("taskManager",testData);
 
-    let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
-    cam.projection.set("Orthographic");
-    cam.set("Plan" as OBC.NavModeID);
+    if(!testData) return
+    const newIfcFile = await taskManager.setupExistingTasks(0,testData);
+    setnewIfcFile(newIfcFile);
+  }
 
-    const bbox = new THREE.Box3().setFromObject(cache.world.scene.three);
-    const center = bbox.getCenter(new THREE.Vector3());
-    const size = bbox.getSize(new THREE.Vector3());
-    // console.log("cam bbox center:", center.x,center.y,center.z);
-
-    // Calculate the larger of width and depth for optimal framing
-    const maxSize = Math.max(size.x, size.z);
-
-    // Set camera position
-    const cameraHeight = Math.max(size.y, maxSize) * 2; // Ensure camera is high enough
-    cam.controls.setPosition(center.x, center.y + cameraHeight, center.z, false);
-    console.log("cam position center:", center.x, center.y + cameraHeight, center.z);
-
-    // Set camera target to look at the center
-    cam.controls.setTarget(center.x, center.y, center.z, false);
-    console.log("cam target center:", center.x, center.y, center.z);
-
-    // cam.controls.up
-
-    // cam.fit(cache.world?.meshes, 0.5);
-    // console.log("cam mode setting:", cam.mode.id, cam.mode.enabled);
-  };
-
-  const toggleVisibilityMode = () => {
-    // togge between isol
-    const viewManager = components?.get(ModelViewManager);
-    if (!viewManager) return;
-    if (viewManager.VisibilityMode === VisibilityMode.Isolate) viewManager.VisibilityMode = VisibilityMode.Passive;
-    else if (viewManager.VisibilityMode === VisibilityMode.Passive) viewManager.VisibilityMode = VisibilityMode.Isolate;
-  };
 
   return (
     <>
@@ -143,9 +128,9 @@ const FloatingButtonGroup = () => {
           style={{
             position: "fixed",
             bottom: 50,
-            left: "40%",
-            transform: "translateX(-50%,0)",
-            zIndex: 500,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 50,
             width: 450,
             height: 35,
             cursor: "grab",
@@ -189,6 +174,8 @@ const FloatingButtonGroup = () => {
             <Tooltip title="Add comment">
               <CommentIconButton />
             </Tooltip>
+            <Button onClick={() => {handleTaskCreate()}}>task</Button>
+            <SaveButton data={newIfcFile} filename={"newTaskFile"} />
           </ButtonGroup>
         </div>
       </Box>
@@ -204,3 +191,5 @@ const floatingButtonStyle = {
 };
 
 export default FloatingButtonGroup;
+
+

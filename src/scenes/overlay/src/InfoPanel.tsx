@@ -58,7 +58,7 @@ export const InfoPanel = () => {
     backgroundColor: colors.grey[1000],
     color:colors.primary[200],
     padding: "10px",
-    zIndex: 1000,
+    zIndex: 100,
     position: 'absolute',
     alignItems: 'left',
     width: 'auto',

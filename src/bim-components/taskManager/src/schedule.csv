@@ -1,0 +1,34 @@
+ID,Name,Description,Start,Finish
+1,Site Preparation,Clear the site and set up initial facilities,2024-01-01,2024-01-10
+1.1,Survey and Marking,Survey the site and mark the boundaries,2024-01-01,2024-01-02
+1.2,Excavation,Excavate the foundation area,2024-01-03,2024-01-06
+1.2.1,Topsoil Removal,Remove topsoil and vegetation,2024-01-03,2024-01-04
+1.2.2,Trench Digging,Dig trenches for foundation,2024-01-05,2024-01-06
+1.3,Temporary Facilities,Set up temporary office and storage areas,2024-01-07,2024-01-10
+2,Foundation,Build the foundation of the building,2024-01-11,2024-01-25
+2.1,Footings,Construct the footings,2024-01-11,2024-01-15
+2.1.1,Rebar Placement,Place rebar for footings,2024-01-11,2024-01-12
+2.1.2,Concrete Pouring,Pour concrete for footings,2024-01-13,2024-01-15
+2.2,Foundation Walls,Build the foundation walls,2024-01-16,2024-01-20
+2.3,Backfilling,Backfill around the foundation,2024-01-21,2024-01-25
+3,Superstructure,Construct the main structure of the building,2024-01-26,2024-02-28
+3.1,Columns and Beams,Install columns and beams,2024-01-26,2024-02-10
+3.1.1,Column Rebar,Install rebar for columns,2024-01-26,2024-01-30
+3.1.2,Beam Formwork,Set up formwork for beams,2024-02-01,2024-02-05
+3.2,Floor Slabs,Pour the concrete floor slabs,2024-02-11,2024-02-20
+3.3,Roof Structure,Construct the roof structure,2024-02-21,2024-02-28
+4,Exterior,Complete the exterior of the building,2024-03-01,2024-03-31
+4.1,Wall Framing,Frame the exterior walls,2024-03-01,2024-03-10
+4.2,Windows and Doors,Install windows and doors,2024-03-11,2024-03-20
+4.3,Exterior Finishing,Apply exterior finishes,2024-03-21,2024-03-31
+5,Interior,Complete the interior of the building,2024-04-01,2024-04-30
+5.1,Wall and Ceiling Framing,Frame interior walls and ceilings,2024-04-01,2024-04-10
+5.1.1,Interior Wall Framing,Frame interior partition walls,2024-04-01,2024-04-05
+5.1.2,Ceiling Joists,Install ceiling joists,2024-04-06,2024-04-10
+5.2,Electrical and Plumbing,Install electrical and plumbing systems,2024-04-11,2024-04-20
+5.3,Interior Finishes,Install interior finishes,2024-04-21,2024-04-30
+6,Final Inspection and Handover,Inspect and hand over the completed building,2024-05-01,2024-05-10
+6.1,Final Inspection,Conduct final inspection and address issues,2024-05-01,2024-05-05
+6.1.1,Inspection Punch List,Create punch list of issues,2024-05-01,2024-05-02
+6.1.2,Issue Resolution,Address punch list issues,2024-05-03,2024-05-05
+6.2,Handover,Hand over the completed building to the owner,2024-05-06,2024-05-10

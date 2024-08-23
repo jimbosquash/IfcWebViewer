@@ -6,6 +6,7 @@ import { ModelViewManager } from "../modelViewer";
 
 export class ModelCache extends OBC.Component {
     private _enabled = false
+    // key = modelID or fragmentGroup.uuid, value is ifc model
     private _models: Map<string, FRAGS.FragmentsGroup> = new Map<string, FRAGS.FragmentsGroup>;
     static uuid = "005d1863-99d7-453d-96ef-c07b309758ce" as const;
     readonly onModelAdded = new OBC.Event<FRAGS.FragmentsGroup>()
@@ -15,6 +16,9 @@ export class ModelCache extends OBC.Component {
     private _world: OBC.World | null = null;
 
     private _buildingElements: BuildingElement[] | undefined;
+
+    models = () => {
+        return this._models.values}
 
     getModel(modelId : string): FRAGS.FragmentsGroup | undefined {
         if(!modelId) return;
@@ -30,7 +34,6 @@ export class ModelCache extends OBC.Component {
 
     async delete(groupID: string): Promise<boolean> {
         this._models.delete(groupID)
-
 
         // Filter out elements whose ids are in the idSet
         const result = this._buildingElements?.filter(element => element.modelID !== groupID);

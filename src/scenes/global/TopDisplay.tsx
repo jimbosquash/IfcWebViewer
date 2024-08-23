@@ -25,7 +25,7 @@ export const TopDisplay = () => {
     // add load listener
     if (!components) return;
 
-    toggleSidePanel(true)
+    //toggleSidePanel(true)
     const cache = components.get(ModelCache);
     cache.onModelAdded.add(() => toggleAssemblyBrowserPanel(true));
     return () => {
