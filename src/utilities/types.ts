@@ -37,6 +37,9 @@ export interface SelectionGroup {
     modelID: string; // the fraggroup id
     properties: { name: string, value: string, pSet: string}[]
   }
+
+  // names of properties that we commonly use for ifc export
+  export type knownProperties = "Aantal" |"Bouwnummer"| "Productcode" | "Materiaal"
   
   
 // can I stash visibility state on elements directly and still cleaning support groups temp trans state?
