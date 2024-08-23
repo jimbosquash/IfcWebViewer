@@ -1,10 +1,10 @@
-import { Box, Typography, IconButton, useTheme } from "@mui/material";
+import { Box, Typography, IconButton, useTheme, Tooltip } from "@mui/material";
 import React, { useCallback, useContext, useEffect, useState, useRef } from "react";
 import { tokens } from "../../../theme";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import BuildingStepBox from "./BuildingStepBox";
-import { zoomToSelected } from "../../../utilities/BuildingElementUtilities";
+import { zoomToBuildingElements } from "../../../utilities/BuildingElementUtilities";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { useComponentsContext } from "../../../context/ComponentsContext";
@@ -15,6 +15,8 @@ import { nonSelectableTextStyle } from "../../../styles";
 import { BsBoxes, BsFileMinus, BsPlus } from "react-icons/bs";
 import { PlusOne } from "@mui/icons-material";
 import { PiMinus, PiPlus } from "react-icons/pi";
+import { Icon } from "@iconify/react";
+import { color } from "framer-motion";
 
 export interface GroupPanelProps {
   node: TreeNode<BuildingElement>;
@@ -147,7 +149,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
     setSelected();
     if (children) setChildVisible((prev) => !prev);
     if (!elements || !components) return;
-    zoomToSelected(elements, components);
+    zoomToBuildingElements(elements, components);
     // ToggleVisibility();
     if(modelViewManager?.SelectedGroup)
       modelViewManager?.select(modelViewManager?.SelectedGroup);
@@ -156,7 +158,8 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
 
 
   return (
-    <Box component="div">
+    <Tooltip title={"Station:" + displayName}> 
+      <Box component="div">
       <Box
         component="div"
         onDoubleClick={() => handelDoubleClick()}
@@ -178,7 +181,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
           justifyContent: "space-between",
         }}
       >
-        <BsBoxes color={isSelected ? colors.primary[100] : colors.grey[500]} size="10"/>
+        <Icon icon="system-uicons:boxes" color={isSelected ? colors.primary[100] : colors.grey[500]} />
         <Typography
           noWrap
           maxWidth="105px"
@@ -221,6 +224,8 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
         </Box>
       )}
     </Box>
+    </Tooltip>
+    
   );
 };
 

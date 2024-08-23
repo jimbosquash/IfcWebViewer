@@ -29,6 +29,7 @@ import {
 } from "@mui/icons-material";
 import { tokens } from "../../../theme";
 import StyledToggleButtonGroup from "../../../components/StyledToggleButtonGroup";
+import { Icon } from "@iconify/react";
 
 type projectionType = "Orthographic" | "Perspective";
 type NavigationType = "Orbit" | "Plan";
@@ -60,7 +61,7 @@ const CameraButton = () => {
     return () => {
       cam.projection.onChanged.remove(() => setSelectedProjection(cam.projection.current));
     };
-  },);
+  });
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -99,6 +100,8 @@ const CameraButton = () => {
     } else if (newMode === "Plan") {
       cam.set("Plan" as OBC.NavModeID);
     }
+    cam.controls.camera.up.set(0, 1, 0);
+    cam.controls.updateCameraUp();
   };
 
   const setCameraProjection = (newMode: projectionType) => {
@@ -117,6 +120,9 @@ const CameraButton = () => {
       cam.projection.set("Perspective");
       cam.set("Orbit" as OBC.NavModeID);
     }
+    cam.controls.camera.up.set(0, 1, 0);
+    cam.controls.updateCameraUp();
+
     zoomAll();
   };
 
@@ -140,7 +146,7 @@ const CameraButton = () => {
       <Tooltip title="Camera Options">
         <Button
           onClick={handleClick}
-          style={{ color: colors.grey[200], backgroundColor: colors.primary[400], border: "0" }}
+          style={{ color: colors.grey[200], backgroundColor: "transparent", border: "0" }}
           variant="contained"
         >
           <CameraAltIcon />
@@ -162,8 +168,7 @@ const CameraButton = () => {
         marginThreshold={90}
       >
         <Paper sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
-
-        <Box component={"div"} sx={{ display: "flex", flexDirection: "column", alignItems: "top" }}>
+          <Box component={"div"} sx={{ display: "flex", flexDirection: "column", alignItems: "top" }}>
             <IconButton size="small" sx={{ alignSelf: "top" }}>
               <HelpSharp />
             </IconButton>
@@ -188,7 +193,7 @@ const CameraButton = () => {
                   aria-label="left aligned"
                   color="secondary"
                 >
-                  <CameraIndoor />
+                  <Icon icon="icon-park-outline:stereo-perspective" />{" "}
                 </ToggleButton>
               </Tooltip>
 
@@ -200,7 +205,7 @@ const CameraButton = () => {
                   aria-label="right aligned"
                   color="secondary"
                 >
-                  <Cameraswitch />
+                  <Icon icon="ph:perspective-bold" />{" "}
                 </ToggleButton>
               </Tooltip>
             </StyledToggleButtonGroup>
@@ -251,9 +256,6 @@ const CameraButton = () => {
 
           {/* <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} /> */}
         </Paper>
-
-        
-
       </Popover>
     </>
   );

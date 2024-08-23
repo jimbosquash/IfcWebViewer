@@ -8,7 +8,7 @@ import { useComponentsContext } from "../../../context/ComponentsContext";
 import { BuildingElement, GroupingType, SelectionGroup, VisibilityState } from "../../../utilities/types";
 import { GroupPanelProps } from "./StationBox";
 import { TreeNode, TreeUtils } from "../../../utilities/Tree";
-import { zoomToSelected } from "../../../utilities/BuildingElementUtilities";
+import { zoomToBuildingElements } from "../../../utilities/BuildingElementUtilities";
 import { RiBox3Line } from "react-icons/ri";
 
 export const BuildingStepBox: React.FC<GroupPanelProps> = ({ node }) => {
@@ -98,7 +98,7 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({ node }) => {
     setSelected();
     if (children) setChildVisible((prev) => !prev);
     if (!elements || !components) return;
-    zoomToSelected(elements, components);
+    zoomToBuildingElements(elements, components);
   };
 
   const nonSelectableTextStyle = {

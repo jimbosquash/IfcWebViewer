@@ -17,7 +17,9 @@ import { PlanViewButton } from "./src/planViewButton";
 import SaveButton from "../../components/exportIfcButton";
 import { FragmentsGroup } from "@thatopen/fragments";
 import { TaskManager } from "../../bim-components/taskManager";
-
+import { IsolateButton } from "./src/IsolateButton";
+import { FaEyeSlash } from "react-icons/fa";
+import { Icon } from "@iconify/react";
 
 interface floatingButtonProps {
   togglePropertyPanelVisibility: () => void;
@@ -47,13 +49,8 @@ const FloatingButtonGroup = () => {
       viewManager.onVisibilityModeChanged.remove(handelVisibilityModeChange);
       //fragments.onFragmentsLoaded.remove((data) => handleLoadedModel(data));
       // cache.onModelAdded.remove((data) => handleLoadedModel(data));
-
-      
-
     };
   }, [components]);
-
- 
 
   const setAdjacentGroup = async (adjacency: "previous" | "next") => {
     console.log();
@@ -108,18 +105,23 @@ const FloatingButtonGroup = () => {
     viewManager.isolate(selected);
   };
 
-  const handleTaskCreate = async() => {
+  const handleTaskCreate = async () => {
     const taskManager = components.get(TaskManager);
     const cache = components.get(ModelCache);
-    if(!taskManager) return;
+    if (!taskManager) return;
     const testData = taskManager.getTestData();
-    console.log("taskManager",testData);
+    console.log("taskManager", testData);
 
-    if(!testData) return
-    const newIfcFile = await taskManager.setupExistingTasks(0,testData);
+    if (!testData) return;
+    const newIfcFile = await taskManager.setupExistingTasks(0, testData);
     setnewIfcFile(newIfcFile);
-  }
+  };
 
+  const showAll = () => {
+    const hider = components.get(OBC.Hider);
+
+    hider.set(true);
+  };
 
   return (
     <>
@@ -139,6 +141,7 @@ const FloatingButtonGroup = () => {
         >
           <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "40px" }}>
             <CameraButton />
+
             <VisibilityPropertiesButton />
 
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
@@ -148,7 +151,7 @@ const FloatingButtonGroup = () => {
                 style={{ color: colors.grey[400], border: "0" }}
                 variant="contained"
                 sx={{
-                  backgroundColor: colors.primary[400],
+                  backgroundColor: "transparent",
                 }}
                 onClick={() => setAdjacentGroup("previous")}
               >
@@ -160,7 +163,7 @@ const FloatingButtonGroup = () => {
                 style={{ color: colors.grey[400], border: "0" }}
                 variant="contained"
                 sx={{
-                  backgroundColor: colors.primary[400],
+                  backgroundColor: "transparent",
                 }}
                 onClick={() => setAdjacentGroup("next")}
               >
@@ -171,11 +174,25 @@ const FloatingButtonGroup = () => {
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
 
             <PlanViewButton />
+
+            {/* <Button onClick={() => {handleTaskCreate()}}>task</Button>
+            <SaveButton data={newIfcFile} filename={"newTaskFile"} /> */}
+            <ButtonGroup>
+              <IsolateButton />
+              <Tooltip title="Show all">
+                <Button
+                  sx={{ backgroundColor: "transparent" }}
+                  onClick={() => showAll()}
+                  style={{ color: colors.grey[400], border: "0" }}
+                  //   variant={open ? "contained" : "outlined"}
+                >
+                  <Icon icon="mdi:eye" />{" "}
+                </Button>
+              </Tooltip>
+            </ButtonGroup>
             <Tooltip title="Add comment">
               <CommentIconButton />
             </Tooltip>
-            <Button onClick={() => {handleTaskCreate()}}>task</Button>
-            <SaveButton data={newIfcFile} filename={"newTaskFile"} />
           </ButtonGroup>
         </div>
       </Box>
@@ -191,5 +208,3 @@ const floatingButtonStyle = {
 };
 
 export default FloatingButtonGroup;
-
-

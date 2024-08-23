@@ -44,6 +44,7 @@
     "web-ifc": "^0.0.55"
   },
   "devDependencies": {
+    "@iconify/react": "^5.0.2",
     "@types/node": "^22.5.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",

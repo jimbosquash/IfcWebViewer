@@ -15,14 +15,24 @@ export class ModelViewManager extends OBC.Component {
     private _enabled = false;
     private _isSetup = false;
     static uuid = "0f5e514e-5c1c-4097-a9cc-6620c2e28378" as const;
+
+    // Tree is a data structure we create similar to the file strucutre of an .ifc file though typicially we use element properties for robustness to determine groupings such as building steps and assembly
+    // you can create a different tree strucutre and use it in other scenarios 
     private _tree?: Tree<BuildingElement>;
+
+    // tree visibiliy is a map/dictionary of every node in a tree and stores the visibility state of eachnode. if a parent node is hidden this can be helpful to decide how to treat children nodes
+    // you can create other visibility maps to suit other purposes such as materaial grouping
+    private _treeVisibility?: Map<string, VisibilityState>;
+
+    // the selection group defines the group which is actively being used across the software and is typically a building step or station
+    // it helps us determine whats important to show the user and whats next and before this group when changing.
+    private _selectedGroup?: SelectionGroup;
+
     readonly onTreeChanged = new OBC.Event<Tree<BuildingElement> | undefined>();
     readonly onBuildingElementsChanged = new OBC.Event<BuildingElement[]>();
     readonly onGroupVisibilitySet = new OBC.Event<Map<string, VisibilityState>>();
     readonly onSelectedGroupChanged = new OBC.Event<SelectionGroup>();
     readonly onVisibilityModeChanged = new OBC.Event<VisibilityMode>();
-    private _treeVisibility?: Map<string, VisibilityState>;
-    private _selectedGroup?: SelectionGroup;
 
     get SelectedGroup(): SelectionGroup | undefined {
         return this._selectedGroup;
@@ -47,12 +57,13 @@ export class ModelViewManager extends OBC.Component {
         frag.onFragmentsDisposed.add((data) => this.cleanUp(data.groupID, data.fragmentIDs))
     }
 
-    cleanUp = (groupID: string, fragmentIDs: string[]) => {
+    cleanUp = (groupID: string, fragmentIDs: string[]) => {}
 
-
-
-    }
-
+    /**
+     * search tree strucutre for a node with a name matching the groupID. 
+     * @param groupId name of selection group to search tree
+     * @returns undefined or a flat collection of children building elements.
+     */
     getBuildingElements = (groupId: string): BuildingElement[] | undefined => {
         if (!groupId || !this._tree) return;
 
@@ -63,7 +74,11 @@ export class ModelViewManager extends OBC.Component {
         return TreeUtils.getChildrenNonNullData(groupNode)
     }
 
-    setUpGroups = (buildingElements: BuildingElement[] | undefined, groupVisibility?: Map<string, VisibilityState>): void => {
+  /**
+   * Sets up Tree strucutre based on building elements properties and ignortes the ifc file structure
+   * 
+   */
+      setUpGroups = (buildingElements: BuildingElement[] | undefined, groupVisibility?: Map<string, VisibilityState>): void => {
         if (!buildingElements) {
             this.onTreeChanged.trigger(undefined);
             return;
@@ -103,15 +118,19 @@ export class ModelViewManager extends OBC.Component {
         return this._visibilityMode;
     }
 
-    // visibilityMode determines how selected and non selected groupings will be displayed.
+    /**
+     * visibilityMode determines how selected and non selected groupings will be displayed.
+     */
     set VisibilityMode(value: VisibilityMode) {
         // console.log("Visibility mode set:", value)
         this._visibilityMode = value;
         this.onVisibilityModeChanged.trigger(this._visibilityMode);
     }
 
-    // Group Visibility : key = group Name, value = visibility state. will be used to determine the visibility of geometry 
-    // when triggering updateVisibility;
+    /**
+     * Group Visibility : key = group Name, value = visibility state. will be used to determine the visibility of geometry 
+     * when triggering updateVisibility;
+     */
     set GroupVisibility(value: Map<string, VisibilityState> | undefined) {
         // console.log("ModelViewManager: group vis being set", value);
         this._treeVisibility = value;
@@ -119,7 +138,11 @@ export class ModelViewManager extends OBC.Component {
         this.updateVisibility();
     }
 
-    // displays all tree nodes before the args node
+    /**
+     * displays all tree nodes before the selection group
+     * @param group group to be made visible
+     * @returns 
+     */
     SequentiallyVisible(group: SelectionGroup) {
         if (!group.id) return;
 
@@ -163,7 +186,12 @@ export class ModelViewManager extends OBC.Component {
 
 
     }
-
+/**
+ * Using thatOpen OBF.highlighter component to highlight by express ids using the select highlight type. clearing the
+ * select highlight collection before making the new selection
+ * @param group group to be selected
+ * @returns 
+ */
     async select(group: SelectionGroup) {
         if (!group.id || !this.components) return;
         console.log("high light these elements")
@@ -201,6 +229,8 @@ export class ModelViewManager extends OBC.Component {
     
         await Promise.all(highlightPromises);
     }
+
+    
 
     isolate(group: SelectionGroup) {
         if (!group.id) return;

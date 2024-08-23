@@ -110,9 +110,19 @@ const AssemblyInfoPanel = () => {
         spacing={1}
         sx={{ height: "100%", width: "100%" }}
       >
-        <Grid item xs={1} sx={{ bgcolor: "primary.main", flexDirection: "row", height: "100%", p: 2 }}>
-          <Box component={"div"} sx={{ bgcolor: "primary.main", flexDirection: "row", height: "100%", p: 2 }}>
-            <Box component={"div"} sx={{ mr: 2 }}>
+        <Grid item xs={1} sx={{ bgcolor: "primary.main", height: "100%",width:"100%", p: 0 }}>
+        <Box
+        component={"div"}
+        sx={{
+          bgcolor: "primary.main",
+          height: "100%",
+          p: 2,
+          display: "flex", // Flex container
+          flexDirection: "row", // Horizontal layout within this box
+          alignItems: "center", // Center align items vertically
+          width: "100%",
+        }}
+      >            <Box component={"div"} sx={{ mr: 2 }}>
               {selected?.groupType === KnowGroupType.Assembly ? <RiBox3Line size={24} /> : <BsBoxes size={24} />}
             </Box>
             <Typography>{!selected ? "Assembly Name" : selected.groupName}</Typography>
@@ -123,8 +133,8 @@ const AssemblyInfoPanel = () => {
             Summary data and status of assembly
           </Box>
         </Grid>
-        <Grid item xs={5}>
-          <Box component={"div"} sx={{ bgcolor: "primary.main", height: "100%", p: 0 }}>
+        <Grid item xs={5} >
+          <Box component={"div"} sx={{ bgcolor: "primary.main",width:"100%", height: "100%", p: 0 }}>
             <BasicDataTable onSelectChanged={onSelectChanged} columns={columns} data={rows} />
           </Box>
         </Grid>
@@ -165,14 +175,14 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
 
   return (
     <TableContainer component={Paper}>
-      <Table stickyHeader sx={{ width: "100%" }} size={"small"} aria-label="simple table">
+      <Table stickyHeader sx={{ width: "100%"}} size={"small"} aria-label="simple table">
         <TableHead>
           <TableRow>
             {columns.map((column) => (
               <TableCell
                 key={column.id}
                 align={column.align}
-                style={{ top: 0, maxWidth: 200, minWidth: column.minWidth }}
+                style={{ top: 0, maxWidth: column.maxWidth, minWidth: column.minWidth }}
               >
                 {column.label}
               </TableCell>
@@ -214,7 +224,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
                     <TableCell align="right">{row.productCode}</TableCell>
                     <TableCell
                       align="left"
-                      sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", maxWidth: "100" }}
+                      sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis"}}
                     >
                       {row.name}
                     </TableCell>
@@ -232,6 +242,7 @@ interface Column {
   id: "select"| "Quantity" |"name" | "code" | "Material";
   label: string;
   minWidth?: number;
+  maxWidth?: number;
   align?: "right";
   format?: (value: number) => string;
 }
@@ -246,7 +257,7 @@ const columns: Column[] = [
     align: "right",
   },
   { id: "code", label: "Product\u00a0Code", minWidth: 125 },
-  { id: "name", label: "Name", minWidth: 100 },
+  { id: "name", label: "Name", minWidth: 100, maxWidth:120 },
 ];
 
 export default AssemblyInfoPanel;
