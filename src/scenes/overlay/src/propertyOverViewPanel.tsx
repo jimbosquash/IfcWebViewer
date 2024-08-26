@@ -1,11 +1,8 @@
-import { Box, useTheme, Typography, IconButton, Paper, Tabs, Tab, TabProps, Grid } from "@mui/material";
-import Draggable from "react-draggable";
+import { Box, useTheme, Paper, Tabs, Tab, TabProps } from "@mui/material";
 import { tokens } from "../../../theme";
-import TocIcon from "@mui/icons-material/Toc";
-import ElementTable from "../../../components/ElementTable";
-import { BuildingElement } from "../../../utilities/types";
 import { useState } from "react";
 import AssemblyInfoPanel from "./AssemblyInfoPanel";
+import { ResizableBox } from "react-resizable";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -22,11 +19,11 @@ function CustomTabPanel(props: TabPanelProps) {
       hidden={value !== index}
       id={`simple-tabpanel-${index}`}
       aria-labelledby={`simple-tab-${index}`}
-      style={{ height: '92%', width:"100%"}}
+      style={{ height: "92%", width: "100%" }}
       {...other}
     >
       {value === index && (
-        <Box component={"div"} sx={{ p: 1, height: "100%", overflow: "clip",flexGrow: 1 }}>
+        <Box component={"div"} sx={{ p: 1, height: "100%", overflow: "clip", flexGrow: 1 }}>
           {children}
         </Box>
       )}
@@ -38,9 +35,15 @@ export const PropertyOverViewPanel = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [value, setValue] = useState(1);
+  const [width, setWidth] = useState(350); // Initial width of the Paper
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
+  };
+
+  const handleResize = (event: any, { size }: any) => {
+    console.log("handling resize")
+    setWidth(size.width);
   };
 
   function a11yProps(index: number) {
@@ -70,62 +73,54 @@ export const PropertyOverViewPanel = () => {
 
   return (
     <>
-      <Paper
-        style={{
-          position: "fixed",
-          margin: "10px",
-          top: "10%",
-          bottom: "20%",
-          right: 0,
-          transform: "translateY(0%)",
-          zIndex: 50,
-          padding: "5px",
-          minWidth: 350,
-          // border: '1px solid #ccc'
-        }}
+      <ResizableBox
+        width={width}
+        height={Infinity}
+        minConstraints={[350, 0]}
+        maxConstraints={[500, Infinity]}
+        axis="x"
+        handle={<div
+          style={{
+            width: '10px',
+            cursor: 'ew-resize',
+            height: '100%',
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            zIndex: 100,
+          }}
+        />} // Resize handle on the west (left) side
+        onResize={handleResize}
+        style={{ position: "fixed", top: "10%", bottom: "20%", right: 0, zIndex: 500 }}
       >
-        <Box component={"div"} sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-            <StyledTab label="Elements" {...a11yProps(0)} index={0} />
-            <StyledTab label="Assembly" {...a11yProps(1)} index={1} />
-            <StyledTab label="Settings" {...a11yProps(2)} index={2} />
-          </Tabs>
-        </Box>
-        <Box component={"div"} height="100%">
-        <CustomTabPanel value={value} index={0}>
-          Elements
-        </CustomTabPanel>
-        <CustomTabPanel value={value} index={1}>
-          <AssemblyInfoPanel/>
-        </CustomTabPanel>
-        <CustomTabPanel value={value} index={2}>
-          Settings
-        </CustomTabPanel>
-        </Box>
-        
-        {/* <Box component="div">
-          <Typography noWrap variant="h6" sx={{ flexGrow: 1 }}>
-            {" "}
-            Properties
-          </Typography>
-          <IconButton size="small" sx={{ marginLeft: "16px", color: colors.grey[300] }} onClick={() => {}}>
-            {true ? <TocIcon /> : <TocIcon />}
-          </IconButton>
-        </Box>
-        <Box
-          component="div"
-          m="20px"
-          // width="300px"
-          // maxHeight="60vh"
-          height="40vh"
-          padding="0px"
-          // maxWidth="80vw"
-          boxShadow="0 0 10px rgba(0, 0, 0, 0.1)"
-          overflow="auto"
+        <Paper
+          style={{
+            height: "100%",
+            padding: "5px",
+            boxSizing: "border-box",
+          }}
         >
-          {buildingElements && <ElementTable isDashboard={false} buildingElements={buildingElements} />}
-        </Box> */}
-      </Paper>
+          <Box component={"div"} sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+              <StyledTab label="Elements" {...a11yProps(0)} index={0} />
+              <StyledTab label="Assembly" {...a11yProps(1)} index={1} />
+              <StyledTab label="Settings" {...a11yProps(2)} index={2} />
+            </Tabs>
+          </Box>
+          <Box component={"div"} height="100%">
+            <CustomTabPanel value={value} index={0}>
+              Elements
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={1}>
+              <AssemblyInfoPanel />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={2}>
+              Settings
+            </CustomTabPanel>
+          </Box>
+        </Paper>
+      </ResizableBox>
     </>
   );
 };

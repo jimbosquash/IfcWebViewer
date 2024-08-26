@@ -1,11 +1,11 @@
 import { ZoomInMapOutlined } from "@mui/icons-material";
 import { Tooltip, Button, useTheme } from "@mui/material";
 
-import { tokens } from "../../../theme";
+import { tokens } from "../../../../theme";
 import * as THREE from "three";
 import * as OBC from "@thatopen/components";
-import { ModelCache } from "../../../bim-components/modelCache";
-import { useComponentsContext } from "../../../context/ComponentsContext";
+import { ModelCache } from "../../../../bim-components/modelCache";
+import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { Icon } from "@iconify/react";
 
 export const PlanViewButton = () => {

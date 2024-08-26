@@ -1,32 +1,27 @@
 import { Box, Button, ButtonGroup, Divider, Tooltip, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
-import { tokens } from "../../theme";
-import * as THREE from "three";
+import { tokens } from "../../../theme";
 import * as OBC from "@thatopen/components";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
-import { GetAdjacentGroup } from "../../utilities/BuildingElementUtilities";
-import { useComponentsContext } from "../../context/ComponentsContext";
-import { CommentIconButton } from "./src/commentIconButton";
-import { ModelViewManager } from "../../bim-components/modelViewer";
-import { ModelCache } from "../../bim-components/modelCache";
-import { SelectionGroup, VisibilityMode } from "../../utilities/types";
+import { GetAdjacentGroup } from "../../../utilities/BuildingElementUtilities";
+import { useComponentsContext } from "../../../context/ComponentsContext";
+import { ModelViewManager } from "../../../bim-components/modelViewer";
+import { ModelCache } from "../../../bim-components/modelCache";
+import { SelectionGroup, VisibilityMode } from "../../../utilities/types";
 import CameraButton from "./src/cameraButton";
+import { TaskManager } from "../../../bim-components/taskManager";
+import { IsolateButton } from "./src/IsolateButton";
+import { Icon } from "@iconify/react";
 import { VisibilityPropertiesButton } from "./src/visibilityPropertiesButton";
 import { PlanViewButton } from "./src/planViewButton";
-import SaveButton from "../../components/exportIfcButton";
-import { FragmentsGroup } from "@thatopen/fragments";
-import { TaskManager } from "../../bim-components/taskManager";
-import { IsolateButton } from "./src/IsolateButton";
-import { FaEyeSlash } from "react-icons/fa";
-import { Icon } from "@iconify/react";
 
 interface floatingButtonProps {
   togglePropertyPanelVisibility: () => void;
   toggleGroupsPanelVisibility: () => void;
 }
 
-const FloatingButtonGroup = () => {
+const ActionButtonPanel = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
@@ -190,9 +185,9 @@ const FloatingButtonGroup = () => {
                 </Button>
               </Tooltip>
             </ButtonGroup>
-            <Tooltip title="Add comment">
+            {/* <Tooltip title="Add comment">
               <CommentIconButton />
-            </Tooltip>
+            </Tooltip> */}
           </ButtonGroup>
         </div>
       </Box>
@@ -207,4 +202,4 @@ const floatingButtonStyle = {
   fontSize: "small",
 };
 
-export default FloatingButtonGroup;
+export default ActionButtonPanel;

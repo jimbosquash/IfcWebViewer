@@ -1,7 +1,7 @@
 import { Snackbar, Alert, useTheme, Box, Paper, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useComponentsContext } from "../../context/ComponentsContext";
-import FloatingButtonGroup from "./floatingButtonGroup";
+import ActionButtonPanel from "./actionButtonPanel/actionButtonPanel";
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import AssemblyBrowser from "./src/AssemblyBrowser";
@@ -14,6 +14,7 @@ import { FragmentsGroup } from "@thatopen/fragments";
 import IfcDropZone from "../../components/ifcDropZone";
 import { uploadFile } from "../../utilities/IfcFileLoader";
 import PropertyOverViewPanel from "./src/propertyOverViewPanel";
+import SideBox from "./src/sidePanel";
 
 const Overlay = () => {
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -22,7 +23,7 @@ const Overlay = () => {
   const [hasModel, setHasModel] = useState<boolean>(false);
   const viewManager = useRef<ModelViewManager>();
   const theme = useTheme();
-  const { isAssemblyBrowserVisible, isPropertiesPanelVisible } = useTopBarContext();
+  // const { isAssemblyBrowserVisible, isPropertiesPanelVisible } = useTopBarContext();
   const [hasLoadedModel, setHasLoadedModel] = useState<boolean>(false);
 
   useEffect(() => {
@@ -75,7 +76,7 @@ const Overlay = () => {
         pointerEvents: "none",
       }}
     >
-{/*       
+      
       {!hasModel && (
         <Box
           component="div"
@@ -107,28 +108,17 @@ const Overlay = () => {
             <IfcDropZone onFileUpload={handleFileUpload} />
           </Paper>
         </Box>
-      )} */}
+      )}
 
       <div style={{ pointerEvents: "auto" }}>
         <InfoPanel />
       </div>
 
       <div style={{ pointerEvents: "auto" }}>
-        <FloatingButtonGroup />
+        <ActionButtonPanel />
       </div>
 
-      {isAssemblyBrowserVisible && (
-        <div style={{ pointerEvents: "auto" }}>
-          <AssemblyBrowser />
-        </div>
-      )}
-
-      {isPropertiesPanelVisible && (
-        <div style={{ pointerEvents: "auto" }}>
-          <PropertyOverViewPanel />
-          {/* <FloatingDataGrid /> */}
-        </div>
-      )}
+      <SideBox/>
 
       <Snackbar
         open={snackbarOpen}
@@ -144,3 +134,12 @@ const Overlay = () => {
   );
 };
 export default Overlay;
+
+
+
+// {isPropertiesPanelVisible && (
+//   <div style={{ pointerEvents: "auto" }}>
+//     <PropertyOverViewPanel />
+//     {/* <FloatingDataGrid /> */}
+//   </div>
+// )}

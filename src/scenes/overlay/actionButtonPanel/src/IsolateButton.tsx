@@ -1,8 +1,8 @@
 import { Button, Tooltip, useTheme } from "@mui/material";
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
-import { useComponentsContext } from "../../../context/ComponentsContext";
-import { tokens } from "../../../theme";
+import { useComponentsContext } from "../../../../context/ComponentsContext";
+import { tokens } from "../../../../theme";
 import { Icon } from "@iconify/react";
 
 export const IsolateButton = () => {

@@ -4,12 +4,12 @@ import * as OBC from "@thatopen/components";
 
 import { Button, useTheme } from "@mui/material";
 import { useState, useEffect, useRef } from "react";
-import { useComponentsContext } from "../../../context/ComponentsContext";
-import { Comments } from "../../../bim-components/comments";
-import { Comment } from "../../../bim-components/comments/src/commet";
-import { ModelCache } from "../../../bim-components/modelCache";
+import { useComponentsContext } from "../../../../context/ComponentsContext";
+import { Comments } from "../../../../bim-components/comments";
+import { Comment } from "../../../../bim-components/comments/src/commet";
+import { ModelCache } from "../../../../bim-components/modelCache";
 import { Icon } from "@iconify/react";
-import { tokens } from "../../../theme";
+import { tokens } from "../../../../theme";
 
 export const CommentIconButton = () => {
   const theme = useTheme();

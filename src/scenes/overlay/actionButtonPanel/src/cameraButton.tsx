@@ -15,8 +15,8 @@ import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import CameraIndoor from "@mui/icons-material/CameraIndoor";
 import * as OBC from "@thatopen/components";
 
-import { useComponentsContext } from "../../../context/ComponentsContext";
-import { ModelCache } from "../../../bim-components/modelCache";
+import { useComponentsContext } from "../../../../context/ComponentsContext";
+import { ModelCache } from "../../../../bim-components/modelCache";
 import {
   BackHand,
   BorderAll,
@@ -27,8 +27,8 @@ import {
   HelpSharp,
   QuestionMark,
 } from "@mui/icons-material";
-import { tokens } from "../../../theme";
-import StyledToggleButtonGroup from "../../../components/StyledToggleButtonGroup";
+import { tokens } from "../../../../theme";
+import StyledToggleButtonGroup from "../../../../components/StyledToggleButtonGroup";
 import { Icon } from "@iconify/react";
 
 type projectionType = "Orthographic" | "Perspective";

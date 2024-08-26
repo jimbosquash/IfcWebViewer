@@ -11,15 +11,18 @@ import {
   TableRow,
   Tooltip,
   Checkbox,
+  useTheme,
 } from "@mui/material";
 import { MouseEvent, useEffect, useRef, useState } from "react";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import { SelectionGroup, KnowGroupType, BuildingElement, knownProperties } from "../../../utilities/types";
-import { BsBoxes } from "react-icons/bs";
-import { RiBox3Line } from "react-icons/ri";
+import { Icon } from "@iconify/react";
+import { tokens } from "../../../theme";
 
 const AssemblyInfoPanel = () => {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
   const viewManager = useRef<ModelViewManager>();
   const [selected, setSelected] = useState<SelectionGroup | null>();
@@ -52,12 +55,12 @@ const AssemblyInfoPanel = () => {
   const setupTable = (elements: BuildingElement[]) => {
     console.log("start setting up table", elements);
     let newRows: any[] = [];
-  
+
     elements.map((element, index) => {
       const row = createSimpleTableDataElement(element, index);
       newRows.push(row);
     });
-  
+
     // Group rows by their matching product code
     const groupedRows = newRows.reduce((acc, row) => {
       const productCode = row.productCode;
@@ -68,10 +71,10 @@ const AssemblyInfoPanel = () => {
       }
       return acc;
     }, {} as { [key: string]: any });
-  
+
     // Convert the grouped object back to an array
     const finalRows = Object.values(groupedRows);
-  
+
     console.log("rows", finalRows);
     setRows(finalRows);
   };
@@ -94,11 +97,10 @@ const AssemblyInfoPanel = () => {
   };
 
   const onSelectChanged = (selectedIds: readonly number[]) => {
-    if(!selected?.elements || !selectedIds) return;
-    const rowsSelected = selectedIds.map((id) => rows.find(row => row.key === id))
-    console.log("Selected Changed", rowsSelected)
-
-  }
+    if (!selected?.elements || !selectedIds) return;
+    const rowsSelected = selectedIds.map((id) => rows.find((row) => row.key === id));
+    console.log("Selected Changed", rowsSelected);
+  };
 
   return (
     <>
@@ -110,31 +112,34 @@ const AssemblyInfoPanel = () => {
         spacing={1}
         sx={{ height: "100%", width: "100%" }}
       >
-        <Grid item xs={1} sx={{ bgcolor: "primary.main", height: "100%",width:"100%", p: 0 }}>
-        <Box
-        component={"div"}
-        sx={{
-          bgcolor: "primary.main",
-          height: "100%",
-          p: 2,
-          display: "flex", // Flex container
-          flexDirection: "row", // Horizontal layout within this box
-          alignItems: "center", // Center align items vertically
-          width: "100%",
-        }}
-      >            <Box component={"div"} sx={{ mr: 2 }}>
-              {selected?.groupType === KnowGroupType.Assembly ? <RiBox3Line size={24} /> : <BsBoxes size={24} />}
+        <Grid item xs={1} sx={{ height: "100%", width: "100%", p: 0 }}>
+          <Box
+            component={"div"}
+            sx={{
+              p: 2,
+              display: "flex", // Flex container
+              flexDirection: "row", // Horizontal layout within this box
+              alignItems: "center", // Center align items vertically
+              width: "100%",
+            }}
+          >
+            {" "}
+            <Box component={"div"} sx={{ mr: 2 }}>
+              <Icon
+                color={colors.grey[400]}
+                icon={selected?.groupType === KnowGroupType.Assembly ? "system-uicons:box" : "system-uicons:boxes"}
+              />
             </Box>
-            <Typography>{!selected ? "Assembly Name" : selected.groupName}</Typography>
+            <Typography variant="h3">{!selected ? "Assembly Name" : selected.groupName}</Typography>
           </Box>
         </Grid>
         <Grid item xs={3}>
-          <Box component={"div"} sx={{ bgcolor: "primary.main", height: "100%", p: 2 }}>
+          <Box component={"div"} sx={{ height: "100%", p: 2 }}>
             Summary data and status of assembly
           </Box>
         </Grid>
-        <Grid item xs={5} >
-          <Box component={"div"} sx={{ bgcolor: "primary.main",width:"100%", height: "100%", p: 0 }}>
+        <Grid item xs={5}>
+          <Box component={"div"} sx={{  width: "100%", height: "100%", p: 0 }}>
             <BasicDataTable onSelectChanged={onSelectChanged} columns={columns} data={rows} />
           </Box>
         </Grid>
@@ -149,10 +154,10 @@ interface dataTableProps {
   onSelectChanged: (selectedIds: readonly number[]) => void;
 }
 
-const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChanged}) => {
+const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChanged }) => {
   const [selected, setSelected] = useState<readonly number[]>([]);
 
-//   console.log("table new data", data);
+  //   console.log("table new data", data);
   function handleClick(event: MouseEvent<unknown>, id: any): void {
     const selectedIndex = selected.indexOf(id);
     let newSelected: readonly number[] = [];
@@ -167,15 +172,14 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
       newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
     }
     setSelected(newSelected);
-    onSelectChanged(newSelected)
-
+    onSelectChanged(newSelected);
   }
 
   const isSelected = (id: number) => selected.indexOf(id) !== -1;
 
   return (
     <TableContainer component={Paper}>
-      <Table stickyHeader sx={{ width: "100%"}} size={"small"} aria-label="simple table">
+      <Table stickyHeader sx={{ width: "100%" }} size={"small"} aria-label="simple table">
         <TableHead>
           <TableRow>
             {columns.map((column) => (
@@ -222,10 +226,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
                       {row.material}
                     </TableCell>
                     <TableCell align="right">{row.productCode}</TableCell>
-                    <TableCell
-                      align="left"
-                      sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis"}}
-                    >
+                    <TableCell align="left" sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
                       {row.name}
                     </TableCell>
                   </TableRow>
@@ -239,7 +240,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
 };
 
 interface Column {
-  id: "select"| "Quantity" |"name" | "code" | "Material";
+  id: "select" | "Quantity" | "name" | "code" | "Material";
   label: string;
   minWidth?: number;
   maxWidth?: number;
@@ -248,16 +249,16 @@ interface Column {
 }
 
 const columns: Column[] = [
-    { id: "select", label: "Select", minWidth: 20 },
-    { id: "Quantity", label: "Qty", minWidth: 20 },
-    {
+  { id: "select", label: "Select", minWidth: 20 },
+  { id: "Quantity", label: "Qty", minWidth: 20 },
+  {
     id: "Material",
     label: "Material",
     minWidth: 20,
     align: "right",
   },
   { id: "code", label: "Product\u00a0Code", minWidth: 125 },
-  { id: "name", label: "Name", minWidth: 100, maxWidth:120 },
+  { id: "name", label: "Name", minWidth: 100, maxWidth: 120 },
 ];
 
 export default AssemblyInfoPanel;

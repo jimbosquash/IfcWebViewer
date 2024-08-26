@@ -4,11 +4,11 @@ import { useState } from "react";
 import { FaEye } from "react-icons/fa";
 import { PiSelectionBackgroundBold } from "react-icons/pi";
 
-import StyledToggleButtonGroup from "../../../components/StyledToggleButtonGroup";
-import { useComponentsContext } from "../../../context/ComponentsContext";
-import { tokens } from "../../../theme";
-import { ModelViewManager } from "../../../bim-components/modelViewer";
-import { VisibilityMode } from "../../../utilities/types";
+import StyledToggleButtonGroup from "../../../../components/StyledToggleButtonGroup";
+import { useComponentsContext } from "../../../../context/ComponentsContext";
+import { tokens } from "../../../../theme";
+import { ModelViewManager } from "../../../../bim-components/modelViewer";
+import { VisibilityMode } from "../../../../utilities/types";
 
 export const VisibilityPropertiesButton = () => {
   const theme = useTheme();
