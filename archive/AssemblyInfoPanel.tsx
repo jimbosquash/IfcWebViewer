@@ -14,11 +14,11 @@ import {
   useTheme,
 } from "@mui/material";
 import { MouseEvent, useEffect, useRef, useState } from "react";
-import { ModelViewManager } from "../../../bim-components/modelViewer";
-import { useComponentsContext } from "../../../context/ComponentsContext";
-import { SelectionGroup, KnowGroupType, BuildingElement, knownProperties } from "../../../utilities/types";
+import { ModelViewManager } from "../src/bim-components/modelViewer";
+import { useComponentsContext } from "../src/context/ComponentsContext";
+import { SelectionGroup, KnowGroupType, BuildingElement, knownProperties } from "../src/utilities/types";
 import { Icon } from "@iconify/react";
-import { tokens } from "../../../theme";
+import { tokens } from "../src/theme";
 
 const AssemblyInfoPanel = () => {
   const theme = useTheme();

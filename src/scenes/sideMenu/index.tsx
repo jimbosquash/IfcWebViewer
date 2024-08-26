@@ -1,6 +1,6 @@
 import { Typography } from "@mui/material";
 import { SidePanelType } from "../../context/TopBarContext";
-import { BimSettings } from "./src/BimSettings";
+import { BimSettings } from "../../components/BimSettings";
 interface sideBarProps {
   type: SidePanelType;
 }

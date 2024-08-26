@@ -15,7 +15,6 @@ const AssemblyBrowser = () => {
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
   const [groups, setGroups] = useState<TreeNode<BuildingElement>[]>();
-  const [isPanelVisible, setPanelVisibility] = useState<boolean>(false);
   const [stationsVisible, setStationsVisible] = useState<boolean>(true);
 
   useEffect(() => {
@@ -42,8 +41,7 @@ const AssemblyBrowser = () => {
       // make sure groups are of same type
       console.log("task over view: groups:", groups)
       setGroups(Array.from(groups.values()));
-      setPanelVisibility(true);
-    } else setPanelVisibility(false);
+    }
   };
 
 
@@ -52,7 +50,7 @@ const AssemblyBrowser = () => {
     // boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
     // border: '1px solid #ccc',
     padding: "5px",
-    width: "240px",
+    // width: "240px",
     margin: "10px",
     borderRadius: "8px",
     cursor: "grab",
@@ -60,22 +58,19 @@ const AssemblyBrowser = () => {
 
   return (
     <>
-      {isPanelVisible && (
         <div
-          className="draggable-panel"
           style={{
-            position: "absolute",
             top: "0%",
             left: 0,
             zIndex: 50,
-            padding: "15px",
-            width: 350,
+            padding: "0px",
+            width: "100%",
           }}
         >
           <Box
             component="div"
-            className="panel-header"
-            sx={{...HeaderBoxStyle, ...nonSelectableTextStyle}}
+            padding='5px'
+            sx={{...nonSelectableTextStyle}}
             display="flex"
             alignItems="center"
             justifyContent="space-between"
@@ -102,9 +97,9 @@ const AssemblyBrowser = () => {
             <Box
               component="div"
               m="10px"
-              maxHeight="70vh"
+              maxHeight="100%"
               overflow="auto"
-              // width="100%"
+              width="90%"
               // padding="0px"
               // maxWidth="80vw"
               // boxShadow= '0 0 10px rgba(0, 0, 0, 0.1)'
@@ -117,7 +112,6 @@ const AssemblyBrowser = () => {
             </Box>
           </div>
         </div>
-      )}
     </>
   );
 };

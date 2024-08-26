@@ -28,6 +28,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
+  "include": ["src", "archive/AssemblyInfoPanel.tsx", "archive/sideBar.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -1,4 +1,4 @@
-import { AppBar, Box, Button, IconButton, Toolbar, useTheme } from "@mui/material";
+import { AppBar, Box, Button, Icon, IconButton, Toolbar, Typography, useTheme } from "@mui/material";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import { useContext, useEffect } from "react";
@@ -6,7 +6,10 @@ import { ColorModeContext, tokens } from "../../theme";
 import { SidePanelType, useTopBarContext } from "../../context/TopBarContext";
 import { useComponentsContext } from "../../context/ComponentsContext";
 import { ModelCache } from "../../bim-components/modelCache";
+import { WidthFull } from "@mui/icons-material";
 
+
+const height = "38px"
 export const TopDisplay = () => {
   const colorMode = useContext(ColorModeContext);
   const theme = useTheme();
@@ -48,11 +51,11 @@ export const TopDisplay = () => {
 
   return (
     <>
-      <AppBar position="static" sx={{ height: "45px" }}>
-        <Toolbar variant="dense" sx={{ minHeight: "45px", px: 2 }}>
-          <Box component={"div"} sx={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+      <AppBar position="static" sx={{ height: {height}, borderBottom: `1px solid ${colors.primary[900]}` }}>
+        <Toolbar variant="dense" sx={{ minHeight: {height}, px: 2 }}>
+          <Box component={"div"} sx={{ display: "flex", justifyContent: "space-between",alignContent:'center', width: "100%" }}>
             {/* left setting panel options */}
-            <Box component="div">
+            {/* <Box component="div">
               <Button
                 onClick={() => toggleSidePanel(SidePanelType.SETTINGS)}
                 color="inherit"
@@ -75,12 +78,37 @@ export const TopDisplay = () => {
               >
                 Properties
               </Button>
-            </Box>
+            </Box> */}
 
             {/* center content */}
+
+            {/* <> */}
+            {/* <img src="/images/Sustainer-Beeldmerk-Beeldscherm-RGB-Kleur-Groot.png" alt="Logo" className="h-14"></img> */}
+            
+
+            <Box component='div'/>
+            <Box
+              component="img"
+              src="/images/Sustainer-Logo-Beeldscherm-RGB-Kleur-Klein.png"
+              alt="Logo"
+              sx={{
+                width: "100px",
+                height: "40px",
+                objectFit: "contain",
+              }}
+            />
+            {/* </Icon> */}
+{/* 
+            <Box component="div">
+              <Typography>iva.</Typography>
+            </Box> */}
             <Box component="div" sx={{ ...buttonStyle }}>
-              <IconButton onClick={colorMode.toggleColorMode}>
-                {theme.palette.mode === "dark" ? <DarkModeOutlinedIcon /> : <LightModeOutlinedIcon />}
+              <IconButton style={{height:18, width:18}} onClick={colorMode.toggleColorMode}>
+                {theme.palette.mode === "dark" ? (
+                  <DarkModeOutlinedIcon fontSize="small" />
+                ) : (
+                  <LightModeOutlinedIcon fontSize="small" />
+                )}
               </IconButton>
             </Box>
           </Box>

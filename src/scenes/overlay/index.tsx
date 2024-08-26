@@ -14,7 +14,8 @@ import { FragmentsGroup } from "@thatopen/fragments";
 import IfcDropZone from "../../components/ifcDropZone";
 import { uploadFile } from "../../utilities/IfcFileLoader";
 import PropertyOverViewPanel from "./src/propertyOverViewPanel";
-import SideBox from "./src/sidePanel";
+import LeftSideBox from "./leftSidePanel";
+import RightSidePanel from "./rightSidePanel";
 
 const Overlay = () => {
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -23,7 +24,7 @@ const Overlay = () => {
   const [hasModel, setHasModel] = useState<boolean>(false);
   const viewManager = useRef<ModelViewManager>();
   const theme = useTheme();
-  // const { isAssemblyBrowserVisible, isPropertiesPanelVisible } = useTopBarContext();
+  const { isPropertiesPanelVisible } = useTopBarContext();
   const [hasLoadedModel, setHasLoadedModel] = useState<boolean>(false);
 
   useEffect(() => {
@@ -76,11 +77,12 @@ const Overlay = () => {
         pointerEvents: "none",
       }}
     >
-      
+{/*       
       {!hasModel && (
         <Box
           component="div"
           sx={{
+            pointerEvents: "auto",
             position: "absolute",
             top: 0,
             left: 0,
@@ -108,7 +110,7 @@ const Overlay = () => {
             <IfcDropZone onFileUpload={handleFileUpload} />
           </Paper>
         </Box>
-      )}
+      )} */}
 
       <div style={{ pointerEvents: "auto" }}>
         <InfoPanel />
@@ -118,7 +120,16 @@ const Overlay = () => {
         <ActionButtonPanel />
       </div>
 
-      <SideBox/>
+      <LeftSideBox/>
+      <RightSidePanel/>
+
+      
+{isPropertiesPanelVisible && (
+  <div style={{ pointerEvents: "auto" }}>
+    <PropertyOverViewPanel />
+    {/* <FloatingDataGrid /> */}
+  </div>
+)}
 
       <Snackbar
         open={snackbarOpen}
@@ -137,9 +148,3 @@ export default Overlay;
 
 
 
-// {isPropertiesPanelVisible && (
-//   <div style={{ pointerEvents: "auto" }}>
-//     <PropertyOverViewPanel />
-//     {/* <FloatingDataGrid /> */}
-//   </div>
-// )}

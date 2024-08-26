@@ -1,8 +1,7 @@
 import { Box, useTheme, Paper, Tabs, Tab, TabProps } from "@mui/material";
 import { tokens } from "../../../theme";
 import { useState } from "react";
-import AssemblyInfoPanel from "./AssemblyInfoPanel";
-import { ResizableBox } from "react-resizable";
+import AssemblyInfoPanel from "../../../../archive/AssemblyInfoPanel";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -73,7 +72,7 @@ export const PropertyOverViewPanel = () => {
 
   return (
     <>
-      <ResizableBox
+      {/* <ResizableBox
         width={width}
         height={Infinity}
         minConstraints={[350, 0]}
@@ -93,7 +92,7 @@ export const PropertyOverViewPanel = () => {
         />} // Resize handle on the west (left) side
         onResize={handleResize}
         style={{ position: "fixed", top: "10%", bottom: "20%", right: 0, zIndex: 500 }}
-      >
+      > */}
         <Paper
           style={{
             height: "100%",
@@ -120,7 +119,7 @@ export const PropertyOverViewPanel = () => {
             </CustomTabPanel>
           </Box>
         </Paper>
-      </ResizableBox>
+      {/* </ResizableBox> */}
     </>
   );
 };

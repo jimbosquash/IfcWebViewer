@@ -2,8 +2,8 @@ import * as OBC from "@thatopen/components";
 import * as BUI from "@thatopen/ui";
 import * as CUI from "@thatopen/ui-obc";
 import { useEffect, useRef, useState } from "react";
-import { useComponentsContext } from "../../../context/ComponentsContext";
-import { UploadButton } from "../../../bim-components/src/uploadButton";
+import { useComponentsContext } from "../context/ComponentsContext";
+import { UploadButton } from "../bim-components/src/uploadButton";
 
 export const BimSettings = () => {
   const components = useComponentsContext();

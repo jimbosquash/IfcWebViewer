@@ -168,7 +168,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
         sx={{
           boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
           padding: isHovered ? "8px" : "10px",
-          width: isHovered ? "255px" : "250px",
+          width: isHovered ? "95%" : "92%",
           height: "35px",
           margin: "8px 0",
           borderRadius: "12px",
