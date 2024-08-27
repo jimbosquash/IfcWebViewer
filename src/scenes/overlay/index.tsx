@@ -77,7 +77,7 @@ const Overlay = () => {
         pointerEvents: "none",
       }}
     >
-{/*       
+      
       {!hasModel && (
         <Box
           component="div"
@@ -110,7 +110,7 @@ const Overlay = () => {
             <IfcDropZone onFileUpload={handleFileUpload} />
           </Paper>
         </Box>
-      )} */}
+      )}
 
       <div style={{ pointerEvents: "auto" }}>
         <InfoPanel />
