@@ -6,7 +6,10 @@ import { ModelViewManager } from "../modelViewer";
 
 export class ModelCache extends OBC.Component {
     private _enabled = false
-    // key = modelID or fragmentGroup.uuid, value is ifc model
+    /**
+     * used in the case of multiple models open.
+     * key = modelID or fragmentGroup.uuid, value is ifc model
+     */
     private _models: Map<string, FRAGS.FragmentsGroup> = new Map<string, FRAGS.FragmentsGroup>;
     static uuid = "005d1863-99d7-453d-96ef-c07b309758ce" as const;
     readonly onModelAdded = new OBC.Event<FRAGS.FragmentsGroup>()

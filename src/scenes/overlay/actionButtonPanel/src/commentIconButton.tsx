@@ -29,6 +29,7 @@ export const CommentIconButton = () => {
     };
   }, [components]);
 
+  
   useEffect(() => {
     if (!components || !world) return;
 

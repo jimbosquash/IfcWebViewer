@@ -4,10 +4,14 @@ import Tooltip from "@mui/material/Tooltip";
 import { useComponentsContext } from "../context/ComponentsContext";
 import { tokens } from "../theme";
 import * as THREE from "three";
+import * as BUI from "@thatopen/ui";
+import * as OBF from "@thatopen/components-front";
 import * as OBC from "@thatopen/components";
 import { ModelCache } from "../bim-components/modelCache";
 import * as REACT from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ModelTagger } from "../bim-components/modelTagger";
+import { Tag } from "../bim-components/modelTagger/src/Tag";
 
 interface DynamicButtonProp {
   variant: "floating" | "panel";
@@ -18,121 +22,160 @@ export const ShowTagsButton: REACT.FC<DynamicButtonProp> = ({ variant }) => {
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
   const [enabled, setEnabled] = useState<boolean>(false);
+  const modelCache = useRef<ModelCache>();
+  const [world, setWorld] = useState<OBC.World>();
 
 
 
-  const setCamView = async () => {
-    const cache = components?.get(ModelCache);
-    if (!cache?.world) return;
-
-    let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
-    //cam.projection.set("Orthographic");
-    //cam.set("Plan" as OBC.NavModeID);
-
-    const bbox = new THREE.Box3().setFromObject(cache.world.scene.three);
-    const center = bbox.getCenter(new THREE.Vector3());
-    const size = bbox.getSize(new THREE.Vector3());
-
-    // Calculate the larger of width and depth for optimal framing
-    const maxSize = Math.max(size.x, size.z);
-
-    // Set camera position
-    const cameraHeight = maxSize * 5; // Ensure camera is high enough
-
-    // Calculate the distance the camera should be from the center of the bounding box
-    const maxDim = Math.max(size.x, size.y, size.z);
-    //const fov = cam.three.fov * (Math.PI / 180); // convert vertical fov to radians
-
-    let cameraDistance = maxDim; /// (2 * Math.tan(fov / 2));
-
-    // Add some padding to the distance
-    cameraDistance *= 1.2;
-
-    // Set camera target to look at the center
-    cam.controls.camera.up.set(0, 1, 0);
-    // cam.controls.camera.up.set(size.x > size.z ? 0 : 1, 1, 0);
-
-    const calc = cameraDistance / Math.sqrt(2);
-    await cam.controls.setLookAt(
-      center.x + calc,
-      center.y + calc,
-      center.z + calc,
-      center.x,
-      center.y,
-      center.z,
-      false
-    );
-    // console.log("cam target center:", center.x, center.y, center.z);
-
-    zoomAll;
-  };
-
-  const zoomAll = () => {
+  // add listeners for changing world
+  useEffect(() => {
     if (!components) return;
-    const cache = components.get(ModelCache);
-    if (!cache.world) return;
 
-    setTimeout(async () => {
-      if (!cache.world?.meshes || cache.world.meshes.size === 0) return;
-      let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
-      await cam.fit(cache.world?.meshes, 0.5);
-    }, 50);
+    modelCache.current = components.get(ModelCache);
+    modelCache.current.onWorldSet.add((data) => setWorld(data));
+    return () => {
+      modelCache?.current?.onWorldSet.remove((data) => setWorld(data));
+    };
+  }, [components]);
+
+
+  // set up model tagger
+  useEffect(() => {
+    if (!components || !world) return;
+
+    const tagger = components.get(ModelTagger);
+    tagger.world = world;
+    tagger.enabled = enabled;
+
+    tagger.onTagAdded.add((tag) => {
+      if (!tag.position || !world) return;
+
+      const tagBubble = createTagBubble(tag);
+
+      const commentMark = new OBF.Mark(world, tagBubble);
+      commentMark.three.position.copy(tag.position);
+    });
+  }, [world]);
+
+  const createTagBubble = (comment: Tag) => {
+
+    const commentBubble = BUI.Component.create(() => {
+      const commentsTable = document.createElement("bim-table");
+      console.log("creating comment", commentsTable);
+      commentsTable.headersHidden = true;
+      commentsTable.expanded = true;
+
+      const setTableData = () => {
+        const groupData: BUI.TableGroupData = {
+          data: { Comment: comment.text },
+        };
+
+        commentsTable.data = [groupData];
+      };
+
+      setTableData();
+      const tagger = components.get(ModelTagger);
+      tagger.enabled = false;
+      setEnabled(false);
+      return BUI.html`
+      <div>
+        <bim-panel style="min-width: 0; max-width: 20rem; max-height: 20rem; border-radius: 1rem;">
+          <bim-panel-section icon="material-symbols:comment" collapsed>
+            ${commentsTable}
+            <bim-button label="Add reply"></bim-button>
+          </bim-panel-section>
+        </bim-panel> 
+      </div>
+      `;
+    });
+
+    return commentBubble;
+  }
+
+  
+  const toggleComments = () => {
+    // go to components and disable
+    if (!components) return;
+
+    const tagger = components.get(ModelTagger);
+    tagger.enabled = !enabled;
+    setEnabled(!enabled);
   };
+
+
 
   const toggleTagDisplay = () => {
-    if(enabled)
-    {
-        setEnabled(false);
-        clearTags();
-    } else  {
-        setEnabled(true);
-        setupTags();
+    const highlighter = components.get(OBF.Highlighter);
+    if (enabled) {
+
+      setEnabled(false);
+      highlighter.onAfterUpdate.remove((data) => tagHighlighted(data));
+      clearTags();
+    } else {
+      setEnabled(true);
+      highlighter.onAfterUpdate.add((data) => tagHighlighted(data));
+      highlighter.onBeforeUpdate.add(() => console.log("highlightUpdate"));
+      setupTags();
     }
-  }
+    console.log('highlight state', enabled);
+
+  };
 
   const clearTags = () => {
     throw new Error("Function not implemented.");
-}
+  };
 
-const setupTags = () => {
+  const setupTagsForHover = () => {
+    if (!components) return;
 
-    if(!components) return;
+    const highlighter = components.get(OBF.Highlighter);
 
-    const fragments = components.get(OBC.FragmentsManager)
-    // get all visible elements in the scene
+    highlighter.onAfterUpdate.add((data) => tagHighlighted(data));
+  };
 
-    fragments.groups.forEach(model => {
-        console.log("children",model.children)
+  const tagHighlighted = (highlighter: OBF.Highlighter) => {
+    console.log('highlight', highlighter.selection);
+  };
 
-        // go through all children and get items that are not hidden
+  const setupTags = () => {
+    if (!components) return;
 
+    const fragments = components.get(OBC.FragmentsManager);
+    // get all visible elements in lthe scene
 
-        // const fragments = model.getFragmentMap();
-        // const elementsForModel = elementsByModelId.get(model.uuid);
-        // if (elementsForModel) {
-        //     const allFragments = GetFragmentsFromExpressIds(elementsForModel.map(element => element.expressID), fragments, model);
-        //     if (visibility === VisibilityState.Visible) {
-        //         allFragments.forEach((ids, frag) => frag.setVisibility(true, ids));
-        //         // allFragments.forEach((ids, frag) => frag.resetColor(ids));
-        //     }
-        //     else {
-        //         allFragments.forEach((ids, frag) => frag.setVisibility(false, ids));
-        //         // allFragments.forEach((ids, frag) => frag.setColor(transWhite, ids));
-        //     }
-        // }
+    fragments.groups.forEach((model) => {
+      console.log("children", model);
+      // go through all children and get items that are not hidden
+
+      model.children.forEach(child => {
+        // each child is an instance mesh or a type mesh.
+        // the children will have references to its instances and visibility
+        child.visible
+      })
+
+      // const fragments = model.getFragmentMap();
+      // const elementsForModel = elementsByModelId.get(model.uuid);
+      // if (elementsForModel) {
+      //     const allFragments = GetFragmentsFromExpressIds(elementsForModel.map(element => element.expressID), fragments, model);
+      //     if (visibility === VisibilityState.Visible) {
+      //         allFragments.forEach((ids, frag) => frag.setVisibility(true, ids));
+      //         // allFragments.forEach((ids, frag) => frag.resetColor(ids));
+      //     }
+      //     else {
+      //         allFragments.forEach((ids, frag) => frag.setVisibility(false, ids));
+      //         // allFragments.forEach((ids, frag) => frag.setColor(transWhite, ids));
+      //     }
+      // }
     });
-
-
-
-}
+  };
 
   return (
     <>
-      <Tooltip title="Orthogonal View">
+      <Tooltip title="Tag selected">
         {variant === "panel" ? (
           <Button
             sx={{ backgroundColor: "transparent" }}
-            onClick={() => toggleTagDisplay()}
+            onClick={() => toggleComments()}
             style={{ color: colors.grey[400], border: "0" }}
             //   variant={open ? "contained" : "outlined"}
           >
@@ -140,7 +183,7 @@ const setupTags = () => {
           </Button>
         ) : (
           <IconButton
-            onClick={() => toggleTagDisplay()}
+            onClick={() => toggleComments()}
             style={{ color: colors.grey[400], border: "0" }}
             //   variant={open ? "contained" : "outlined"}
           >
@@ -153,5 +196,3 @@ const setupTags = () => {
 };
 
 export default ShowTagsButton;
-
-

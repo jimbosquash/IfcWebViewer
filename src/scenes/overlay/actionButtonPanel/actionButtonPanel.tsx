@@ -125,6 +125,7 @@ const ActionButtonPanel = () => {
       <Box component={"div"}>
         <div
           style={{
+            pointerEvents: "auto",
             position: "fixed",
             bottom: 50,
             left: "50%",

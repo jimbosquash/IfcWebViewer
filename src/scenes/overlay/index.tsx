@@ -4,16 +4,12 @@ import { useComponentsContext } from "../../context/ComponentsContext";
 import ActionButtonPanel from "./actionButtonPanel/actionButtonPanel";
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
-import AssemblyBrowser from "./src/AssemblyBrowser";
-import FloatingDataGrid from "./src/draggabeDataGrid";
 import { ModelViewManager } from "../../bim-components/modelViewer";
 import { InfoPanel } from "./src/InfoPanel";
 import { useTopBarContext } from "../../context/TopBarContext";
 import { TaskManager } from "../../bim-components/taskManager";
-import { FragmentsGroup } from "@thatopen/fragments";
 import IfcDropZone from "../../components/ifcDropZone";
 import { uploadFile } from "../../utilities/IfcFileLoader";
-import PropertyOverViewPanel from "./src/propertyOverViewPanel";
 import LeftSideBox from "./leftSidePanel";
 import RightSidePanel from "./rightSidePanel";
 
@@ -112,32 +108,20 @@ const Overlay = () => {
         </Box>
       )}
 
-      <div style={{ pointerEvents: "auto" }}>
         <InfoPanel />
-      </div>
-
-      <div style={{ pointerEvents: "auto" }}>
         <ActionButtonPanel />
-      </div>
 
       <LeftSideBox/>
       <RightSidePanel/>
 
-      
-{isPropertiesPanelVisible && (
-  <div style={{ pointerEvents: "auto" }}>
-    <PropertyOverViewPanel />
-    {/* <FloatingDataGrid /> */}
-  </div>
-)}
-
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={5000}
+        
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
-        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: "100%" }}>
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: "100%", zIndex:'1200' }}>
           {fileName} loaded successfully!
         </Alert>
       </Snackbar>
@@ -145,6 +129,14 @@ const Overlay = () => {
   );
 };
 export default Overlay;
+
+
+// {isPropertiesPanelVisible && (
+//   <div style={{ pointerEvents: "auto" }}>
+//     <PropertyOverViewPanel />
+//     {/* <FloatingDataGrid /> */}
+//   </div>
+// )}
 
 
 

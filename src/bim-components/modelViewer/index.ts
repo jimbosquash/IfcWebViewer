@@ -78,7 +78,7 @@ export class ModelViewManager extends OBC.Component {
    * Sets up Tree strucutre based on building elements properties and ignortes the ifc file structure
    * 
    */
-      setUpGroups = (buildingElements: BuildingElement[] | undefined, groupVisibility?: Map<string, VisibilityState>): void => {
+    setUpGroups = (buildingElements: BuildingElement[] | undefined, groupVisibility?: Map<string, VisibilityState>): void => {
         if (!buildingElements) {
             this.onTreeChanged.trigger(undefined);
             return;
@@ -293,73 +293,6 @@ export class ModelViewManager extends OBC.Component {
             }
         });
     }
-
-    // private setMeshGhost = (fragment: FRAGS.Fragment, ids: number[]): void => {
-    //     if (!fragment || !ids) {
-    //         console.warn('Invalid model or model has no children');
-    //         return;
-    //     }
-
-    //     for (const itemID of ids) {
-    //         if (!fragment.ids.has(itemID)) {
-    //             continue;
-    //         }
-    //         const instances = fragment.itemToInstances.get(itemID);
-    //         if (!instances) {
-    //             throw new Error("Instances not found!");
-    //         }
-
-
-    //         for (const instance of new Set(instances)) {
-    //             if (!originalsExist) {
-    //                 const originalColor = new THREE.Color();
-    //                 this.mesh.getColorAt(instance, originalColor);
-    //                 originals.set(instance, originalColor);
-    //             }
-
-    //             fragment.mesh.setColorAt(instance, color);
-    //             fragment.mesh.cust
-
-    //             if (override) {
-    //                 originals.set(instance, color);
-    //             }
-    //         }
-    //     }
-
-
-    //     try {
-    //         for (let i = 0; i < model.children.length; i++) {
-    //             const child = model.children[i];
-
-    //             if (child instanceof THREE.InstancedMesh) {
-    //                 if (child.instanceColor !== null) {
-    //                     const oldColor = child.instanceColor.array;
-
-    //                     if (oldColor.length < 3) {
-    //                         console.warn(`Invalid color data for child ${i}`);
-    //                         continue;
-    //                     }
-    //                     // console.log("material type:",child.material);
-    //                     let mat = child.material as THREE.MeshLambertMaterial;
-    //                     mat.side = THREE.DoubleSide;
-
-    //                     // const material = new THREE.MeshStandardMaterial({
-    //                     //   color: new THREE.Color(oldColor[0], oldColor[1], oldColor[2]),
-    //                     //   side: THREE.DoubleSide
-    //                     // });
-
-    //                     // child.material = material;
-    //                 } else {
-    //                     console.warn(`Child ${i} has no instance color`);
-    //                 }
-    //             } else {
-    //                 console.log(`Child ${i} is not an InstancedMesh`);
-    //             }
-    //         }
-    //     } catch (error) {
-    //         console.error('Error in setMeshFaceDoubleSided:', error);
-    //     }
-    // };
 
     // if color = true color will be reset to original
     private SetColor(fragments: OBC.FragmentsManager, elements: BuildingElement[], color: boolean | THREE.Color = false): void {

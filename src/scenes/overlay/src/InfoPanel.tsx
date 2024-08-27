@@ -84,6 +84,7 @@ export const InfoPanel = () => {
   return (
     <> {isVisible && 
       <Box component="div"
+      style={{pointerEvents: "auto" }}
       
       sx={infoBoxStyle} 
       
