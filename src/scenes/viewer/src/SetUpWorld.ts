@@ -37,6 +37,7 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     viewCube.rightText = "Right";
     viewCube.size = 120;
     viewCube.camera = world.camera.three;
+    // todo when camera changes, between ortho and pers then change the view cubes cam too
     containerRef.append(viewCube);
 
     world.camera.controls.addEventListener("update", () => viewCube.updateOrientation());

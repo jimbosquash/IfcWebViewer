@@ -106,7 +106,6 @@ export const RightSidePanel: React.FC = () => {
         component="div"
         borderLeft="1px solid"
         position="absolute"
-        borderColor="grey"
         marginRight="52px"
         right={0}
         style={{
