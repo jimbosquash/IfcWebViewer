@@ -15,6 +15,8 @@ import { IsolateButton } from "./src/IsolateButton";
 import { Icon } from "@iconify/react";
 import { VisibilityPropertiesButton } from "./src/visibilityPropertiesButton";
 import { PlanViewButton } from "./src/planViewButton";
+import SetOrthogonalCamera from "../../../components/SetOrthogonalCamera";
+import ShowTagsButton from "../../../components/ShowTagsButton";
 
 interface floatingButtonProps {
   togglePropertyPanelVisibility: () => void;
@@ -169,6 +171,8 @@ const ActionButtonPanel = () => {
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
 
             <PlanViewButton />
+            <SetOrthogonalCamera variant="panel" />
+            <ShowTagsButton variant="panel"/>
 
             {/* <Button onClick={() => {handleTaskCreate()}}>task</Button>
             <SaveButton data={newIfcFile} filename={"newTaskFile"} /> */}

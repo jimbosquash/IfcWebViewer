@@ -90,7 +90,7 @@ export const RightSidePanel: React.FC = () => {
             onClick={() =>
               handleIconClick(
                 <Box component="div" flexDirection="column" display="flex" gap="2">
-                  <Typography variant="h6">Properties</Typography>
+                  <Typography marginLeft='16px' variant="h6">Properties</Typography>
                   <PropertyOverViewPanel />
                 </Box>,
                 "overView"
@@ -118,8 +118,7 @@ export const RightSidePanel: React.FC = () => {
           zIndex: 1000,
           backgroundColor: colors.primary[100],
           borderColor: colors.primary[900],
-          padding: "16px",
-        //   backgroundColor: "lightgrey",
+          paddingTop:'16px'
         }}
       >
         {/* Resize Handle */}

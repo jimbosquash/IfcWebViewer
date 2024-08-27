@@ -130,12 +130,14 @@ const AssemblyInfoPanel = () => {
                 icon={selected?.groupType === KnowGroupType.Assembly ? "system-uicons:box" : "system-uicons:boxes"}
               />
             </Box>
-            <Typography variant="h3">{!selected ? "Assembly Name" : selected.groupName}</Typography>
+            <Typography variant="h6">{!selected ? "Assembly Name" : selected.groupName}</Typography>
           </Box>
         </Grid>
         <Grid item xs={3}>
           <Box component={"div"} sx={{ height: "100%", p: 2 }}>
-            Summary data and status of assembly
+          <Typography variant="body2">Summary data and status of assembly</Typography>
+
+            
           </Box>
         </Grid>
         <Grid item xs={5}>
@@ -249,15 +251,16 @@ interface Column {
 }
 
 const columns: Column[] = [
-  { id: "select", label: "Select", minWidth: 20 },
-  { id: "Quantity", label: "Qty", minWidth: 20 },
+  { id: "select", label: "Select", minWidth: 20, maxWidth: 20 },
+  { id: "Quantity", label: "Qty", minWidth: 10,maxWidth: 20 },
   {
     id: "Material",
     label: "Material",
     minWidth: 20,
     align: "right",
+    maxWidth: 20
   },
-  { id: "code", label: "Product\u00a0Code", minWidth: 125 },
+  { id: "code", label: "Product\u00a0Code", minWidth: 125, maxWidth: 100 },
   { id: "name", label: "Name", minWidth: 100, maxWidth: 120 },
 ];
 
