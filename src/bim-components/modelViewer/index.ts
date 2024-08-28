@@ -16,16 +16,22 @@ export class ModelViewManager extends OBC.Component {
     private _isSetup = false;
     static uuid = "0f5e514e-5c1c-4097-a9cc-6620c2e28378" as const;
 
-    // Tree is a data structure we create similar to the file strucutre of an .ifc file though typicially we use element properties for robustness to determine groupings such as building steps and assembly
-    // you can create a different tree strucutre and use it in other scenarios 
+    /**
+     * Tree is a data structure we create similar to the file strucutre of an .ifc file though typicially we use element properties for robustness to determine groupings such as building steps and assembly
+     * you can create a different tree strucutre and use it in other scenarios 
+     */
     private _tree?: Tree<BuildingElement>;
 
-    // tree visibiliy is a map/dictionary of every node in a tree and stores the visibility state of eachnode. if a parent node is hidden this can be helpful to decide how to treat children nodes
-    // you can create other visibility maps to suit other purposes such as materaial grouping
+    /**
+     * tree visibiliy is a map/dictionary of every node in a tree and stores the visibility state of eachnode. if a parent node is hidden this can be helpful to decide how to treat children nodes
+     * you can create other visibility maps to suit other purposes such as materaial grouping
+     */
     private _treeVisibility?: Map<string, VisibilityState>;
 
-    // the selection group defines the group which is actively being used across the software and is typically a building step or station
-    // it helps us determine whats important to show the user and whats next and before this group when changing.
+    /**
+     * the selection group defines the group which is actively being used across the software and is typically a building step or station
+     * it helps us determine whats important to show the user and whats next and before this group when changing.
+     */
     private _selectedGroup?: SelectionGroup;
 
     readonly onTreeChanged = new OBC.Event<Tree<BuildingElement> | undefined>();

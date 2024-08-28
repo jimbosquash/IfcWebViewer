@@ -1,11 +1,14 @@
 
 import { numberInputClasses } from "@mui/base";
+import { ThreeDRotation } from "@mui/icons-material";
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
+import * as THREE from 'three'
 import { FragmentIdMap } from "@thatopen/fragments";
 import * as WEBIFC from "web-ifc";
 import { ModelCache } from "../bim-components/modelCache";
 import { BuildingElement } from "./types";
+import { Tag } from "../bim-components/modelTagger/src/Tag";
 
 // allows you to pass these idmaps into helpful functions with @thatopen
 export function GetFragmentIdMaps(elements: BuildingElement[], components: OBC.Components) {
@@ -37,6 +40,52 @@ export function GetFragmentIdMaps(elements: BuildingElement[], components: OBC.C
     return result;
 
 }
+
+/**
+ * search all input Model's fragments and check visibility through HiddenIds collection.
+ * @param models all ifc models to search from
+ * @returns a map of model id (uuid) to a set of expressIds
+ */
+export function GetAllVisibleExpressIDs(models: FRAGS.FragmentsGroup[]): Map<string, Set<number>> {
+    const allVisibleElements = new Map<string, Set<number>>();
+    models.forEach(model => {
+        const visibleElements = new Set<number>;
+        // get expressIDs of eleemnts that are visible by searching fragments
+        model.items.forEach(frag => {
+            [...frag.ids].filter(x => !frag.hiddenItems.has(x)).forEach(id => visibleElements.add(id));
+        })
+        allVisibleElements.set(model.uuid, visibleElements)
+    })
+    return allVisibleElements;
+}
+
+export function GetCenterPoints(models: FRAGS.FragmentsGroup[], expressIDMap: Map<string, Set<number>>, components: OBC.Components): Set<Tag> {
+
+    const tags = new Set<Tag>();
+    const bbox = components.get(OBC.BoundingBoxer);
+    bbox.reset();
+    expressIDMap.forEach((expressIDs, modelID) => {
+
+        const model = models.find(m => m.uuid === modelID);
+        if (!model) return;
+        // console.log("model transparency", model.geometryIDs)
+        [...expressIDs].forEach((id) => {         
+            const verts = model.getItemVertices(id)
+            // console.log("vertex 1st:", verts.at(0))
+            tags.add(new Tag(id.toString(),verts.at(0)))
+        })
+
+
+        // model.items.forEach(frag => {
+        //     // [...frag.ids].filter(x => !frag.hiddenItems.has(x)).forEach(id => visibleElements.add(id));
+        //     model.getItemVertices(frag)
+        // })
+        // allVisibleElements.set(model.uuid, visibleElements)
+    })
+    return tags;
+}
+
+
 /**
  * gets the expressID numbers for each fragment enabling you to get the specific instances of a Types representations
  * @param expressIds IDs of elements you wish to get
@@ -222,7 +271,7 @@ export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, com
                         modelID: loadedModel.uuid
                     };
                 }
-                if(!newElement) return;
+                if (!newElement) return;
 
                 const pSetName = elements[propertySetID];
                 // console.log("element ifc pset", pSetName)
@@ -246,7 +295,7 @@ export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, com
                     // if(propertyName && propertyName.toLowerCase === "name")
                     //     {newElement.name = propertyValue;}
                 }))
-                foundElements.set(relatingElement,newElement)
+                foundElements.set(relatingElement, newElement)
             }
         })
     }))

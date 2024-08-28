@@ -17,6 +17,8 @@ interface DynamicButtonProp {
   variant: "floating" | "panel";
 }
 
+// todo: add the listening for new geometry to tell marker component to updat its marker collection
+
 export const ShowTagsButton: REACT.FC<DynamicButtonProp> = ({ variant }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -52,6 +54,7 @@ export const ShowTagsButton: REACT.FC<DynamicButtonProp> = ({ variant }) => {
 
       const tagBubble = createTagBubble(tag);
 
+      
       const commentMark = new OBF.Mark(world, tagBubble);
       commentMark.three.position.copy(tag.position);
     });
@@ -99,6 +102,7 @@ export const ShowTagsButton: REACT.FC<DynamicButtonProp> = ({ variant }) => {
 
     const tagger = components.get(ModelTagger);
     tagger.enabled = !enabled;
+    tagger.visible = !enabled;
     setEnabled(!enabled);
   };
 

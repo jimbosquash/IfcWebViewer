@@ -20,8 +20,8 @@ export class ModelCache extends OBC.Component {
 
     private _buildingElements: BuildingElement[] | undefined;
 
-    models = () => {
-        return this._models.values}
+    models = (): FRAGS.FragmentsGroup[] => {
+        return Array.from(this._models.values())}
 
     getModel(modelId : string): FRAGS.FragmentsGroup | undefined {
         if(!modelId) return;
@@ -32,6 +32,19 @@ export class ModelCache extends OBC.Component {
 
     constructor(components: OBC.Components) {
         super(components);
+    }
+/**
+ * 
+ * @param expressID ifcLine number or expressID
+ * @param modelID The uuid of the ifc model also known as the fragmentGroup
+ * @returns 
+ */
+    getElementByExpressId(expressID: number, modelID: string): BuildingElement | undefined {
+
+        if(!expressID || !this._buildingElements) return;
+
+        const buildingElement = this._buildingElements.find(e => e.expressID === expressID && e.modelID === modelID)
+        return buildingElement;
     }
 
 
