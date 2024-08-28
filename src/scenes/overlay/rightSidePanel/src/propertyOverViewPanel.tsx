@@ -1,5 +1,5 @@
 import { Box, useTheme, Paper, Tabs, Tab, TabProps } from "@mui/material";
-import { tokens } from "../../../theme";
+import { tokens } from "../../../../theme";
 import { useState } from "react";
 import AssemblyInfoPanel from "./AssemblyInfoPanel";
 import ElementInfoPanel from "./ElementInfoPanel";

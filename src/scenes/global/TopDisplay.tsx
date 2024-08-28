@@ -1,12 +1,11 @@
-import { AppBar, Box, Button, Icon, IconButton, Toolbar, Typography, useTheme } from "@mui/material";
+import { AppBar, Box, IconButton, Toolbar, Typography, useTheme } from "@mui/material";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import { useContext, useEffect } from "react";
 import { ColorModeContext, tokens } from "../../theme";
-import { SidePanelType, useTopBarContext } from "../../context/TopBarContext";
+import { useTopBarContext } from "../../context/TopBarContext";
 import { useComponentsContext } from "../../context/ComponentsContext";
 import { ModelCache } from "../../bim-components/modelCache";
-import { WidthFull } from "@mui/icons-material";
 
 
 const height = "38px"
@@ -16,11 +15,6 @@ export const TopDisplay = () => {
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
   const {
-    toggleSidePanel,
-    isAssemblyBrowserVisible,
-    isSidePanelVisible,
-    isPropertiesPanelVisible,
-    togglePropertiesPanel,
     toggleAssemblyBrowserPanel,
   } = useTopBarContext();
 
@@ -85,7 +79,6 @@ export const TopDisplay = () => {
             {/* <> */}
             {/* <img src="/images/Sustainer-Beeldmerk-Beeldscherm-RGB-Kleur-Groot.png" alt="Logo" className="h-14"></img> */}
             
-
             <Box component='div'/>
             <Box
               component="img"
@@ -97,11 +90,6 @@ export const TopDisplay = () => {
                 objectFit: "contain",
               }}
             />
-            {/* </Icon> */}
-{/* 
-            <Box component="div">
-              <Typography>iva.</Typography>
-            </Box> */}
             <Box component="div" sx={{ ...buttonStyle }}>
               <IconButton style={{height:18, width:18}} onClick={colorMode.toggleColorMode}>
                 {theme.palette.mode === "dark" ? (

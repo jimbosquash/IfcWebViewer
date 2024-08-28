@@ -1,14 +1,14 @@
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
-import { tokens } from "../../../theme";
+import { tokens } from "../../../../theme";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
-import { ModelViewManager } from "../../../bim-components/modelViewer";
+import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import { useState, useEffect, useContext, useCallback, useRef } from "react";
-import { useComponentsContext } from "../../../context/ComponentsContext";
-import { BuildingElement, GroupingType, SelectionGroup, VisibilityState } from "../../../utilities/types";
+import { useComponentsContext } from "../../../../context/ComponentsContext";
+import { BuildingElement, GroupingType, SelectionGroup, VisibilityState } from "../../../../utilities/types";
 import { GroupPanelProps } from "./StationBox";
-import { TreeNode, TreeUtils } from "../../../utilities/Tree";
-import { zoomToBuildingElements } from "../../../utilities/BuildingElementUtilities";
+import { TreeNode, TreeUtils } from "../../../../utilities/Tree";
+import { zoomToBuildingElements } from "../../../../utilities/BuildingElementUtilities";
 import { RiBox3Line } from "react-icons/ri";
 
 export const BuildingStepBox: React.FC<GroupPanelProps> = ({ node }) => {

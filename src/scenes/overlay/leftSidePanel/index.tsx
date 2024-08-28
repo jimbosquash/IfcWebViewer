@@ -2,7 +2,7 @@ import { Box, IconButton, Tooltip, useTheme, Typography, Paper, styled } from "@
 import { Icon } from "@iconify/react";
 import { tokens } from "../../../theme";
 import { useEffect, useState } from "react";
-import AssemblyBrowser from "../src/AssemblyBrowser";
+import AssemblyBrowser from "./src/AssemblyBrowser";
 import { BimSettings } from "../../../components/BimSettings";
 
 const minWidth = 200;

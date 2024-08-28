@@ -1,14 +1,14 @@
 import { Box, useTheme, Typography, IconButton } from "@mui/material";
-import { tokens } from "../../../theme";
+import { tokens } from "../../../../theme";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { useContext, useEffect, useState } from "react";
 import StationBox from "./StationBox";
-import { useComponentsContext } from "../../../context/ComponentsContext";
-import { ModelViewManager } from "../../../bim-components/modelViewer";
-import { Tree, TreeNode } from "../../../utilities/Tree";
-import { BuildingElement } from "../../../utilities/types";
-import { nonSelectableTextStyle } from "../../../styles";
+import { useComponentsContext } from "../../../../context/ComponentsContext";
+import { ModelViewManager } from "../../../../bim-components/modelViewer";
+import { Tree, TreeNode } from "../../../../utilities/Tree";
+import { BuildingElement } from "../../../../utilities/types";
+import { nonSelectableTextStyle } from "../../../../styles";
 
 const AssemblyBrowser = () => {
   const theme = useTheme();

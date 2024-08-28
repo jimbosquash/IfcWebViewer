@@ -14,12 +14,12 @@ import {
     useTheme,
   } from "@mui/material";
   import { MouseEvent, useEffect, useRef, useState } from "react";
-  import { ModelViewManager } from "../../../bim-components/modelViewer";
-  import { useComponentsContext } from "../../../context/ComponentsContext";
-  import { SelectionGroup, KnowGroupType, BuildingElement, knownProperties } from "../../../utilities/types";
+  import { ModelViewManager } from "../../../../bim-components/modelViewer";
+  import { useComponentsContext } from "../../../../context/ComponentsContext";
+  import { SelectionGroup, KnowGroupType, BuildingElement, knownProperties } from "../../../../utilities/types";
   import { Icon } from "@iconify/react";
-  import { tokens } from "../../../theme";
-  import { select } from "../../../utilities/BuildingElementUtilities";
+  import { tokens } from "../../../../theme";
+  import { select } from "../../../../utilities/BuildingElementUtilities";
   
   const ElementInfoPanel = () => {
     const theme = useTheme();

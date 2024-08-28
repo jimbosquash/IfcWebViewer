@@ -1,15 +1,13 @@
-import { Box, IconButton, Tooltip, useTheme, Typography, Paper } from "@mui/material";
+import { Box, IconButton, Tooltip, useTheme, Typography } from "@mui/material";
 import { Icon } from "@iconify/react";
 import { tokens } from "../../../theme";
 import { useEffect, useState } from "react";
-import { ResizableBox } from "react-resizable";
-import PropertyOverViewPanel from "../src/propertyOverViewPanel";
+import PropertyOverViewPanel from "./src/propertyOverViewPanel";
 
 export const RightSidePanel: React.FC = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [panelOpen, setPanelOpen] = useState(false);
-  const [width, setWidth] = useState(350); // Initial width of the Paper
 
   const [panelContent, setPanelContent] = useState<{ content: JSX.Element | null; name: string }>({
     content: null,
