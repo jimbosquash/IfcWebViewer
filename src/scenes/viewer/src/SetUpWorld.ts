@@ -3,8 +3,7 @@ import * as OBF from "@thatopen/components-front"
 import * as THREE from 'three';
 import * as BUI from "@thatopen/ui";
 import * as CUI from "@thatopen/ui-obc";
-
-import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper';
+import { ViewportGizmo } from "three-viewport-gizmo";
 
 export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement | null | undefined, name: string): OBC.SimpleWorld<OBC.SimpleScene, OBC.OrthoPerspectiveCamera, OBF.PostproductionRenderer> | undefined {
   // return undefined;  
@@ -20,16 +19,62 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
 
     world.renderer = new OBF.PostproductionRenderer(components, containerRef)
     const { postproduction } = world.renderer;
+    // if(world.renderer.three instanceof THREE.WebGLRenderer)
+    // {
+    //   world.renderer.three.setAnimationLoop(animation);
+    // }
+
+    // function animation() {
+    //   //renderer.render(scene, camera);
+    //   if(!viewportGizmo.visible) 
+    //   return;
+    //   viewportGizmo.render();
+    //     console.log("animation")
+  
+  
+    //   // animateControlsCallBack?.();
+    // }
 
     world.camera = new OBC.OrthoPerspectiveCamera(components)
     world.camera.projection.set('Orthographic');
     world.camera.enabled = true;
     const light = new THREE.AmbientLight(0x424242, 30)
     world.scene.three.add(light);
-
     BUI.Manager.init();
     CUI.Manager.init();
     const viewCube = document.createElement("bim-view-cube");
+    // const controls = world.camera.controls;
+    // const options = {
+    //   container: containerRef, 
+    //   size:145,  
+    //   placement: "top-center"
+    // };
+    // const viewportGizmo = new ViewportGizmo(world.camera.three, world.renderer.three, options);
+
+    // listeners
+    // viewportGizmo.addEventListener("start", () => {
+    //   // Disable controls on change start
+    //   controls.enabled = false;
+    // });
+
+    // viewportGizmo.addEventListener("end", () => {
+    //   // Enable controls on change end
+    //   controls.enabled = true;
+    // });
+
+    // viewportGizmo.addEventListener("change", () => {
+    //   // Set the camera new position
+    //   controls.setPosition(...world.camera.three.position.toArray());
+    // });
+
+    // controls.addEventListener("update", () => {
+    //   // Update the the gizmo on controls update
+    //   console.log("controls changing",viewportGizmo)
+    //   // controls.getTarget(viewportGizmo.target);
+    //   viewportGizmo.update();
+    //   // viewportGizmo.render();
+    // });
+
     viewCube.frontText = "Front";
     viewCube.topText = "Top";
     viewCube.backText = "Back";
@@ -41,6 +86,7 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     containerRef.append(viewCube);
 
     world.camera.controls.addEventListener("update", () => viewCube.updateOrientation());
+    // world.camera.controls.addEventListener("update", () => viewportGizmo.update());
 
 
     // const worldGrid = components.get(OBC.Grids).create(world)
@@ -49,6 +95,7 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     // worldGrid.material.uniforms.uSize2.value = 8
 
     postproduction.enabled = true;
+    
     //postproduction.customEffects.excludedMeshes.push(worldGrid.three);
     postproduction.setPasses({ custom: true, ao: true, gamma: true })
     postproduction.customEffects.lineColor = 0x17191c
@@ -57,17 +104,16 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     if (!highlighter.isSetup) { highlighter.setup({ world }) }
     highlighter.zoomToSelection = true
     // highlighter.backupColor = new THREE.Color('#A0C3AF')
-    highlighter.onBeforeUpdate.add(()=> console.log('highlight'))
+    highlighter.onBeforeUpdate.add(() => console.log('highlight'))
     highlighter.onBeforeUpdate.trigger(highlighter);
     console.log("high light colors", highlighter.colors);
     highlighter.colors.set('hover', new THREE.Color('#3e4396'))
     const selectColor = highlighter.colors.get("select");
-    if(selectColor)
-      {
-        highlighter.add("ActiveGroupSelection",selectColor);
-        console.log("high light colors", highlighter.colors);
+    if (selectColor) {
+      highlighter.add("ActiveGroupSelection", selectColor);
+      console.log("high light colors", highlighter.colors);
 
-      }
+    }
     // highlighter.add("ActiveGroupSelection", new THREE.Color("#3e4396"));
 
     const resizeWorld = () => {

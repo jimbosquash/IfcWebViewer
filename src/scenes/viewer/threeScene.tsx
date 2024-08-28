@@ -6,6 +6,8 @@ import { useComponentsContext } from "../../context/ComponentsContext";
 import { SetUpWorld } from "./src/SetUpWorld";
 import Overlay from "../overlay";
 import { ModelCache } from "../../bim-components/modelCache";
+import { ViewportGizmo } from "three-viewport-gizmo";
+
 
 
 export const ThreeScene = () => {

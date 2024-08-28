@@ -41,6 +41,7 @@
     "react-resizable": "^3.0.5",
     "react-router-dom": "^6.22.3",
     "react-scripts": "^5.0.1",
+    "three-viewport-gizmo": "^0.1.5",
     "vercel": "^34.0.0",
     "web-ifc": "^0.0.55"
   },
