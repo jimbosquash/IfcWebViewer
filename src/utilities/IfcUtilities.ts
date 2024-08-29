@@ -74,13 +74,6 @@ export function GetCenterPoints(models: FRAGS.FragmentsGroup[], expressIDMap: Ma
             // console.log("vertex 1st:", verts.at(0))
             tags.add(new Tag(id.toString(),verts.at(0)))
         })
-
-
-        // model.items.forEach(frag => {
-        //     // [...frag.ids].filter(x => !frag.hiddenItems.has(x)).forEach(id => visibleElements.add(id));
-        //     model.getItemVertices(frag)
-        // })
-        // allVisibleElements.set(model.uuid, visibleElements)
     })
     return tags;
 }
@@ -243,14 +236,10 @@ export function getUniqueElementCount(elements: BuildingElement[]) {
 
 export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, components: OBC.Components | undefined) {
     if (!components) {
-        console.log('compoenets not set, getBuildingELements exiting')
+        console.log('components not set, getBuildingElements exiting')
         return [];
     }
     // this process attempting example https://github.com/ThatOpen/engine_components/blob/318f4dd9ebecb95e50759eb41f290df57c008fb3/packages/core/src/ifc/IfcRelationsIndexer/index.ts#L235
-    // const propsProcessor = components.get(OBC.FragmentsManager);
-    // const indexer = components.get(OBC.IfcRelationsIndexer);
-    // await indexer.process(loadedModel);
-    // console.log("indexer",indexer)
 
     const foundElements = new Map<number, BuildingElement>();// = Map<number,buildingElement[]>;
     const elements = loadedModel.getLocalProperties();
@@ -260,11 +249,14 @@ export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, com
             if (elements) {
                 const element = elements[relatingElement]
                 // console.log("element related", element)
+                const fragKey = Object.keys(loadedModel.getFragmentMap([element.expressID]))[0]
+
                 let newElement = foundElements.get(relatingElement);
                 if (!newElement) {
                     newElement = {
                         expressID: element.expressID,
                         GlobalID: element.GlobalId.value,
+                        FragmentID: fragKey,
                         type: element.type,
                         name: element.Name.value,
                         properties: [],
@@ -295,6 +287,8 @@ export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, com
                     // if(propertyName && propertyName.toLowerCase === "name")
                     //     {newElement.name = propertyValue;}
                 }))
+
+
                 foundElements.set(relatingElement, newElement)
             }
         })

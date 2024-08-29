@@ -1,5 +1,6 @@
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
+import { Fragment, FragmentIdMap } from "@thatopen/fragments";
 import { GetBuildingElements } from "../../utilities/IfcUtilities";
 import { BuildingElement } from "../../utilities/types";
 import { ModelViewManager } from "../modelViewer";
@@ -18,35 +19,105 @@ export class ModelCache extends OBC.Component {
     readonly onWorldSet = new OBC.Event<OBC.World>()
     private _world: OBC.World | null = null;
 
+    // todo: should this be Map<modelID: string, expressIDs :Set<number>>?
     private _buildingElements: BuildingElement[] | undefined;
 
     models = (): FRAGS.FragmentsGroup[] => {
-        return Array.from(this._models.values())}
+        return Array.from(this._models.values())
+    }
 
-    getModel(modelId : string): FRAGS.FragmentsGroup | undefined {
-        if(!modelId) return;
+    getModel(modelId: string): FRAGS.FragmentsGroup | undefined {
+        if (!modelId) return;
 
-        if(this._models.has(modelId))
+        if (this._models.has(modelId))
             return this._models.get(modelId);
     }
 
     constructor(components: OBC.Components) {
         super(components);
     }
-/**
- * 
- * @param expressID ifcLine number or expressID
- * @param modelID The uuid of the ifc model also known as the fragmentGroup
- * @returns 
- */
+    /**
+     * 
+     * @param expressID ifcLine number or expressID
+     * @param modelID The uuid of the ifc model also known as the fragmentGroup
+     * @returns 
+     */
     getElementByExpressId(expressID: number, modelID: string): BuildingElement | undefined {
 
-        if(!expressID || !this._buildingElements) return;
+        if (!expressID || !this._buildingElements) return;
 
         const buildingElement = this._buildingElements.find(e => e.expressID === expressID && e.modelID === modelID)
         return buildingElement;
     }
 
+    /**
+     * get elements by assuming idMap numbers are express ids. Using them by searching our building 
+     * elements collection for element with matching expressID
+     * @param fragmentIdMap 
+     * @returns 
+     */
+    getElementByFragmentIdMap(fragmentIdMap: FragmentIdMap): Set<BuildingElement> | undefined {
+        console.log('get elements by Id Map', fragmentIdMap, this._models)
+
+        if (!fragmentIdMap || !this._buildingElements) return;
+
+        const elements = new Set<BuildingElement>();
+        //get all the ids and get all 
+        Object.entries(fragmentIdMap).forEach((entry) => { 
+            const fragID = entry[0];
+            const expressIDs = entry[1];
+            expressIDs.forEach(id => {
+                const foundElement = this._buildingElements?.find(e => e.expressID === id && e.FragmentID === fragID);
+                if(foundElement)
+                    elements.add(foundElement)
+            });
+        })
+
+        return elements;
+
+
+
+
+
+
+  // Map each fragment to [id, fragment] pair
+        const fragmentMap = new Map(
+            this.models().flatMap(model => model.items)
+              .map(fragment => [fragment.id, fragment])
+          );
+
+
+
+        Object.entries(fragmentIdMap).forEach((entry) => {
+            const fragID = entry[0];
+            const expressIDs = entry[1];
+            const ids = [...expressIDs]
+            if(fragmentMap.has(fragID))
+            {
+                const frag = fragmentMap.get(fragID)
+                const test = frag?.itemToInstances;
+                const modelFragID = frag?.group?.uuid;
+                if(!modelFragID) return;
+                const foundElement = this.getElementByExpressId(ids[0],modelFragID);
+                console.log('get selected', foundElement)
+            }
+
+
+
+
+            // this.models().reduce((acc, { fragmentID: string, fragment: FragmentsGroup }) => {
+            //     if (!acc.hasEventListener(fr))
+            // })
+
+
+
+        })
+
+        this.models()
+
+        // const buildingElement = this._buildingElements.find(e => e.expressID === expressID && e.modelID === modelID)
+        // return buildingElement;
+    }
 
     async delete(groupID: string): Promise<boolean> {
         this._models.delete(groupID)

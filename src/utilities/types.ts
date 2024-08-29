@@ -29,11 +29,27 @@ export interface SelectionGroup {
     elements: BuildingElement[];
   }
 
+  /**
+   * A container for handeling Sustainer elements and properties 
+   */
   export interface BuildingElement {
-    expressID: number;
+    /**
+     * the number of the line in the .ifc file
+     */
+    expressID: number; 
     GlobalID: string;
+    /**
+     * The Id of the fragment which holds the reference to the InstanceMesh of this object
+     */
+    FragmentID: string;
+    /**
+     * The type enumerated of all IFC types. use the @thatOpen ... to get text version
+     */
     type: number;
     name: string;
+    /**
+     * The Id of the FragmentGroup which represents the ifc model file
+     */
     modelID: string; // the fraggroup id
     properties: { name: string, value: string, pSet: string}[]
   }

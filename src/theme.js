@@ -69,8 +69,8 @@ export const tokens = (mode) => ({
     : {
         grey: {
           100: "#141414", // general text
-          200: "#525252",//"#292929", // used for button icons
-          300: "#3d3d3d",
+          200: "#3d3d3d",//"#292929", // used for button icons
+          300: "#525252",
           400: "#525252",
           500: "#666666",
           600: "#858585",

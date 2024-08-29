@@ -4,6 +4,7 @@ import { tokens } from "../../../theme";
 import { useEffect, useState } from "react";
 import AssemblyBrowser from "./src/AssemblyBrowser";
 import { BimSettings } from "../../../components/BimSettings";
+import ColorPaletteModal from "../../../components/ColorPalleteModal";
 
 const minWidth = 200;
 
@@ -84,16 +85,16 @@ export const LeftSideBox: React.FC = () => {
         borderColor="yellow"
         borderRight="1px solid"
       >
-<Box
-              component="img"
-              src="/images/Sustainer-Beeldmerk-Beeldscherm-RGB-Kleur-Klein.png"
-              alt="Logo"
-              sx={{
-                width: "42px",
-                height: "42px",
-                objectFit: "contain",
-              }}
-            />
+        <Box
+          component="img"
+          src="/images/Sustainer-Beeldmerk-Beeldscherm-RGB-Kleur-Klein.png"
+          alt="Logo"
+          sx={{
+            width: "42px",
+            height: "42px",
+            objectFit: "contain",
+          }}
+        />
 
         <Tooltip title="Project overview" placement="right" arrow>
           <IconButton
@@ -119,16 +120,33 @@ export const LeftSideBox: React.FC = () => {
         </Tooltip>
         <Tooltip title="Settings" placement="right" arrow>
           <IconButton
-            onClick={() => handleIconClick(<>
-            <Typography variant="h6">Settings Content</Typography>
-            <BimSettings />
-            </>, "settings")}
+            onClick={() =>
+              handleIconClick(
+                <>
+                  <Typography variant="h6">Settings Content</Typography>
+                  <BimSettings />
+                </>,
+                "settings"
+              )
+            }
           >
             <Icon icon="material-symbols:settings-outline" />
           </IconButton>
         </Tooltip>
 
-        
+        <IconButton
+          onClick={() =>
+            handleIconClick(
+              <>
+                <Typography variant="h6">Color Pallete</Typography>
+                <ColorPaletteModal open={true} />
+              </>,
+              "settings"
+            )
+          }
+        >
+          <Icon icon="mdi:color" />{" "}
+        </IconButton>
       </Box>
       {/* Sliding Panel */}
       <Box
@@ -170,8 +188,6 @@ export const LeftSideBox: React.FC = () => {
           {panelContent.content}
         </Box>
       </Box>
-
-      
     </Box>
   );
 };

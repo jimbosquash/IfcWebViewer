@@ -3,7 +3,13 @@ import { ModelCache } from "../bim-components/modelCache";
 import { FragmentsGroup } from "@thatopen/fragments";
 import * as THREE from "three"
 
-export const uploadFile = async (file: File, components: OBC.Components) => {
+/**
+ * handles the opening of an .ifc file and then adds it to the ModelCache for processing.
+ * @param file 
+ * @param components 
+ * @returns 
+ */
+export const uploadFile = async (file: File, components: OBC.Components): Promise<FragmentsGroup | undefined> => {
     if(!components) return
     const ifcLoader = components.get(OBC.IfcLoader);
     const modelCache = components.get(ModelCache);
@@ -18,6 +24,7 @@ export const uploadFile = async (file: File, components: OBC.Components) => {
     model.name = file.name.replace(".ifc", "");
     setMeshFaceDoubleSided(model)
     modelCache.add(model)
+    return model;
 };
 
  

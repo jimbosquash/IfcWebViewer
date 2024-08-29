@@ -82,31 +82,28 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     viewCube.rightText = "Right";
     viewCube.size = 120;
     viewCube.camera = world.camera.three;
-    // todo when camera changes, between ortho and pers then change the view cubes cam too
+    // TODO: when camera changes, between ortho and pers then change the view cubes cam too
     containerRef.append(viewCube);
 
     world.camera.controls.addEventListener("update", () => viewCube.updateOrientation());
     // world.camera.controls.addEventListener("update", () => viewportGizmo.update());
 
-
-    // const worldGrid = components.get(OBC.Grids).create(world)
-    // worldGrid.material.uniforms.uColor.value = new THREE.Color(0x424242)
-    // worldGrid.material.uniforms.uSize1.value = 2
-    // worldGrid.material.uniforms.uSize2.value = 8
+    const worldGrid = components.get(OBC.Grids).create(world)
+    worldGrid.fade= true;
+    worldGrid.material.uniforms.uColor.value = new THREE.Color(0x424242)
+    worldGrid.material.uniforms.uSize1.value = 1
+    worldGrid.material.uniforms.uSize2.value = 5
 
     postproduction.enabled = true;
-    
-    //postproduction.customEffects.excludedMeshes.push(worldGrid.three);
+
+    postproduction.customEffects.excludedMeshes.push(worldGrid.three);
     postproduction.setPasses({ custom: true, ao: true, gamma: true })
     postproduction.customEffects.lineColor = 0x17191c
 
     const highlighter = components.get(OBF.Highlighter)
     if (!highlighter.isSetup) { highlighter.setup({ world }) }
     highlighter.zoomToSelection = true
-    // highlighter.backupColor = new THREE.Color('#A0C3AF')
-    highlighter.onBeforeUpdate.add(() => console.log('highlight'))
-    highlighter.onBeforeUpdate.trigger(highlighter);
-    console.log("high light colors", highlighter.colors);
+    highlighter.events.select.onHighlight.add(() => {console.log('highlight')})
     highlighter.colors.set('hover', new THREE.Color('#3e4396'))
     const selectColor = highlighter.colors.get("select");
     if (selectColor) {
@@ -114,7 +111,6 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
       console.log("high light colors", highlighter.colors);
 
     }
-    // highlighter.add("ActiveGroupSelection", new THREE.Color("#3e4396"));
 
     const resizeWorld = () => {
       world.renderer?.resize();

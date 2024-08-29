@@ -12,6 +12,7 @@ import IfcDropZone from "../../components/ifcDropZone";
 import { uploadFile } from "../../utilities/IfcFileLoader";
 import LeftSideBox from "./leftSidePanel";
 import RightSidePanel from "./rightSidePanel";
+import ColorPaletteModal from "../../components/ColorPalleteModal";
 
 const Overlay = () => {
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -110,6 +111,7 @@ const Overlay = () => {
 
         <InfoPanel />
         <ActionButtonPanel />
+
 
       <LeftSideBox/>
       <RightSidePanel/>
