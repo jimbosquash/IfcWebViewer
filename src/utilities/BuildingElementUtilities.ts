@@ -4,6 +4,7 @@ import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
 import { ModelCache } from "../bim-components/modelCache";
 import { GetFragmentIdMaps } from "./IfcUtilities";
+import { ModelViewManager } from "../bim-components/modelViewer";
 
 
 /**
@@ -240,6 +241,9 @@ export const isolate = async (elements: BuildingElement[], components: OBC.Compo
       const expressIds = elements.flatMap(e => e.expressID);
       const elementTypeIds = model.getFragmentMap(expressIds);
       hider.isolate(elementTypeIds)
+      const selectedElements = components.get(ModelCache).getElementByFragmentIdMap(elementTypeIds)
+      if(!selectedElements) return;
+      components.get(ModelViewManager).onVisibilityUpdated.trigger([...selectedElements])
   });
 
   await Promise.all(highlightPromises);

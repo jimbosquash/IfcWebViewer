@@ -7,9 +7,14 @@ import { SetUpWorld } from "./src/SetUpWorld";
 import Overlay from "../overlay";
 import { ModelCache } from "../../bim-components/modelCache";
 import { ViewportGizmo } from "three-viewport-gizmo";
+import { HighlightExtension } from "../../bim-components/highlightExtension";
 
 
-
+/**
+ * Holds the three js scene and manages adding models and removing modesl from scene as
+ * well as world createn. any Bim components that are UI dependend should also have their set up here
+ * @returns 
+ */
 export const ThreeScene = () => {
   const mountRef = useRef<HTMLDivElement>(null);
   const components = useComponentsContext();
@@ -24,14 +29,18 @@ export const ThreeScene = () => {
     if (!mountRef.current) return;
 
     if (mountRef?.current && components) {
-      const fragments = components?.get(OBC.FragmentsManager);
       console.log("view port, setting up");
-      fragments.onFragmentsLoaded.add((data) => loadModelIntoWorld(data));
-      // const viewManager = components.get(ModelViewManager);
-      // if (viewManager) viewManager.onTreeChanged.;
+
+      const fragments = components?.get(OBC.FragmentsManager);
+      const highlightExtension = components.get(HighlightExtension);
       const modelCache = components.get(ModelCache);
       const worlds = components.get(OBC.Worlds);
-
+      
+      fragments.onFragmentsLoaded.add((data) => loadModelIntoWorld(data));
+      modelCache.onWorldSet.add((data) => highlightExtension.world = data);
+    
+      highlightExtension.enabled = true;
+      
       if (modelCache.world && worlds.list.has(modelCache.world.uuid)) return;
       if (worlds.list.size === 0) {
         createWorld(components);
@@ -42,9 +51,11 @@ export const ThreeScene = () => {
 
     return () => {
       console.log("view port, cleaning up");
-
-      const fragments = components?.get(OBC.FragmentsManager);
+      if(!components) return;
+      const highlightExtension = components.get(HighlightExtension);
+      const modelCache = components.get(ModelCache);
       fragments?.onFragmentsLoaded.remove((model) => loadModelIntoWorld(model));
+      modelCache.onWorldSet.remove((data) => highlightExtension.world = data)
     };
   }, [components]);
 

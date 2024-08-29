@@ -34,11 +34,13 @@ export class ModelViewManager extends OBC.Component {
      */
     private _selectedGroup?: SelectionGroup;
 
+    
     readonly onTreeChanged = new OBC.Event<Tree<BuildingElement> | undefined>();
     readonly onBuildingElementsChanged = new OBC.Event<BuildingElement[]>();
     readonly onGroupVisibilitySet = new OBC.Event<Map<string, VisibilityState>>();
     readonly onSelectedGroupChanged = new OBC.Event<SelectionGroup>();
     readonly onVisibilityModeChanged = new OBC.Event<VisibilityMode>();
+    readonly onVisibilityUpdated = new OBC.Event<BuildingElement[]>();
 
     get SelectedGroup(): SelectionGroup | undefined {
         return this._selectedGroup;
@@ -276,8 +278,6 @@ export class ModelViewManager extends OBC.Component {
         if (updateVisibility) this.updateVisibility();
     }
 
-    //private white = new THREE.Color(1, 1, 1);
-
     private SetVisibility(fragments: OBC.FragmentsManager, elements: BuildingElement[] | undefined, visibility: VisibilityState): void {
 
         if (!elements) return;
@@ -326,9 +326,8 @@ export class ModelViewManager extends OBC.Component {
         }, new Map<string, BuildingElement[]>());
     }
 
-    private updateVisibility = () => {
-        // console.log("update Visibility", this._treeVisibility)
 
+    private updateVisibility = () => {
         if (!this._enabled || !this.components || !this._tree) return;
 
         const fragments = this.components.get(OBC.FragmentsManager);
@@ -336,7 +335,7 @@ export class ModelViewManager extends OBC.Component {
             const allElements = this.getAllElements();
             this.SetVisibility(fragments, allElements, VisibilityState.Visible);
             console.log("hide elements fails, showing all instead")
-
+            this.onVisibilityUpdated.trigger(allElements);
             return;
         }
 
@@ -345,7 +344,9 @@ export class ModelViewManager extends OBC.Component {
             this.SetVisibility(fragments, visibilityTypes.get(VisibilityState.Visible), VisibilityState.Visible);
             this.SetVisibility(fragments, visibilityTypes.get(VisibilityState.Hidden), VisibilityState.Hidden);
             this.SetVisibility(fragments, visibilityTypes.get(VisibilityState.Ghost), VisibilityState.Ghost);
+            this.onVisibilityUpdated.trigger(visibilityTypes?.get(VisibilityState.Visible));
         }
+
     };
 
     private getAllElements(): BuildingElement[] | undefined {

@@ -59,23 +59,73 @@ export function GetAllVisibleExpressIDs(models: FRAGS.FragmentsGroup[]): Map<str
     return allVisibleElements;
 }
 
-export function GetCenterPoints(models: FRAGS.FragmentsGroup[], expressIDMap: Map<string, Set<number>>, components: OBC.Components): Set<Tag> {
+export function GetCenterPoints(models: FRAGS.FragmentsGroup[], buildingElements: BuildingElement[], components: OBC.Components): Map<BuildingElement,Tag> {
 
-    const tags = new Set<Tag>();
-    const bbox = components.get(OBC.BoundingBoxer);
-    bbox.reset();
-    expressIDMap.forEach((expressIDs, modelID) => {
+    const tags = new Map<BuildingElement,Tag>();
 
-        const model = models.find(m => m.uuid === modelID);
-        if (!model) return;
-        // console.log("model transparency", model.geometryIDs)
-        [...expressIDs].forEach((id) => {         
-            const verts = model.getItemVertices(id)
-            // console.log("vertex 1st:", verts.at(0))
-            tags.add(new Tag(id.toString(),verts.at(0)))
-        })
+    buildingElements.forEach((buildingElement) => {
+        const model = models.find(m => m.uuid === buildingElement.modelID);
+        if (!model) {
+            console.log('Get Center failed: no model found',buildingElement.modelID)
+            return;}
+        const center = GetCenterPoint(buildingElement, model, components);
+        if (!center) {
+            console.log('Get Center failed: no center point found',buildingElement)
+            return;}
+        tags.set(buildingElement,new Tag(buildingElement.name, center));
     })
     return tags;
+}
+
+/**
+ * Get a bounding box using the OBC.boundingBoxer and then get its center, reseting boundingBoxer after completion.
+ * @param buildingElement 
+ * @param model to find the correct model call models.find(m => m.uuid === buildingElement.modelID) on the ModelCache
+ * @param components 
+ * @returns 
+ */
+export function GetCenterPoint(buildingElement: BuildingElement, model: FRAGS.FragmentsGroup, components: OBC.Components): THREE.Vector3 | undefined {
+    const bbox = GetBoundingBox(buildingElement, model, components);
+    if (!bbox) return;
+    const center = new THREE.Vector3();
+    return bbox.getCenter(center);
+}
+
+/**
+ * 
+ * @param buildingElement 
+ * @param model to find the correct model call models.find(m => m.uuid === buildingElement.modelID) on the ModelCache
+ * @param components 
+ * @returns 
+ */
+export function GetBoundingBox(buildingElement: BuildingElement, model: FRAGS.FragmentsGroup, components: OBC.Components) {
+    const bbox = components.get(OBC.BoundingBoxer);
+    bbox.reset();
+    if (!model) return;
+
+    //get fragment
+
+    const fragment = model.items.find(frag => frag.id === buildingElement.FragmentID)
+
+    if (!fragment) {
+        console.log('unable to find fragment based on input building element', buildingElement)
+        return;
+    }
+    //get the itemsID
+    // const id = fragment.instanceToItem.get(buildingElement.expressID);
+
+    // if (!id) {
+    //     console.log('unable to find fragment based on input building element expressID', buildingElement.expressID,fragment)
+    //     return;
+    // }
+
+    bbox.addMesh(fragment.mesh, [buildingElement.expressID]);
+
+    const bounds = bbox.get();
+    const center = new THREE.Vector3();
+    const newCenter = bounds.getCenter(center);
+    bbox.reset();
+    return bounds;
 }
 
 
@@ -208,7 +258,6 @@ function convertToStationArray(groupedByStation: Record<string, Record<string, B
     return stationSummary;
 
 }
-
 
 
 export function getEPElementCount(elements: BuildingElement[]) {

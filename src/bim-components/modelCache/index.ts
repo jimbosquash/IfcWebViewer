@@ -74,49 +74,6 @@ export class ModelCache extends OBC.Component {
         })
 
         return elements;
-
-
-
-
-
-
-  // Map each fragment to [id, fragment] pair
-        const fragmentMap = new Map(
-            this.models().flatMap(model => model.items)
-              .map(fragment => [fragment.id, fragment])
-          );
-
-
-
-        Object.entries(fragmentIdMap).forEach((entry) => {
-            const fragID = entry[0];
-            const expressIDs = entry[1];
-            const ids = [...expressIDs]
-            if(fragmentMap.has(fragID))
-            {
-                const frag = fragmentMap.get(fragID)
-                const test = frag?.itemToInstances;
-                const modelFragID = frag?.group?.uuid;
-                if(!modelFragID) return;
-                const foundElement = this.getElementByExpressId(ids[0],modelFragID);
-                console.log('get selected', foundElement)
-            }
-
-
-
-
-            // this.models().reduce((acc, { fragmentID: string, fragment: FragmentsGroup }) => {
-            //     if (!acc.hasEventListener(fr))
-            // })
-
-
-
-        })
-
-        this.models()
-
-        // const buildingElement = this._buildingElements.find(e => e.expressID === expressID && e.modelID === modelID)
-        // return buildingElement;
     }
 
     async delete(groupID: string): Promise<boolean> {
