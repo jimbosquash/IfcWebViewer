@@ -21,7 +21,6 @@ export class ModelTagger extends OBC.Component {
     private _enabled = false
     private _world: OBC.World | null = null
     private _previewElement: OBF.Mark | null = null
-    private _hitLabel: string | null = null;
     private _visible: boolean = false;
 
     /**
@@ -38,9 +37,6 @@ export class ModelTagger extends OBC.Component {
 
     set world(world: OBC.World | null) {
         this._world = world
-        if (world) {
-            this.setEvents(world, true)
-        }
     }
 
 
@@ -171,7 +167,6 @@ export class ModelTagger extends OBC.Component {
         return allMarks;
     }
 
-
     private createNewTag = (world: OBC.World, label: string | null) => {
         const icon = document.createElement("bim-label")
         icon.textContent = label;
@@ -182,66 +177,5 @@ export class ModelTagger extends OBC.Component {
         const preview = new OBF.Mark(world, icon)
         preview.visible = false
         return preview;
-    }
-
-
-    // related to floating tag point and may be removable
-
-
-    private setEvents(world: OBC.World, enabled: boolean) {
-        if (!(world.renderer && world.renderer.three.domElement.parentElement)) {
-            throw new Error("Comments: your world needs a renderer!")
-        }
-        const worldContainer = world.renderer.three.domElement.parentElement
-        console.log("setting events for comments", worldContainer)
-        if (enabled) {
-            worldContainer.addEventListener("mousemove", this.checkHitPointAndSetTagName)
-            // worldContainer.addEventListener("click", this.addCommentOnPreviewPoint)
-        } else {
-            worldContainer.removeEventListener("mousemove", this.checkHitPointAndSetTagName)
-            // worldContainer.removeEventListener("click", this.addCommentOnPreviewPoint)
-        }
-    }
-
-    
-    private checkHitPointAndSetTagName = () => {
-        // we want the express id
-        if (!(this.enabled && this.world && this._previewElement)) { return }
-        const raycasters = this.components.get(OBC.Raycasters)
-        const cache = this.components.get(ModelCache)
-        const raycaster = raycasters.get(this.world)
-        const result = raycaster.castRay()
-        if (result) {
-
-            if (this._hitLabel !== result.object.fragment.id) {
-                this._hitLabel = result.object.fragment.id;
-
-                const firstElement = result.object.fragment.ids.values().next().value as number | undefined;
-
-                if (firstElement) {
-                    const element = cache.getElementByExpressId(firstElement, result.object.fragment.group.uuid)
-                    this._hitLabel = element?.name ?? null;
-                    const newTag = this.createNewTag(this.world, this._hitLabel);
-                    this._previewElement.dispose();
-                    this._previewElement = newTag;
-                    console.log("Checkhit success modelID:", element)
-                    // this.getAllElementsTags();
-                }
-
-            }
-            this._previewElement.visible = true
-            this._previewElement.three.position.copy(result.point)
-            this._hitPoint = result.point
-
-
-
-
-        } else {
-            this._previewElement.visible = false
-            this._hitPoint = null
-            this._hitLabel = null;
-        }
-
-
     }
 }
