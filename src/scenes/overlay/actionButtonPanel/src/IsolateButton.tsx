@@ -4,6 +4,8 @@ import * as OBF from "@thatopen/components-front";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { tokens } from "../../../../theme";
 import { Icon } from "@iconify/react";
+import { ModelViewManager } from "../../../../bim-components/modelViewer";
+import { ModelCache } from "../../../../bim-components/modelCache";
 
 export const IsolateButton = () => {
   const components = useComponentsContext();
@@ -15,12 +17,18 @@ export const IsolateButton = () => {
     const hider = components.get(OBC.Hider);
     const selected = highlighter.selection;
     if (!selected) return;
+    
     Object.keys(selected).forEach((selectionID) => {
       if (selectionID !== "select") return;
       const fragmentIdMap = selected[selectionID];
       console.log(`Selection ID: ${selectionID}, FragmentIdMap:`, fragmentIdMap);
       hider.isolate(fragmentIdMap);
+      const elements = components.get(ModelCache).getElementByFragmentIdMap(fragmentIdMap)
+      if(elements){
+      components.get(ModelViewManager).onVisibilityUpdated.trigger([...elements])}
     });
+
+
   }
 
   return (

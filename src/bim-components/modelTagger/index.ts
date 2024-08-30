@@ -23,6 +23,7 @@ export class ModelTagger extends OBC.Component {
     private _world: OBC.World | null = null
     private _previewElement: OBF.Mark | null = null
     private _visible: boolean = false;
+    private _materialColor: Map<string, string> = new Map<string, string>;
 
     /**
      * key = expressID, value = mark
@@ -75,13 +76,15 @@ export class ModelTagger extends OBC.Component {
 
         // add or remove listeners to change visibility and marker set
         if (!value) {
-            viewManager.onVisibilityUpdated.remove((data) => this.updateVisible(data))
-            cache.onBuildingElementsChanged.remove((data) => this.updateTags(data))
+            // viewManager.onVisibilityUpdated.remove((data) => this.updateVisible(data))
+            viewManager.onVisibilityUpdated.remove(() => this.createTagsFromModelVisibility())
+            cache.onBuildingElementsChanged.remove((data) => this.createTagsFromModelVisibility())
             this._markers.forEach(mark => mark.visible = false)
         }
         if (value) {
-            viewManager.onVisibilityUpdated.add((data) => this.updateVisible(data))
-            cache.onBuildingElementsChanged.add((data) => this.updateTags(data))
+            // viewManager.onVisibilityUpdated.add((data) => this.updateVisible(data))
+            viewManager.onVisibilityUpdated.add(() => this.createTagsFromModelVisibility())
+            cache.onBuildingElementsChanged.add((data) => this.createTagsFromModelVisibility())
 
             if (cache.BuildingElements) {
                 this.updateTags(cache.BuildingElements)
@@ -111,6 +114,22 @@ export class ModelTagger extends OBC.Component {
         }
     }
 
+        /**
+     * search three js model and find what is visible and set visibility based on that
+     */
+         private createTagsFromModelVisibility = () => {
+            const cache = this.components.get(ModelCache);
+            if (cache.BuildingElements) {
+                // console.log('creating new markers', cache.BuildingElements)
+                const allVisibleIDs = GetAllVisibleExpressIDs(cache.models())
+                const allVisibleElements: BuildingElement[] = [];
+                allVisibleIDs.forEach((expressIDs, modelID) => {
+                    allVisibleElements.push(...cache.getElementsByExpressId(expressIDs, modelID))
+                })
+                this.updateTags(allVisibleElements);
+            }
+        }
+
 
     /**
      * when model is loaded search for the center of all geometry and store it in a Map with expressIDs
@@ -119,6 +138,7 @@ export class ModelTagger extends OBC.Component {
      */
     private updateTags(buildingElements: BuildingElement[]) {
         if (!this._enabled) return;
+        this._markers.forEach(m => m.dispose())
         const markers = this.createTags(buildingElements);
         if (markers) {
             this._markers = markers;
@@ -181,38 +201,28 @@ export class ModelTagger extends OBC.Component {
             groupedByMaterial.get(material)?.set(buildingElement, tag);
         });
 
-
-
         groupedByMaterial.forEach((elements, material) => {
-            const randomColor = this.generateRandomHexColor();
-            // elements.forEach((tag, element) => { tag.color = randomColor});
-            elements.forEach((tag, element) => {
-                console.log('createmarker')
-                if (this._world?.uuid && tag.position) {
-                    tag.color = randomColor;
-                    const mark = this.createNewTag(this._world, tag.text,tag.color);
-                    mark.three.position.copy(tag.position);
-                    mark.three.visible = true;
-                    console.log('createmarker', mark)
-                    allMarks.set(element.expressID, mark);
-                }
-            })
+            if (!this._materialColor.has(material)) {
+                const randomColor = this.generateRandomHexColor();
+                this._materialColor.set(material, randomColor)
+            }
+            const color = this._materialColor.get(material)
+            elements.forEach((tag) => { tag.color = color })
+        });
 
+
+        centers.forEach((tag, element) => {
+
+            console.log('createmarker')
+            if (this._world?.uuid && tag.position) {
+                const mark = this.createNewTag(this._world, tag.text, tag.color);
+                mark.three.position.copy(tag.position);
+                mark.three.visible = true;
+                console.log('createmarker', mark)
+                allMarks.set(element.expressID, mark);
+            }
         })
 
-
-
-
-        // [...centers].forEach((element) => {
-        //     // console.log('createmarker')
-        //     if (this._world?.uuid && element[1].position) {
-        //         const mark = this.createNewTag(this._world, element[1].text);
-        //         mark.three.position.copy(element[1].position);
-        //         mark.three.visible = true;
-        //         console.log('createmarker', mark)
-        //         allMarks.set(element[0].expressID, mark);
-        //     }
-        // });
         return allMarks;
     }
 
