@@ -2,7 +2,7 @@ import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
 import { Mark } from "@thatopen/components-front";
 import * as THREE from "three";
-import { GetCenterPoints } from "../../utilities/IfcUtilities";
+import { GetAllVisibleExpressIDs, GetCenterPoints } from "../../utilities/IfcUtilities";
 import { BuildingElement } from "../../utilities/types";
 import { ModelCache } from "../modelCache";
 import { ModelViewManager } from "../modelViewer";
@@ -50,8 +50,7 @@ export class ModelTagger extends OBC.Component {
         // console.log('model Tagger setting visiblity', this._markers)
         if (!this._markers)
             return;
-
-        this._markers.forEach(mark => mark.visible = value)
+        this.updateVisibilityFromModel();
     }
 
 
@@ -83,17 +82,32 @@ export class ModelTagger extends OBC.Component {
             viewManager.onVisibilityUpdated.add((data) => this.updateVisible(data))
             cache.onBuildingElementsChanged.add((data) => this.updateTags(data))
 
-            // create new markers
             if (cache.BuildingElements) {
-                // console.log('creating new markers', cache.BuildingElements)
                 this.updateTags(cache.BuildingElements)
+                this.updateVisibilityFromModel();
             }
 
+            }
         }
-    }
 
     get enabled() {
-        return this._enabled
+            return this._enabled
+        }
+
+    /**
+     * search three js model and find what is visible and set visibility based on that
+     */
+    private updateVisibilityFromModel = () => {
+        const cache = this.components.get(ModelCache);
+        if (cache.BuildingElements) {
+            // console.log('creating new markers', cache.BuildingElements)
+            const allVisibleIDs = GetAllVisibleExpressIDs(cache.models())
+            const allVisibleElements: BuildingElement[] = [];
+            allVisibleIDs.forEach((expressIDs, modelID) => {
+                allVisibleElements.push(...cache.getElementsByExpressId(expressIDs, modelID))
+            })
+            this.updateVisible(allVisibleElements);
+        }
     }
 
 

@@ -21,13 +21,16 @@ export function GetAdjacentGroup(
   // If no current group, return the first or last station group based on direction
   if (!current) {
 
-    const station = tree.getFirstOrUndefinedNode(n => n.type === KnowGroupType.Station.toString());
+    const station = tree.getFirstOrUndefinedNode(n => n.type === KnowGroupType.Station);
+    console.log('getting default group',station,tree)
+
     if (!station) return undefined;
 
-    const el = TreeUtils.getChildren(station, n => n.type === KnowGroupType.BuildingElement.toString())
+    const el = TreeUtils.getChildren(station, n => n.type === KnowGroupType.BuildingElement)
       .map(n => n.data)
       .filter((data): data is NonNullable<typeof data> => data != null)
       .flat();
+
 
     return { groupType: "Station", id: station.id, groupName: station.name, elements: el };
   }

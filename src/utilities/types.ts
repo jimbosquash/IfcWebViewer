@@ -13,11 +13,11 @@ export enum VisibilityState {
 }
 
 export enum KnowGroupType {
-    Station,
-    BuildingStep,
-    Assembly,
-    BuildingElement,
-    Unknown
+    Station = "Station",
+    BuildingStep = "BuildingStep",
+    Assembly = "Assembly",
+    BuildingElement = "BuildingElement",
+    Unknown = "Unknown"
 }
 
 export type GroupingType = KnowGroupType | string;

@@ -63,6 +63,10 @@ const ActionButtonPanel = () => {
 
     const newGroup = GetAdjacentGroup(current, viewManager.Tree, adjacency);
 
+    if(!newGroup) {
+      
+    }
+
     if (newGroup) {
       try {
         await updateVisibility(viewManager, newGroup);

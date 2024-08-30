@@ -59,20 +59,22 @@ export function GetAllVisibleExpressIDs(models: FRAGS.FragmentsGroup[]): Map<str
     return allVisibleElements;
 }
 
-export function GetCenterPoints(models: FRAGS.FragmentsGroup[], buildingElements: BuildingElement[], components: OBC.Components): Map<BuildingElement,Tag> {
+export function GetCenterPoints(models: FRAGS.FragmentsGroup[], buildingElements: BuildingElement[], components: OBC.Components): Map<BuildingElement, Tag> {
 
-    const tags = new Map<BuildingElement,Tag>();
+    const tags = new Map<BuildingElement, Tag>();
 
     buildingElements.forEach((buildingElement) => {
         const model = models.find(m => m.uuid === buildingElement.modelID);
         if (!model) {
-            console.log('Get Center failed: no model found',buildingElement.modelID)
-            return;}
+            console.log('Get Center failed: no model found', buildingElement.modelID)
+            return;
+        }
         const center = GetCenterPoint(buildingElement, model, components);
         if (!center) {
-            console.log('Get Center failed: no center point found',buildingElement)
-            return;}
-        tags.set(buildingElement,new Tag(buildingElement.name, center));
+            console.log('Get Center failed: no center point found', buildingElement)
+            return;
+        }
+        tags.set(buildingElement, new Tag(buildingElement.name, center));
     })
     return tags;
 }
@@ -289,7 +291,6 @@ export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, com
         return [];
     }
     // this process attempting example https://github.com/ThatOpen/engine_components/blob/318f4dd9ebecb95e50759eb41f290df57c008fb3/packages/core/src/ifc/IfcRelationsIndexer/index.ts#L235
-
     const foundElements = new Map<number, BuildingElement>();// = Map<number,buildingElement[]>;
     const elements = loadedModel.getLocalProperties();
     await OBC.IfcPropertiesUtils.getRelationMap(loadedModel, WEBIFC.IFCRELDEFINESBYPROPERTIES, (async (propertySetID, _relatedElementsIDs) => {

@@ -106,11 +106,16 @@ export class Tree<T> {
 
     getFirstOrUndefinedNode(predicate: (node: TreeNode<T>) => boolean): TreeNode<T> | undefined{
         let result: TreeNode<T> | undefined = undefined;
+        let traverseSuccessful = false;
 
         const traverse = (node: TreeNode<T>) => {
+            console.log('traversing', node, predicate(node));
+            if(traverseSuccessful) return true;
+
             if (predicate(node)) {
                 result = node;
-                return;
+                traverseSuccessful = true;
+                return true; // Exit early by returning true
             }
             node.children.forEach(child => traverse(child));
         };

@@ -50,6 +50,26 @@ export class ModelCache extends OBC.Component {
         return buildingElement;
     }
 
+
+    /**
+     * 
+     * @param expressID ifcLine numbers or expressIDs
+     * @param modelID The uuid of the ifc model also known as the fragmentGroup
+     * @returns 
+     */
+    getElementsByExpressId(expressIDs: Set<number>, modelID: string): BuildingElement[] {
+        if (!expressIDs || !this._buildingElements) return [];
+
+        const elements : BuildingElement[] = [];
+
+        expressIDs.forEach(id => {
+            const element = this.getElementByExpressId(id,modelID)
+            if(element) elements.push(element)
+
+        })
+        return elements;
+    }
+
     /**
      * get elements by assuming idMap numbers are express ids. Using them by searching our building 
      * elements collection for element with matching expressID
