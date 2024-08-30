@@ -5,20 +5,51 @@ import { useEffect, useState } from "react";
 import AssemblyBrowser from "./src/AssemblyBrowser";
 import { BimSettings } from "../../../components/BimSettings";
 import ColorPaletteModal from "../../../components/ColorPalleteModal";
+import { useComponentsContext } from "../../../context/ComponentsContext";
+import { ModelCache } from "../../../bim-components/modelCache";
 
 const minWidth = 200;
 
 export const LeftSideBox: React.FC = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const components = useComponentsContext();
   const [panelOpen, setPanelOpen] = useState(false);
-  const [panelWidth, setPanelWidth] = useState(250); // Initial width of the panel
+  const [panelWidth, setPanelWidth] = useState(310); // Initial width of the panel
   const [isResizing, setIsResizing] = useState(false);
+  const [autoOpen, setAutoOpen] = useState(true);
   const sidebarWidth = 52;
   const [panelContent, setPanelContent] = useState<{ content: JSX.Element | null; name: string }>({
     content: null,
     name: "",
   });
+
+  useEffect(() => {
+    // listen for new models
+    if (!components) return;
+
+    const fragments = components.get(ModelCache);
+    console.log("side panel listening");
+
+    fragments.onModelAdded.add(() => listenForModels());
+
+    return () => {
+      // unlisten
+      fragments.onModelAdded.remove(() => listenForModels());
+      console.log("side panel stop listening");
+    };
+  }, [components]);
+
+  const listenForModels = () => {
+    console.log("side panel listening for model");
+
+    if (!autoOpen) return;
+
+    handleIconClick(ProjectOverview(), "overView");
+
+    setPanelOpen(true);
+    setAutoOpen(false);
+  };
 
   const handleIconClick = (content: JSX.Element, panelName: string) => {
     if (panelContent.name === panelName && panelOpen) {
@@ -69,6 +100,42 @@ export const LeftSideBox: React.FC = () => {
     };
   }, [isResizing]);
 
+  const ProjectOverview = () => {
+    return (
+      <Box component="div" flexDirection="column" display="flex" width="100%" marginTop="20px" marginLeft="5px" gap="2">
+        <Box component="div" flexDirection="row" display="flex" marginLeft="10px" gap="4">
+          <Icon style={{ color: colors.grey[500] }} icon="mdi:file-tree-outline" />
+          <Typography marginLeft="8px" variant="h5">
+            Project Overview
+          </Typography>
+        </Box>
+        <Typography marginLeft="8px" marginRight="16px" marginTop="8px" variant="body2">
+          Building elements grouped by work station and building step. Double click to select.
+        </Typography>
+        {/* // Use the navigation arrows to move through them. */}
+        <AssemblyBrowser />
+      </Box>
+    );
+  };
+
+  const CommentsPanel = () => {
+    return (
+      <Box component="div" flexDirection="column" display="flex" width="100%" marginTop="20px" marginLeft="5px" gap="2">
+        <Box component="div" flexDirection="row" display="flex" marginLeft="10px" gap="4">
+          <Icon style={{ color: colors.grey[500] }} icon="mdi:chat-add-outline" />
+          <Typography marginLeft="8px" variant="h5">
+            Comments Content
+          </Typography>
+        </Box>
+        <Typography marginLeft="8px" marginRight="16px" marginTop="8px" variant="body2">
+          Use comments to by clicking the button then clicking on desired element. Comments will only be saved if you
+          export a new Ifc model.{" "}
+        </Typography>
+        {/* // Use the navigation arrows to move through them. */}
+      </Box>
+    );
+  };
+
   return (
     <Box display="flex" height="100vh" component={"div"} position="absolute">
       <Box
@@ -98,28 +165,31 @@ export const LeftSideBox: React.FC = () => {
 
         <Tooltip title="Project overview" placement="right" arrow>
           <IconButton
-            onClick={() =>
-              handleIconClick(
-                <Box component="div" flexDirection="column" display="flex" gap="2">
-                  {/* <Typography variant="h6">Project Overview</Typography> */}
-                  <AssemblyBrowser />
-                </Box>,
-                "overView"
-              )
-            }
+            style={{
+              backgroundColor: panelContent.name === "overView" && panelOpen ? colors.grey[900] : "transparent",
+            }}
+            onClick={() => handleIconClick(ProjectOverview(), "overView")}
           >
             <Icon icon="mdi:file-tree-outline" />
           </IconButton>
         </Tooltip>
+
         <Tooltip title="Comments" placement="right" arrow>
           <IconButton
-            onClick={() => handleIconClick(<Typography variant="h6">Comments Content</Typography>, "comments")}
+            style={{
+              backgroundColor: panelContent.name === "comments" && panelOpen ? colors.grey[900] : "transparent",
+            }}
+            onClick={() => handleIconClick(CommentsPanel(), "comments")}
           >
             <Icon icon="mdi:chat-add-outline" />
           </IconButton>
         </Tooltip>
+
         <Tooltip title="Settings" placement="right" arrow>
           <IconButton
+            style={{
+              backgroundColor: panelContent.name === "settings" && panelOpen ? colors.grey[900] : "transparent",
+            }}
             onClick={() =>
               handleIconClick(
                 <>
@@ -134,19 +204,21 @@ export const LeftSideBox: React.FC = () => {
           </IconButton>
         </Tooltip>
 
-        <IconButton
-          onClick={() =>
-            handleIconClick(
-              <>
-                <Typography variant="h6">Color Pallete</Typography>
-                <ColorPaletteModal open={true} />
-              </>,
-              "settings"
-            )
-          }
-        >
-          <Icon icon="mdi:color" />{" "}
-        </IconButton>
+        {process.env.NODE_ENV === "development" && (
+          <IconButton
+            onClick={() =>
+              handleIconClick(
+                <>
+                  <Typography variant="h6">Color Pallete</Typography>
+                  <ColorPaletteModal open={true} />
+                </>,
+                "settings"
+              )
+            }
+          >
+            <Icon icon="mdi:color" />{" "}
+          </IconButton>
+        )}
       </Box>
       {/* Sliding Panel */}
       <Box

@@ -116,12 +116,11 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({ node }) => {
           onDoubleClick={() => handelDoubleClick()}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          width="100%"
           sx={{
             boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
             padding: isHovered ? "8px" : "10px",
-            width: isHovered ? "97%" : "90%",
-            height: "35px",
+            width: isHovered ? "87%" : "80%",
+            height: "30px",
             margin: "8px 0",
             borderRadius: "12px",
             cursor: "pointer",

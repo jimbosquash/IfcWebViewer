@@ -2,20 +2,42 @@ import { Box, IconButton, Tooltip, useTheme, Typography } from "@mui/material";
 import { Icon } from "@iconify/react";
 import { tokens } from "../../../theme";
 import { useEffect, useState } from "react";
+import * as OBF from "@thatopen/components-front";
 import PropertyOverViewPanel from "./src/propertyOverViewPanel";
+import { useComponentsContext } from "../../../context/ComponentsContext";
+import { ModelCache } from "../../../bim-components/modelCache";
 
 export const RightSidePanel: React.FC = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const components = useComponentsContext();
   const [panelOpen, setPanelOpen] = useState(false);
-
+  const [panelWidth, setPanelWidth] = useState(250); // Initial width of the panel
+  const [isResizing, setIsResizing] = useState(false);
+  const [autoOpen, setAutoOpen] = useState(true);
   const [panelContent, setPanelContent] = useState<{ content: JSX.Element | null; name: string }>({
     content: null,
     name: "",
   });
 
-  const [panelWidth, setPanelWidth] = useState(250); // Initial width of the panel
-  const [isResizing, setIsResizing] = useState(false);
+  useEffect(() => {
+    if (!components) return;
+    const cache = components.get(ModelCache);
+    console.log("side panel listening");
+
+    cache.onModelAdded.add(() => listenForModels());
+
+    return () => {
+      cache.onModelAdded.remove(() => listenForModels());
+      console.log("side panel stop listening");    };
+  }, [components]);
+
+  const listenForModels = () => {
+    console.log('right panel listening for highlight')
+    if (!autoOpen) return;
+    handleIconClick(propertiesPanel(), "overView")
+    setAutoOpen(false);
+  };
 
   // Start the resizing
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -26,7 +48,8 @@ export const RightSidePanel: React.FC = () => {
   const handleMouseMove = (e: MouseEvent) => {
     if (isResizing) {
       const newWidth = window.innerWidth - e.clientX;
-      if (newWidth >= 150 && newWidth <= 600) { // Min and Max width limits
+      if (newWidth >= 150 && newWidth <= 600) {
+        // Min and Max width limits
         setPanelWidth(newWidth);
       }
     }
@@ -40,16 +63,16 @@ export const RightSidePanel: React.FC = () => {
   // Attach the mouse move and mouse up events
   useEffect(() => {
     if (isResizing) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
     } else {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     }
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isResizing]);
 
@@ -63,6 +86,17 @@ export const RightSidePanel: React.FC = () => {
       console.log("set panel");
     }
     console.log("panel input", panelContent, content, panelOpen);
+  };
+
+  const propertiesPanel = () => {
+    return (
+      <Box component="div" flexDirection="column" display="flex" gap="2">
+        <Typography marginLeft="16px" variant="h6">
+          Properties
+        </Typography>
+        <PropertyOverViewPanel />
+      </Box>
+    );
   };
 
   return (
@@ -85,15 +119,10 @@ export const RightSidePanel: React.FC = () => {
       >
         <Tooltip title="Properties" placement="left" arrow>
           <IconButton
-            onClick={() =>
-              handleIconClick(
-                <Box component="div" flexDirection="column" display="flex" gap="2">
-                  <Typography marginLeft='16px' variant="h6">Properties</Typography>
-                  <PropertyOverViewPanel />
-                </Box>,
-                "overView"
-              )
-            }
+            style={{
+              backgroundColor: panelContent.name === "overView" && panelOpen ? colors.grey[900] : "transparent",
+            }}
+            onClick={() => handleIconClick(propertiesPanel(), "overView")}
           >
             <Icon icon="lucide:table-properties" />{" "}
           </IconButton>
@@ -115,7 +144,7 @@ export const RightSidePanel: React.FC = () => {
           zIndex: 1000,
           backgroundColor: colors.primary[100],
           borderColor: colors.primary[900],
-          paddingTop:'16px'
+          paddingTop: "16px",
         }}
       >
         {/* Resize Handle */}

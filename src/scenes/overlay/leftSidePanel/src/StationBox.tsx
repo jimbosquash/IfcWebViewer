@@ -57,18 +57,15 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
     // console.log("Station group box has elements:", t);
     setElements(t);
 
-
     const validChildren = Array.from(node.children.values()).filter(
       (n) => n.type !== KnowGroupType.BuildingElement.toString()
     );
 
-
     if (validChildren.length > 1) {
-      console.log("setting up children:", validChildren)
+      console.log("setting up children:", validChildren);
 
       setChildren(validChildren);
-    }
-    else setChildren(undefined);
+    } else setChildren(undefined);
   }, [node]);
 
   useEffect(() => {
@@ -101,7 +98,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
 
   const handleSelectedGroupChanged = (data: SelectionGroup) => {
     setIsSelected(name === data.groupName);
-    if(name === data.groupName) console.log("stationbox: setting selected:", name, name === data.groupName);
+    if (name === data.groupName) console.log("stationbox: setting selected:", name, name === data.groupName);
   };
 
   const handleVisibilityyUpdate = (data: Map<String, VisibilityState>) => {
@@ -129,7 +126,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
   const setSelected = () => {
     setIsSelected(true);
     if (modelViewManager?.SelectedGroup?.groupName === name || !modelViewManager || !elements || !name) {
-     console.log('set selection but returning early')
+      console.log("set selection but returning early");
       return;
     }
     modelViewManager.SelectedGroup = {
@@ -151,81 +148,101 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
     if (!elements || !components) return;
     zoomToBuildingElements(elements, components);
     // ToggleVisibility();
-    if(modelViewManager?.SelectedGroup)
-      modelViewManager?.select(modelViewManager?.SelectedGroup);
+    if (modelViewManager?.SelectedGroup) modelViewManager?.select(modelViewManager?.SelectedGroup);
   };
 
-
-
   return (
-    <Tooltip title={"Station:" + displayName}> 
+    <Tooltip title={"Station:" + displayName}>
       <Box component="div">
-      <Box
-        component="div"
-        onDoubleClick={() => handelDoubleClick()}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        sx={{
-          boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-          padding: isHovered ? "8px" : "10px",
-          width: isHovered ? "95%" : "92%",
-          height: "35px",
-          margin: "8px 0",
-          borderRadius: "12px",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          border: isSelected ? "1px solid #ccc" : "none",
-          backgroundColor: isSelected ? colors.blueAccent[600] : colors.grey[900],
-          transition: "all 0.2s ease",
-          justifyContent: "space-between",
-        }}
-      >
-        <Icon icon="system-uicons:boxes" color={isSelected ? colors.primary[100] : colors.grey[500]} />
-        <Typography
-          noWrap
-          maxWidth="105px"
-          color={isSelected ? colors.primary[100] : colors.grey[600]}
-          variant={isSelected ? "h6" : "body2"}
-          sx={{ flexGrow: 1, ...nonSelectableTextStyle, ml:1, alignContent:"left" }}
-        >
-          {displayName}
-        </Typography>
-        <Typography
-          color={isSelected ? colors.primary[100] : colors.grey[600]}
-          noWrap
-          variant="body2"
-          sx={{ marginLeft: "10px", ...nonSelectableTextStyle }}
-        >
-          el : {elements?.length}
-        </Typography>
-        <IconButton
-          size="small"
-          color={isSelected ? "primary" : "secondary"}
-          sx={{ marginLeft: "8px", color: isSelected ? colors.primary[100] : colors.grey[500] }}
-          onClick={(e: any) => {
-            e.stopPropagation();
-            ToggleVisibility();
+        <Box
+          component="div"
+          onDoubleClick={() => handelDoubleClick()}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          sx={{
+            boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+            padding: isHovered ? "8px" : "10px",
+            width: isHovered ? "95%" : "92%",
+            height: "30px",
+            margin: "8px 0",
+            borderRadius: "12px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            border: isSelected ? "1px solid #ccc" : "none",
+            backgroundColor: isSelected ? colors.blueAccent[600] : colors.grey[900],
+            transition: "all 0.2s ease",
+            justifyContent: "space-between",
+            overflow: "hidden", // Ensures no overflow issues
           }}
         >
-          {isVisible ? <VisibilityOutlinedIcon /> : <VisibilityOffOutlinedIcon />}
-        </IconButton>
-        {children && (
-          <IconButton size="small" sx={{ marginLeft: "4px", color: isSelected ? colors.primary[100] : colors.grey[500] }} onClick={toggleChildVisibility}>
-            {childVisible ? <PiMinus /> : <PiPlus />}
+          <Icon icon="system-uicons:boxes" color={isSelected ? colors.primary[100] : colors.grey[500]} />
+          <Typography
+            noWrap
+            maxWidth="105px"
+            minWidth="20px"
+            sx={{
+              flexGrow: 1,
+              color: isSelected ? colors.primary[100] : colors.grey[600],
+              ...nonSelectableTextStyle,
+              ml: 1,
+              alignContent: "left",
+              display: { xs: "none", sm: "block" },
+              variant: isSelected ? "body2" : "body1",
+              whiteSpace: "nowrap", // Prevents wrapping
+              overflow: "hidden", // Hides overflow content
+              textOverflow: "ellipsis", // Adds ellipsis to overflow text
+            }}
+          >
+            {displayName}
+          </Typography>
+          <Typography
+            color={isSelected ? colors.primary[100] : colors.grey[600]}
+            noWrap
+            variant="body2"
+            sx={{
+              ...nonSelectableTextStyle,
+              marginLeft: "10px",
+              color: isSelected ? colors.primary[100] : colors.grey[600],
+              variant: "body2",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              display: { xs: "none", sm: "block" }, // Responsive: hides on extra small screens
+            }}
+          >
+            el : {elements?.length}
+          </Typography>
+          <IconButton
+            size="small"
+            // color={isSelected ? "primary" : "secondary"}
+            sx={{ marginLeft: "8px", color: isSelected ? colors.primary[100] : colors.grey[500] }}
+            onClick={(e: any) => {
+              e.stopPropagation();
+              ToggleVisibility();
+            }}
+          >
+            {isVisible ? <VisibilityOutlinedIcon /> : <VisibilityOffOutlinedIcon />}
           </IconButton>
+          {children && (
+            <IconButton
+              size="small"
+              sx={{ marginLeft: "4px", color: isSelected ? colors.primary[100] : colors.grey[500] }}
+              onClick={toggleChildVisibility}
+            >
+              {childVisible ? <PiMinus /> : <PiPlus />}
+            </IconButton>
+          )}
+        </Box>
+        {childVisible && children && (
+          <Box width='95%' component="div" sx={{ marginLeft: "5px", marginTop: "10px" }}>
+            {children.map((node) => (
+              <BuildingStepBox key={node.id} node={node} />
+            ))}
+          </Box>
         )}
       </Box>
-      {childVisible && children && (
-        <Box component="div" sx={{ marginLeft: "5px", marginTop: "10px" }}>
-          {children.map((node) => (
-            <BuildingStepBox key={node.id} node={node} />
-          ))}
-        </Box>
-      )}
-    </Box>
     </Tooltip>
-    
   );
 };
 

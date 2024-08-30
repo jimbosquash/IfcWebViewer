@@ -3,6 +3,7 @@ import { tokens } from "../../../../theme";
 import { useState } from "react";
 import AssemblyInfoPanel from "./AssemblyInfoPanel";
 import ElementInfoPanel from "./ElementInfoPanel";
+import { useComponentsContext } from "../../../../context/ComponentsContext";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -35,6 +36,8 @@ export const PropertyOverViewPanel = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [value, setValue] = useState(0);
+
+
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
@@ -79,16 +82,16 @@ export const PropertyOverViewPanel = () => {
         >
           <Box component={"div"} sx={{ borderBottom: 1, borderColor: "divider" }}>
             <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-            <StyledTab label="Assembly" {...a11yProps(0)} index={0} />
-              <StyledTab label="Elements" {...a11yProps(1)} index={1} />
+            <StyledTab label="Element" {...a11yProps(0)} index={0} />
+              <StyledTab label="Assembly" {...a11yProps(1)} index={1} />
               {/* <StyledTab label="Settings" {...a11yProps(2)} index={2} /> */}
             </Tabs>
           </Box>
           <Box component={"div"} height="100%">
-            <CustomTabPanel value={value} index={1}>
+            <CustomTabPanel value={value} index={0}>
               <ElementInfoPanel/>
             </CustomTabPanel>
-            <CustomTabPanel value={value} index={0}>
+            <CustomTabPanel value={value} index={1}>
               <AssemblyInfoPanel />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={2}>

@@ -67,32 +67,6 @@ const AssemblyBrowser = () => {
             width: "100%",
           }}
         >
-          <Box
-            component="div"
-            padding='5px'
-            sx={{...nonSelectableTextStyle}}
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Typography noWrap variant="h6" sx={{ flexGrow: 1 }}>
-              {" "}
-              Assembly Browser
-            </Typography>
-
-            <Typography noWrap variant="h6" sx={{textAlign:"right",flexGrow: 1, color: colors.grey[700] }}>
-              {groups?.length}
-            </Typography>
-            <IconButton
-              size="small"
-              sx={{ marginLeft: "16px", color: colors.grey[300] }}
-              onClick={() => {
-                setStationsVisible(!stationsVisible);
-              }}
-            >
-              {stationsVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-            </IconButton>
-          </Box>
           <div>
             <Box
               component="div"
@@ -100,9 +74,6 @@ const AssemblyBrowser = () => {
               maxHeight="100%"
               overflow="auto"
               width="90%"
-              // padding="0px"
-              // maxWidth="80vw"
-              // boxShadow= '0 0 10px rgba(0, 0, 0, 0.1)'
             >
               {stationsVisible &&
                 groups &&
