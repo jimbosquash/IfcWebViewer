@@ -257,7 +257,7 @@ export const isolate = async (elements: BuildingElement[], components: OBC.Compo
  * we assume that grouping is done by property values and that building elements have the properties 
  * in node order.
  */
-export const setUpTree = (elements: BuildingElement[], nodeOrder: string[] = ["Station", "BuildingStep"]) => {
+export const setUpTreeFromProperties = (elements: BuildingElement[], nodeOrder: string[] | knownProperties[] = ["Station", "BuildingStep"]) => {
 
   const tree = new Tree<BuildingElement>("Project", "Project");
   const root = tree.getNode("Project")

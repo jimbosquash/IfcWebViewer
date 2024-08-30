@@ -2,7 +2,7 @@ import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import * as OBF from "@thatopen/components-front"
 import * as THREE from 'three'
-import { setUpTree } from "../../utilities/BuildingElementUtilities";
+import { setUpTreeFromProperties } from "../../utilities/BuildingElementUtilities";
 import { GetFragmentsFromExpressIds } from "../../utilities/IfcUtilities";
 import { BuildingElement, SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
 import { Tree, TreeNode, TreeUtils } from "../../utilities/Tree";
@@ -27,7 +27,7 @@ export class ModelViewManager extends OBC.Component {
      */
     private _tree?: Tree<BuildingElement>;
 
-    private _trees: Map<string,TreeContainer> = new Map();
+    // private _trees: Map<string,TreeContainer> = new Map();
 
 
     /**
@@ -41,6 +41,12 @@ export class ModelViewManager extends OBC.Component {
      * it helps us determine whats important to show the user and whats next and before this group when changing.
      */
     private _selectedGroup?: SelectionGroup;
+
+    /**
+     * A collection of building elements that can be changed by other components to prevent specific elements from
+     * showing during visibility update. it is the responsibility of the other component to also clear this collection.
+     */
+    private _AdditionalHiddenElements: Set<BuildingElement> = new Set();
 
 
     readonly onTreeChanged = new OBC.Event<Tree<BuildingElement> | undefined>();
@@ -102,7 +108,7 @@ export class ModelViewManager extends OBC.Component {
             return;
         }
 
-        this._tree = setUpTree(buildingElements);
+        this._tree = setUpTreeFromProperties(buildingElements);
         console.log("tree created:", this._tree)
         this.onTreeChanged.trigger(this._tree);
 
@@ -351,6 +357,15 @@ export class ModelViewManager extends OBC.Component {
 
         const visibilityTypes = this.groupElementsByVisibilityState();
         if (visibilityTypes) {
+
+            //remove hidden from visible group and add to hidden
+            const filterredVisibles = visibilityTypes?.get(VisibilityState.Visible)?.filter(element => !this._AdditionalHiddenElements.has(element))
+            if(filterredVisibles)
+            visibilityTypes?.set(VisibilityState.Visible,filterredVisibles)
+            const newHidden = visibilityTypes?.get(VisibilityState.Hidden)?.filter(element => !this._AdditionalHiddenElements.has(element))
+            if(newHidden)
+            visibilityTypes?.get(VisibilityState.Hidden)?.push(...newHidden)
+            
             this.SetVisibility(fragments, visibilityTypes.get(VisibilityState.Visible), VisibilityState.Visible);
             this.SetVisibility(fragments, visibilityTypes.get(VisibilityState.Hidden), VisibilityState.Hidden);
             this.SetVisibility(fragments, visibilityTypes.get(VisibilityState.Ghost), VisibilityState.Ghost);

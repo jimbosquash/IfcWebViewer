@@ -1,13 +1,30 @@
 import { Icon } from "@iconify/react";
 import { Box, Tooltip, Typography, useTheme } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { nonSelectableTextStyle } from "../../../../styles";
 import { tokens } from "../../../../theme";
+import { Tree, TreeNode } from "../../../../utilities/Tree";
+import { BuildingElement } from "../../../../utilities/types";
+
+interface TreeOverviewProps {
+    name: string;
+    tree: Tree<BuildingElement> | undefined;
+}
+
+export const MaterialOverviewPanel : React.FC<TreeOverviewProps> = ({tree, name}) => {
+    const [nodes,setNodes] = useState<TreeNode<BuildingElement>[]>()
 
 
-export const MaterialOverviewPanel : React.FC = () => {
-    const [groups,setGroups] = useState<any[]>(['lvl','mdf','lvlq',''])
+    useEffect(() => {
+        if(!tree) return;
+        // console.log('children', tree)
+
+        // now remove top tree as its project
+        const children = tree.root.children.values()
+        console.log('children', children)
+        setNodes([...children]);
+    },[tree])
 
     return (
         <>
@@ -28,8 +45,8 @@ export const MaterialOverviewPanel : React.FC = () => {
                   overflow="auto"
                   width="90%"
                 >
-                    {Array.from(groups).map((data, index) => (
-                      <FloatingBox key={`${data}-${index}`} />
+                    {nodes && Array.from(nodes).map((data, index) => (
+                      <FloatingBox name={data.name} node={data} key={`${data}-${index}`} />
                       ))}
                 </Box>
               </div>
@@ -38,14 +55,23 @@ export const MaterialOverviewPanel : React.FC = () => {
       );
 }
 
+interface TreeNodeBoxProps {
+  name: string;
+  node: TreeNode<BuildingElement> | undefined;
+}
 
-const FloatingBox = () => {
+
+const FloatingBox : React.FC<TreeNodeBoxProps> = ({name, node}) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const components = useComponentsContext();
     const [isHovered, setIsHovered] = useState(false);
     const [isSelected, setIsSelected] = useState(false);
     const [isVisible, setIsVisible] = useState<boolean>(false); // check this
+
+    useEffect(() => {
+      console.log("child container",name,node)
+    },[])
 
     const handelDoubleClick = () => {
         setSelected();
@@ -69,7 +95,7 @@ const FloatingBox = () => {
       }
 
     return (
-        <Tooltip title={"Material: LVL"}>
+        <Tooltip title={name}>
           <Box component="div">
             <Box
               component="div"
@@ -86,15 +112,16 @@ const FloatingBox = () => {
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                border: isSelected ? "1px solid #ccc" : "none",
-                backgroundColor: isSelected ? colors.blueAccent[600] : colors.grey[900],
+                borderColor: colors.grey[1000],
+                border: isSelected ? "1px solid #ccc" : "0.8px solid #ccc",
+                backgroundColor: isSelected || isHovered ? colors.grey[800] : colors.grey[1000],
                 transition: "all 0.2s ease",
                 justifyContent: "space-between",
                 overflow: "hidden", // Ensures no overflow issues
               }}
             >
               {/* <Icon icon="system-uicons:boxes" color={isSelected ? colors.primary[100] : colors.grey[500]} /> */}
-              <Icon icon="game-icons:wood-beam" color={isSelected ? colors.primary[100] : colors.grey[500]}/>
+              <Icon icon="game-icons:wood-beam" color={isSelected || isHovered ? colors.primary[100] : colors.grey[500]}/>
               <Typography
                 noWrap
                 // maxWidth="105px"
@@ -104,7 +131,7 @@ const FloatingBox = () => {
                 alignContent= "left"
                 sx={{
                   flexGrow: 1,
-                  color: isSelected ? colors.primary[100] : colors.grey[600],
+                  color: isSelected || isHovered? colors.primary[100] : colors.grey[600],
                   ...nonSelectableTextStyle,
                   ml: 1,
                   display: { xs: "none", sm: "block" },
@@ -114,17 +141,16 @@ const FloatingBox = () => {
                   textOverflow: "ellipsis", // Adds ellipsis to overflow text
                 }}
               >
-                Material name
+                {name}
                 {/* {displayName} */}
               </Typography>
               <Typography
-                color={isSelected ? colors.primary[100] : colors.grey[600]}
                 noWrap
                 variant="body2"
                 sx={{
                   ...nonSelectableTextStyle,
                   marginLeft: "10px",
-                  color: isSelected ? colors.primary[100] : colors.grey[600],
+                  color: isSelected || isHovered ? colors.primary[100] : colors.grey[600],
                   variant: "body2",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
@@ -132,7 +158,7 @@ const FloatingBox = () => {
                   display: { xs: "none", sm: "block" }, // Responsive: hides on extra small screens
                 }}
               >
-                Qnt : 12
+                Qnt : {node?.children?.size ?? ""}
               </Typography>
               {/* <IconButton
                 size="small"
