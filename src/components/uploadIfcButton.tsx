@@ -4,10 +4,9 @@ import UploadOutlinedIcon from "@mui/icons-material/UploadOutlined";
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import {tokens} from "../theme"
-import SetUpIfcComponents from "./setUpIfcComponents";
 import * as THREE from "three"
 import { MeshStandardMaterial } from "three";
-import { ComponentsContext } from "../context/ComponentsContext";
+import { useComponentsContext } from "../context/ComponentsContext";
 
 
 async function LoadIfcFile(file: File, components: OBC.Components) : Promise<FRAGS.FragmentsGroup | undefined> {
@@ -53,7 +52,7 @@ console.log("opening file",fragmentIfcLoader)
   const UploadIfcButton: React.FC<UploadIfcButtonProps> = ({ onIfcFileLoad, setFileName }) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
-    const components = useContext(ComponentsContext);
+    const components = useComponentsContext();
   
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files ? event.target.files[0] : null;

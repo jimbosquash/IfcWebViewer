@@ -1,8 +1,7 @@
 import * as FRAGS from "@thatopen/fragments";
 import * as THREE from "three";
-import { MeshProps, useThree } from "@react-three/fiber";
+import { MeshProps } from "@react-three/fiber";
 import { useEffect, useRef, useState } from "react";
-import { MeshStandardMaterial } from "three";
 //import GetEdges from "./GetEdges";
 import * as OBC from "@thatopen/components";
 

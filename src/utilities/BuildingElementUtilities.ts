@@ -1,5 +1,5 @@
 import { Tree, TreeNode, TreeUtils } from "./Tree";
-import { SelectionGroup, BuildingElement, KnowGroupType } from "./types";
+import { SelectionGroup, BuildingElement, KnowGroupType, knownProperties } from "./types";
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
 import { ModelCache } from "../bim-components/modelCache";
@@ -301,3 +301,10 @@ export const groupElementsByPropertyName = (elements: BuildingElement[], propert
   });
   return grouped;
 };
+
+export const GetPropertyByName = (element:BuildingElement, propertyName: knownProperties) => {
+  if(!element || !propertyName)
+   return;
+
+   return element.properties.find(p => p.name === propertyName);
+}

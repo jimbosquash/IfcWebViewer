@@ -2,8 +2,9 @@ import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
 import { Mark } from "@thatopen/components-front";
 import * as THREE from "three";
+import { GetPropertyByName } from "../../utilities/BuildingElementUtilities";
 import { GetAllVisibleExpressIDs, GetCenterPoints } from "../../utilities/IfcUtilities";
-import { BuildingElement } from "../../utilities/types";
+import { BuildingElement, knownProperties } from "../../utilities/types";
 import { ModelCache } from "../modelCache";
 import { ModelViewManager } from "../modelViewer";
 import { Tag } from "./src/Tag";
@@ -87,12 +88,12 @@ export class ModelTagger extends OBC.Component {
                 this.updateVisibilityFromModel();
             }
 
-            }
         }
+    }
 
     get enabled() {
-            return this._enabled
-        }
+        return this._enabled
+    }
 
     /**
      * search three js model and find what is visible and set visibility based on that
@@ -168,6 +169,21 @@ export class ModelTagger extends OBC.Component {
         // console.log("model", cache.models())
         const centers = GetCenterPoints(cache.models(), elements, this.components);
 
+        // // Step 1: Group BuildingElements by Material
+        // const groupedByMaterial = new Map<string, BuildingElement[]>();
+
+        // centers.forEach((_, buildingElement) => {
+
+        //     const material = GetPropertyByName(buildingElement,knownProperties.Material)?.value ?? "";
+        //     if (!groupedByMaterial.has(material)) {
+        //         groupedByMaterial.set(material, []);
+        //     }
+        //     groupedByMaterial.get(material)?.push(buildingElement);
+        // });
+
+
+
+
         [...centers].forEach((element) => {
             // console.log('createmarker')
             if (this._world?.uuid && element[1].position) {
@@ -192,4 +208,9 @@ export class ModelTagger extends OBC.Component {
         preview.visible = false
         return preview;
     }
+
+    // Function to generate a random hex color code
+    private generateRandomHexColor = (): string => {
+        return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+    };
 }

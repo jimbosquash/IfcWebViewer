@@ -55,7 +55,14 @@ export interface SelectionGroup {
   }
 
   // names of properties that we commonly use for ifc export
-  export type knownProperties = "Aantal" |"Bouwnummer"| "Productcode" | "Materiaal"
+  // export type knownProperties = "Aantal" |"Bouwnummer"| "Productcode" | "Materiaal"
+
+  export enum knownProperties {
+    Count = "Aantal",
+    BuildingNumber = "Bouwnummer",
+    ProductCode = "Productcode",
+    Material = 'Materiaal'
+  }
   
   
 // can I stash visibility state on elements directly and still cleaning support groups temp trans state?

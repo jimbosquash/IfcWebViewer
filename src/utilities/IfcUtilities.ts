@@ -293,10 +293,17 @@ export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, com
     // this process attempting example https://github.com/ThatOpen/engine_components/blob/318f4dd9ebecb95e50759eb41f290df57c008fb3/packages/core/src/ifc/IfcRelationsIndexer/index.ts#L235
     const foundElements = new Map<number, BuildingElement>();// = Map<number,buildingElement[]>;
     const elements = loadedModel.getLocalProperties();
+    console.log('getBuildingElements: elements')
     await OBC.IfcPropertiesUtils.getRelationMap(loadedModel, WEBIFC.IFCRELDEFINESBYPROPERTIES, (async (propertySetID, _relatedElementsIDs) => {
 
+        if(!_relatedElementsIDs) {
+            console.log('getBuildingElements: _relatedElementsIDs',propertySetID, _relatedElementsIDs)
+            return;}
+
         _relatedElementsIDs.forEach(relatingElement => {
-            if (elements) {
+            console.log('getBuildingElements: relatingElement',relatingElement)
+
+            if (elements && relatingElement) {
                 const element = elements[relatingElement]
                 // console.log("element related", element)
                 const fragKey = Object.keys(loadedModel.getFragmentMap([element.expressID]))[0]
@@ -305,10 +312,10 @@ export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, com
                 if (!newElement) {
                     newElement = {
                         expressID: element.expressID,
-                        GlobalID: element.GlobalId.value,
+                        GlobalID: element.GlobalId?.value,
                         FragmentID: fragKey,
                         type: element.type,
-                        name: element.Name.value,
+                        name: element.Name?.value,
                         properties: [],
                         modelID: loadedModel.uuid
                     };
