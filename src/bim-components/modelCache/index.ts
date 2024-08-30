@@ -104,7 +104,7 @@ export class ModelCache extends OBC.Component {
         // console.log(result)
 
         this._buildingElements = result;
-        this.components.get(ModelViewManager).setUpGroups(this._buildingElements);
+        this.components.get(ModelViewManager).setUpDefaultTree(this._buildingElements);
         console.log("building element count:", this._buildingElements?.length)
         return true;
     }
@@ -132,7 +132,7 @@ export class ModelCache extends OBC.Component {
             // console.log('ModelCache: building elements changed', this._buildingElements)
             this.onBuildingElementsChanged.trigger(this._buildingElements);
 
-            this.components.get(ModelViewManager).setUpGroups(this._buildingElements);
+            this.components.get(ModelViewManager).setUpDefaultTree(this._buildingElements);
             this.components.get(OBC.FragmentsManager).onFragmentsDisposed.add((data) => {
                 this.delete(data.groupID)
                 console.log("fragmentunloaded", data)

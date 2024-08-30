@@ -15,7 +15,6 @@ const AssemblyBrowser = () => {
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
   const [groups, setGroups] = useState<TreeNode<BuildingElement>[]>();
-  const [stationsVisible, setStationsVisible] = useState<boolean>(true);
 
   useEffect(() => {
     if (!components) return;
@@ -44,18 +43,6 @@ const AssemblyBrowser = () => {
     }
   };
 
-
-  const HeaderBoxStyle = {
-    // backgroundColor: colors.primary[400],
-    // boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-    // border: '1px solid #ccc',
-    padding: "5px",
-    // width: "240px",
-    margin: "10px",
-    borderRadius: "8px",
-    cursor: "grab",
-  };
-
   return (
     <>
         <div
@@ -75,8 +62,7 @@ const AssemblyBrowser = () => {
               overflow="auto"
               width="90%"
             >
-              {stationsVisible &&
-                groups &&
+              {groups &&
                 Array.from(groups).map((data, index) => (
                   <StationBox key={`${data}-${index}`} node={data} />
                   ))}

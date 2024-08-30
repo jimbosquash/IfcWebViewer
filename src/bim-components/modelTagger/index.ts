@@ -76,13 +76,11 @@ export class ModelTagger extends OBC.Component {
 
         // add or remove listeners to change visibility and marker set
         if (!value) {
-            // viewManager.onVisibilityUpdated.remove((data) => this.updateVisible(data))
             viewManager.onVisibilityUpdated.remove(() => this.createTagsFromModelVisibility())
             cache.onBuildingElementsChanged.remove((data) => this.createTagsFromModelVisibility())
             this._markers.forEach(mark => mark.visible = false)
         }
         if (value) {
-            // viewManager.onVisibilityUpdated.add((data) => this.updateVisible(data))
             viewManager.onVisibilityUpdated.add(() => this.createTagsFromModelVisibility())
             cache.onBuildingElementsChanged.add((data) => this.createTagsFromModelVisibility())
 

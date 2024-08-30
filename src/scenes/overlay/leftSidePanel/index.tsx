@@ -7,8 +7,9 @@ import { BimSettings } from "../../../components/BimSettings";
 import ColorPaletteModal from "../../../components/ColorPalleteModal";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelCache } from "../../../bim-components/modelCache";
+import ProjectOverviewPanel from "./src/ProjectOverViewPanel";
 
-const minWidth = 200;
+const minWidth = 220;
 
 export const LeftSideBox: React.FC = () => {
   const theme = useTheme();
@@ -45,7 +46,7 @@ export const LeftSideBox: React.FC = () => {
 
     if (!autoOpen) return;
 
-    handleIconClick(ProjectOverview(), "overView");
+    handleIconClick(<ProjectOverviewPanel />, "overView");
 
     setPanelOpen(true);
     setAutoOpen(false);
@@ -100,24 +101,6 @@ export const LeftSideBox: React.FC = () => {
     };
   }, [isResizing]);
 
-  const ProjectOverview = () => {
-    return (
-      <Box component="div" flexDirection="column" display="flex" width="100%" marginTop="20px" marginLeft="5px" gap="2">
-        <Box component="div" flexDirection="row" display="flex" marginLeft="10px" gap="4">
-          <Icon style={{ color: colors.grey[500] }} icon="mdi:file-tree-outline" />
-          <Typography marginLeft="8px" variant="h5">
-            Project Overview
-          </Typography>
-        </Box>
-        <Typography marginLeft="8px" marginRight="16px" marginTop="8px" variant="body2">
-          Building elements grouped by work station and building step. Double click to select.
-        </Typography>
-        {/* // Use the navigation arrows to move through them. */}
-        <AssemblyBrowser />
-      </Box>
-    );
-  };
-
   const CommentsPanel = () => {
     return (
       <Box component="div" flexDirection="column" display="flex" width="100%" marginTop="20px" marginLeft="5px" gap="2">
@@ -168,7 +151,7 @@ export const LeftSideBox: React.FC = () => {
             style={{
               backgroundColor: panelContent.name === "overView" && panelOpen ? colors.grey[900] : "transparent",
             }}
-            onClick={() => handleIconClick(ProjectOverview(), "overView")}
+            onClick={() => handleIconClick(<ProjectOverviewPanel />, "overView")}
           >
             <Icon icon="mdi:file-tree-outline" />
           </IconButton>
@@ -236,7 +219,7 @@ export const LeftSideBox: React.FC = () => {
           backgroundColor: colors.primary[100],
           borderColor: colors.primary[900],
           zIndex: 1000,
-          padding: "16px",
+          padding: "0px",
         }}
       >
         {/* Resize Handle */}

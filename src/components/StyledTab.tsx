@@ -42,4 +42,5 @@ const StyledTab: React.FC<StyledTabProps> = ({
   );
 };
 
+
 export default StyledTab;

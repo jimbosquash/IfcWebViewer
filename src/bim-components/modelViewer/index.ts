@@ -9,6 +9,11 @@ import { Tree, TreeNode, TreeUtils } from "../../utilities/Tree";
 import { _roots } from "@react-three/fiber";
 import { ModelCache } from "../modelCache";
 
+interface TreeContainer {
+    name: string; // name of tree
+    tree: Tree<BuildingElement>;
+    visibilityMap: Map<string, VisibilityMode>;
+}
 
 
 export class ModelViewManager extends OBC.Component {
@@ -22,6 +27,9 @@ export class ModelViewManager extends OBC.Component {
      */
     private _tree?: Tree<BuildingElement>;
 
+    private _trees: Map<string,TreeContainer> = new Map();
+
+
     /**
      * tree visibiliy is a map/dictionary of every node in a tree and stores the visibility state of eachnode. if a parent node is hidden this can be helpful to decide how to treat children nodes
      * you can create other visibility maps to suit other purposes such as materaial grouping
@@ -34,13 +42,15 @@ export class ModelViewManager extends OBC.Component {
      */
     private _selectedGroup?: SelectionGroup;
 
-    
+
     readonly onTreeChanged = new OBC.Event<Tree<BuildingElement> | undefined>();
     readonly onBuildingElementsChanged = new OBC.Event<BuildingElement[]>();
     readonly onGroupVisibilitySet = new OBC.Event<Map<string, VisibilityState>>();
     readonly onSelectedGroupChanged = new OBC.Event<SelectionGroup>();
     readonly onVisibilityModeChanged = new OBC.Event<VisibilityMode>();
     readonly onVisibilityUpdated = new OBC.Event<BuildingElement[]>();
+
+    
 
     get SelectedGroup(): SelectionGroup | undefined {
         return this._selectedGroup;
@@ -83,10 +93,10 @@ export class ModelViewManager extends OBC.Component {
     }
 
   /**
-   * Sets up Tree strucutre based on building elements properties and ignortes the ifc file structure
+   * Sets up Tree strucutre based on building elements properties and ignores the ifc file structure
    * 
    */
-    setUpGroups = (buildingElements: BuildingElement[] | undefined, groupVisibility?: Map<string, VisibilityState>): void => {
+    setUpDefaultTree = (buildingElements: BuildingElement[] | undefined, groupVisibility?: Map<string, VisibilityState>): void => {
         if (!buildingElements) {
             this.onTreeChanged.trigger(undefined);
             return;

@@ -3,7 +3,7 @@ import { Icon } from "@iconify/react";
 import { tokens } from "../../../theme";
 import { useEffect, useState } from "react";
 import * as OBF from "@thatopen/components-front";
-import PropertyOverViewPanel from "./src/propertyOverViewPanel";
+import PropertiesPanel from "./src/propertyPanel";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelCache } from "../../../bim-components/modelCache";
 
@@ -94,7 +94,7 @@ export const RightSidePanel: React.FC = () => {
         <Typography marginLeft="16px" variant="h6">
           Properties
         </Typography>
-        <PropertyOverViewPanel />
+        <PropertiesPanel />
       </Box>
     );
   };

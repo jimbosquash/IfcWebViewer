@@ -190,7 +190,7 @@ const ActionButtonPanel = () => {
                   style={{ color: colors.grey[400], border: "0" }}
                   //   variant={open ? "contained" : "outlined"}
                 >
-                  <Icon icon="mdi:eye" />{" "}
+                  <Icon icon="mdi:eye" />
                 </Button>
               </Tooltip>
             </ButtonGroup>
