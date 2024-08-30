@@ -169,39 +169,60 @@ export class ModelTagger extends OBC.Component {
         // console.log("model", cache.models())
         const centers = GetCenterPoints(cache.models(), elements, this.components);
 
-        // // Step 1: Group BuildingElements by Material
-        // const groupedByMaterial = new Map<string, BuildingElement[]>();
+        // Step 1: Group BuildingElements by Material
+        const groupedByMaterial = new Map<string, Map<BuildingElement, Tag>>();
 
-        // centers.forEach((_, buildingElement) => {
+        centers.forEach((tag, buildingElement) => {
 
-        //     const material = GetPropertyByName(buildingElement,knownProperties.Material)?.value ?? "";
-        //     if (!groupedByMaterial.has(material)) {
-        //         groupedByMaterial.set(material, []);
-        //     }
-        //     groupedByMaterial.get(material)?.push(buildingElement);
-        // });
-
-
-
-
-        [...centers].forEach((element) => {
-            // console.log('createmarker')
-            if (this._world?.uuid && element[1].position) {
-                const mark = this.createNewTag(this._world, element[1].text);
-                mark.three.position.copy(element[1].position);
-                mark.three.visible = true;
-                console.log('createmarker', mark)
-                allMarks.set(element[0].expressID, mark);
+            const material = GetPropertyByName(buildingElement, knownProperties.Material)?.value ?? "";
+            if (!groupedByMaterial.has(material)) {
+                groupedByMaterial.set(material, new Map<BuildingElement, Tag>);
             }
+            groupedByMaterial.get(material)?.set(buildingElement, tag);
         });
+
+
+
+        groupedByMaterial.forEach((elements, material) => {
+            const randomColor = this.generateRandomHexColor();
+            // elements.forEach((tag, element) => { tag.color = randomColor});
+            elements.forEach((tag, element) => {
+                console.log('createmarker')
+                if (this._world?.uuid && tag.position) {
+                    tag.color = randomColor;
+                    const mark = this.createNewTag(this._world, tag.text,tag.color);
+                    mark.three.position.copy(tag.position);
+                    mark.three.visible = true;
+                    console.log('createmarker', mark)
+                    allMarks.set(element.expressID, mark);
+                }
+            })
+
+        })
+
+
+
+
+        // [...centers].forEach((element) => {
+        //     // console.log('createmarker')
+        //     if (this._world?.uuid && element[1].position) {
+        //         const mark = this.createNewTag(this._world, element[1].text);
+        //         mark.three.position.copy(element[1].position);
+        //         mark.three.visible = true;
+        //         console.log('createmarker', mark)
+        //         allMarks.set(element[0].expressID, mark);
+        //     }
+        // });
         return allMarks;
     }
 
-    private createNewTag = (world: OBC.World, label: string | null) => {
+    private createNewTag = (world: OBC.World, label: string | null, color: string | undefined) => {
         const icon = document.createElement("bim-label")
         icon.textContent = label;
         //icon.icon = "material-symbols:comment"
-        icon.style.backgroundColor = "var(--bim-ui_bg-base)"
+        // icon.style.backgroundColor = "var(--bim-ui_bg-base)"
+        icon.style.backgroundColor = color ?? "var(--bim-ui_bg-base)";
+        icon.style.color = "white";
         icon.style.padding = "0.5rem"
         icon.style.borderRadius = "0.5rem"
         const preview = new OBF.Mark(world, icon)
