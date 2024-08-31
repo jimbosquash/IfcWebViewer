@@ -22,6 +22,12 @@ export class ModelCache extends OBC.Component {
     // todo: should this be Map<modelID: string, expressIDs :Set<number>>?
     private _buildingElements: BuildingElement[] | undefined;
 
+    /**
+     * Key = BuildingElement GlobalID, value = Fragment.
+     * this is helpful to get to the geometry quickly for things like visibilty checking
+     */
+    private _fragmentsBybuildingElementIDs: Map<string,FRAGS.Fragment> = new Map();
+
     models = (): FRAGS.FragmentsGroup[] => {
         return Array.from(this._models.values())
     }
@@ -48,6 +54,17 @@ export class ModelCache extends OBC.Component {
 
         const buildingElement = this._buildingElements.find(e => e.expressID === expressID && e.modelID === modelID)
         return buildingElement;
+    }
+
+
+    getFragmentByElement(element: BuildingElement): Fragment | undefined {
+        if(!element) return;
+
+        const fragment = this._fragmentsBybuildingElementIDs.get(element.GlobalID)
+        if(!fragment) {
+            console.log('model cache: faile dto get fragment from building elements globalID', element.GlobalID)
+        }
+        return fragment;
     }
 
 
@@ -128,6 +145,13 @@ export class ModelCache extends OBC.Component {
             else {
                 this._buildingElements = this._buildingElements.concat(newElements);
             }
+
+            newElements.forEach(e => {
+                const frag = model.items.find(f => f.id === e.FragmentID)
+                if(!frag) return;
+
+                this._fragmentsBybuildingElementIDs.set(e.GlobalID,frag);
+            })
 
             // console.log('ModelCache: building elements changed', this._buildingElements)
             this.onBuildingElementsChanged.trigger(this._buildingElements);

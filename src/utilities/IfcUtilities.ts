@@ -36,10 +36,32 @@ export function GetFragmentIdMaps(elements: BuildingElement[], components: OBC.C
         if (!model) return;
         const fragIdMap = model?.getFragmentMap(expressIds);
         result = result.concat(fragIdMap)
+
+        Object.entries(fragIdMap).forEach((value,key) => {
+            const fragment = model.items.find(frag => frag.id === value[0])
+            if(!fragment) return;
+
+        })
     });
     return result;
-
 }
+
+
+// export function GetFragment(FragmentIdMap : FragmentIdMap, components: OBC.Components)
+// {
+//     const cache = components.get(ModelCache);
+//     const model = cache.getModel(modelId);
+
+//     Object.entries(FragmentIdMap).forEach((value,key) => {
+//         const fragment = model.items.find(frag => frag.id === value[0])
+//         if(!fragment) return;
+
+//     })
+
+// }
+
+
+
 
 /**
  * search all input Model's fragments and check visibility through HiddenIds collection.

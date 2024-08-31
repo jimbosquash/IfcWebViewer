@@ -118,25 +118,6 @@ export const ProjectOverviewPanel = () => {
                 Building elements grouped by Material type. Double click to select. You can turn visibility on and off
                 whilst using assembly groupings.
               </Typography>
-              <ButtonGroup style={{ marginTop: "18px", marginBottom: "10px", alignSelf: "center" }}>
-                <Tooltip title="clear visibility">
-                  <Button variant="contained">
-                    <Icon style={{ color: colors.grey[600] }} icon="ic:outline-layers-clear" />
-                  </Button>
-                </Tooltip>
-
-                <Tooltip title="toggle visibility">
-                  <Button variant="contained">
-                    <Icon style={{ color: colors.grey[600] }} icon="mdi:eye" />
-                  </Button>
-                </Tooltip>
-
-                <Tooltip title="change colors">
-                  <Button variant="contained">
-                    <Icon style={{ color: colors.grey[600] }} icon="carbon:change-catalog" />
-                  </Button>
-                </Tooltip>
-              </ButtonGroup>
               <MaterialOverviewPanel name="Material Tree" tree={tree} />
             </Box>
           </CustomTabPanel>

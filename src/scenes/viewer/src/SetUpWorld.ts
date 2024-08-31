@@ -103,8 +103,7 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     const highlighter = components.get(OBF.Highlighter)
     if (!highlighter.isSetup) { highlighter.setup({ world }) }
     highlighter.zoomToSelection = true
-    highlighter.events.select.onHighlight.add(() => {console.log('highlight')})
-    highlighter.colors.set('hover', new THREE.Color('#3e4396'))
+    highlighter.colors.set('hover', new THREE.Color('#6870fa'))
     const selectColor = highlighter.colors.get("select");
     if (selectColor) {
       highlighter.add("ActiveGroupSelection", selectColor);
