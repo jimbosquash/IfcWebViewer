@@ -1,5 +1,5 @@
 import { Icon } from "@iconify/react";
-import { Box, Button, ButtonGroup, colors, Tooltip, Typography, useTheme } from "@mui/material";
+import { Box, Button, ButtonGroup, colors, IconButton, Tooltip, Typography, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { nonSelectableTextStyle } from "../../../../styles";
@@ -9,6 +9,7 @@ import { BuildingElement } from "../../../../utilities/types";
 import * as OBF from "@thatopen/components-front";
 import { GetFragmentIdMaps } from "../../../../utilities/IfcUtilities";
 import { ModelCache } from "../../../../bim-components/modelCache";
+import { Visibility } from "@mui/icons-material";
 
 interface TreeOverviewProps {
   name: string;
@@ -16,8 +17,9 @@ interface TreeOverviewProps {
 }
 
 export const MaterialOverviewPanel: React.FC<TreeOverviewProps> = ({ tree, name }) => {
-  const [nodes, setNodes] = useState<TreeNode<BuildingElement>[]>();
+  const [nodes, setNodes] = useState<TreeNodeBoxProps[]>();
   const [visibleOnDoubleClick, setVisibleOnDoubleClick] = useState<boolean>(true);
+  // const [visibleOnDoubleClick, setVisibleOnDoubleClick] = useState<boolean>(true);
 
   useEffect(() => {
     if (!tree) return;
@@ -26,8 +28,34 @@ export const MaterialOverviewPanel: React.FC<TreeOverviewProps> = ({ tree, name 
     // now remove top tree as its project
     const children = tree.root.children.values();
     console.log("children", children);
-    setNodes([...children]);
+    const result = [...children].map((data, index) => {
+      const r = {
+        name: data.name,
+        node: data,
+        key: `${data}-${index}`,
+        visibleOnDoubleClick: visibleOnDoubleClick,
+        setVisibility: 
+      }
+
+      return r;
+
+
+
+
+      // <FloatingBox name={data.name} node={data} key={`${data}-${index}`} visibleOnDoubleClick={visibleOnDoubleClick} />
+    })
+    setNodes(result);
+
+    //setNodes([...children]);
   }, [tree]);
+
+  // when the parent container sets 
+  const setVisibility = (): boolean => {
+
+  }
+
+
+
 
   return (
     <>
@@ -53,9 +81,19 @@ export const MaterialOverviewPanel: React.FC<TreeOverviewProps> = ({ tree, name 
             </Button>
           </Tooltip>
 
-          <Tooltip title= {visibleOnDoubleClick ? "Dont make visible hidden items on double click" : "Make visible hidden items on double click" }>
+          {/* <Tooltip title={visibleOnDoubleClick ? "Dont make visible hidden items on double click" : "Make visible hidden items on double click"}>
             <Button variant="contained" onClick={() => setVisibleOnDoubleClick(!visibleOnDoubleClick)}>
               <Icon style={{ color: colors.grey[600] }} icon="carbon:change-catalog" />
+            </Button>
+          </Tooltip> */}
+          <Tooltip title={"Select All"}>
+            <Button variant="contained" onClick={() => setVisibleOnDoubleClick(!visibleOnDoubleClick)}>
+              <Icon style={{ color: colors.grey[600] }} icon="mdi:checkbox-multiple-marked-outline" />
+            </Button>
+          </Tooltip>
+          <Tooltip title={"Clear all selection"}>
+            <Button variant="contained" onClick={() => setVisibleOnDoubleClick(!visibleOnDoubleClick)}>
+              <Icon style={{ color: colors.grey[600] }} icon="mdi:checkbox-multiple-blank-outline" />
             </Button>
           </Tooltip>
         </ButtonGroup>
@@ -73,12 +111,16 @@ export const MaterialOverviewPanel: React.FC<TreeOverviewProps> = ({ tree, name 
 };
 
 interface TreeNodeBoxProps {
+  key: string;
   name: string;
   node: TreeNode<BuildingElement> | undefined;
   visibleOnDoubleClick: boolean;
+  visibility: (newState: boolean) => void;
 }
 
-const FloatingBox: React.FC<TreeNodeBoxProps> = ({ name, node, visibleOnDoubleClick = true }) => {
+// i want to be able to change the elements visibility from out side the const
+
+const FloatingBox: React.FC<TreeNodeBoxProps> = ({ name, node, visibleOnDoubleClick = true, setVisibility }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
@@ -193,7 +235,7 @@ const FloatingBox: React.FC<TreeNodeBoxProps> = ({ name, node, visibleOnDoubleCl
             sx={{
               ...nonSelectableTextStyle,
               marginLeft: "10px",
-              color: isSelected || isHovered ? colors.primary[100] : colors.grey[600],
+              color: isHovered ? colors.primary[100] : colors.grey[600],
               variant: "body2",
               whiteSpace: "nowrap",
               overflow: "hidden",
@@ -203,17 +245,17 @@ const FloatingBox: React.FC<TreeNodeBoxProps> = ({ name, node, visibleOnDoubleCl
           >
             Qnt : {node?.children?.size ?? ""}
           </Typography>
-          {/* <IconButton
-                size="small"
-                // color={isSelected ? "primary" : "secondary"}
-                sx={{ marginLeft: "8px", color: isSelected ? colors.primary[100] : colors.grey[500] }}
-                onClick={(e: any) => {
-                  e.stopPropagation();
-                  ToggleVisibility();
-                }}
-              >
-                {isVisible ? <VisibilityOutlinedIcon /> : <VisibilityOffOutlinedIcon />}
-              </IconButton> */}
+          <IconButton
+            size="small"
+            // color={isSelected ? "primary" : "secondary"}
+            sx={{ marginLeft: "8px", color: isHovered ? colors.primary[100] : colors.grey[500] }}
+            onClick={(e: any) => {
+              e.stopPropagation();
+              ToggleVisibility();
+            }}
+          >
+            {isVisible ? <Icon icon="mdi:checkbox-outline" /> : <Icon icon="mdi:checkbox-blank-outline" />}
+          </IconButton>
         </Box>
       </Box>
     </Tooltip>
