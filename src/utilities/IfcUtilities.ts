@@ -319,11 +319,11 @@ export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, com
     await OBC.IfcPropertiesUtils.getRelationMap(loadedModel, WEBIFC.IFCRELDEFINESBYPROPERTIES, (async (propertySetID, _relatedElementsIDs) => {
 
         if(!_relatedElementsIDs) {
-            console.log('getBuildingElements: _relatedElementsIDs',propertySetID, _relatedElementsIDs)
+            // console.log('getBuildingElements: _relatedElementsIDs',propertySetID, _relatedElementsIDs)
             return;}
 
         _relatedElementsIDs.forEach(relatingElement => {
-            console.log('getBuildingElements: relatingElement',relatingElement)
+            // console.log('getBuildingElements: relatingElement',relatingElement)
 
             if (elements && relatingElement) {
                 const element = elements[relatingElement]

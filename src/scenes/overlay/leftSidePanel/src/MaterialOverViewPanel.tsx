@@ -1,15 +1,17 @@
 import { Icon } from "@iconify/react";
 import { Box, Button, ButtonGroup, colors, IconButton, Tooltip, Typography, useTheme } from "@mui/material";
-import { useEffect, useState } from "react";
+import { Component, useEffect, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { nonSelectableTextStyle } from "../../../../styles";
 import { tokens } from "../../../../theme";
 import { Tree, TreeNode, TreeUtils } from "../../../../utilities/Tree";
 import { BuildingElement } from "../../../../utilities/types";
 import * as OBF from "@thatopen/components-front";
+import * as FRAGS from "@thatopen/fragments";
 import { GetFragmentIdMaps } from "../../../../utilities/IfcUtilities";
 import { ModelCache } from "../../../../bim-components/modelCache";
 import { Visibility } from "@mui/icons-material";
+import { ModelViewManager } from "../../../../bim-components/modelViewer";
 
 interface TreeOverviewProps {
   name: string;
@@ -17,50 +19,79 @@ interface TreeOverviewProps {
 }
 
 export const MaterialOverviewPanel: React.FC<TreeOverviewProps> = ({ tree, name }) => {
-  const [nodes, setNodes] = useState<TreeNodeBoxProps[]>();
+  const [nodes, setNodes] = useState<TreeNode<BuildingElement>[]>();
+  const [nodeVisibility, setNodeVisibility] = useState<Map<string, boolean>>(); // key = node.id, value = visibility state
   const [visibleOnDoubleClick, setVisibleOnDoubleClick] = useState<boolean>(true);
-  // const [visibleOnDoubleClick, setVisibleOnDoubleClick] = useState<boolean>(true);
+  const components = useComponentsContext();
 
   useEffect(() => {
     if (!tree) return;
-    // console.log('children', tree)
 
     // now remove top tree as its project
-    const children = tree.root.children.values();
-    console.log("children", children);
-    const result = [...children].map((data, index) => {
-      const r = {
-        name: data.name,
-        node: data,
-        key: `${data}-${index}`,
-        visibleOnDoubleClick: visibleOnDoubleClick,
-        setVisibility: 
-      }
+    const children = [...tree.root.children.values()];
 
-      return r;
+    if(!nodeVisibility) {
+      const map = new Map([...children].map((data) => [data.id, true]));
+      setNodeVisibility(map);
+    }
 
+    // console.log("children", children);
 
-
-
-      // <FloatingBox name={data.name} node={data} key={`${data}-${index}`} visibleOnDoubleClick={visibleOnDoubleClick} />
-    })
-    setNodes(result);
-
-    //setNodes([...children]);
+    setNodes(children);
   }, [tree]);
 
-  // when the parent container sets 
-  const setVisibility = (): boolean => {
+  const setVisibility = (nodeID: string, enabled: boolean) => {
+    console.log("node visibilty map:", nodeVisibility);
+    if (!nodeID || nodeVisibility?.get(nodeID) === undefined) {
+      console.log("node visibilty toggle failed no node id:", nodeID);
+      return;
+    }
 
-  }
+    const newVisMap = new Map(nodeVisibility);
+    newVisMap.set(nodeID, enabled);
+    setNodeVisibility(newVisMap);
+
+    // now set up viewer hidden list
 
 
 
+    const viewManager = components.get(ModelViewManager);
+    const cache = components.get(ModelCache);
+
+    const node = nodes?.find((n) => n.id === nodeID);
+    if (!node) return;
+    const elements = TreeUtils.getChildrenNonNullData(node);
+
+
+        // add or remove item from hidden list
+
+    elements.forEach((e) => {
+      const exluded = viewManager.ExludedElements.has(e);
+
+      if (exluded && enabled) {
+        viewManager.ExludedElements.delete(e);
+      } else if (!exluded && !enabled) {
+        viewManager.ExludedElements.add(e);
+      }
+    });
+
+
+    // then show or hide items in 3d space
+
+    elements.forEach((element) => {
+      const frag = cache.getFragmentByElement(element);
+      if(!frag) return;
+      frag.setVisibility(enabled, [element.expressID]);
+    });
+    
+
+  };
 
   return (
     <>
       <div
         style={{
+          alignContent: "center",
           top: "0%",
           left: 0,
           zIndex: 50,
@@ -69,23 +100,18 @@ export const MaterialOverviewPanel: React.FC<TreeOverviewProps> = ({ tree, name 
         }}
       >
         <ButtonGroup style={{ marginTop: "18px", marginBottom: "10px", alignSelf: "center" }}>
-          <Tooltip title="clear visibility">
-            <Button variant="contained">
+          <Tooltip
+            title={
+              visibleOnDoubleClick
+                ? "Dont make visible hidden items on double click"
+                : "Make visible hidden items on double click"
+            }
+          >
+            <Button variant="contained" onClick={() => setVisibleOnDoubleClick(!visibleOnDoubleClick)}>
               <Icon style={{ color: colors.grey[600] }} icon="ic:outline-layers-clear" />
             </Button>
           </Tooltip>
-
-          <Tooltip title="toggle visibility">
-            <Button variant="contained">
-              <Icon style={{ color: colors.grey[600] }} icon="mdi:eye" />
-            </Button>
-          </Tooltip>
-
-          {/* <Tooltip title={visibleOnDoubleClick ? "Dont make visible hidden items on double click" : "Make visible hidden items on double click"}>
-            <Button variant="contained" onClick={() => setVisibleOnDoubleClick(!visibleOnDoubleClick)}>
-              <Icon style={{ color: colors.grey[600] }} icon="carbon:change-catalog" />
-            </Button>
-          </Tooltip> */}
+          
           <Tooltip title={"Select All"}>
             <Button variant="contained" onClick={() => setVisibleOnDoubleClick(!visibleOnDoubleClick)}>
               <Icon style={{ color: colors.grey[600] }} icon="mdi:checkbox-multiple-marked-outline" />
@@ -100,8 +126,15 @@ export const MaterialOverviewPanel: React.FC<TreeOverviewProps> = ({ tree, name 
         <div>
           <Box component="div" m="10px" maxHeight="100%" overflow="auto" width="90%">
             {nodes &&
-              Array.from(nodes).map((data, index) => (
-                <FloatingBox name={data.name} node={data} key={`${data}-${index}`} visibleOnDoubleClick={visibleOnDoubleClick} />
+              Array.from(nodes).map((data) => (
+                <FloatingBox
+                  name={data.name}
+                  node={data}
+                  key={data.id}
+                  isEnabled={nodeVisibility?.get(data.id) ?? false}
+                  setEnabled={(args, enabled) => setVisibility(args, enabled)}
+                  visibleOnDoubleClick={visibleOnDoubleClick}
+                />
               ))}
           </Box>
         </div>
@@ -111,25 +144,25 @@ export const MaterialOverviewPanel: React.FC<TreeOverviewProps> = ({ tree, name 
 };
 
 interface TreeNodeBoxProps {
-  key: string;
   name: string;
   node: TreeNode<BuildingElement> | undefined;
   visibleOnDoubleClick: boolean;
-  visibility: (newState: boolean) => void;
+  isEnabled: boolean;
+  setEnabled: (args: string, enabled: boolean) => void;
 }
 
 // i want to be able to change the elements visibility from out side the const
 
-const FloatingBox: React.FC<TreeNodeBoxProps> = ({ name, node, visibleOnDoubleClick = true, setVisibility }) => {
+const FloatingBox: React.FC<TreeNodeBoxProps> = ({ name, node, visibleOnDoubleClick, isEnabled, setEnabled }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
   const [isHovered, setIsHovered] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
-  const [isVisible, setIsVisible] = useState<boolean>(false); // check this
+  // const [isVisible, setIsVisible] = useState<boolean>(isEnabled); // check this
 
   useEffect(() => {
-    console.log("child container", name, node);
+    console.log("child container", node);
   }, []);
 
   // on double click select 3d geometry
@@ -139,13 +172,12 @@ const FloatingBox: React.FC<TreeNodeBoxProps> = ({ name, node, visibleOnDoubleCl
     if (!node) return;
     const elements = TreeUtils.getChildrenNonNullData(node);
     const idMaps = GetFragmentIdMaps(elements, components);
-    // get fragmentID
     if (!idMaps || !idMaps[0]) return;
 
-    if (visibleOnDoubleClick) {
-      const cache = components.get(ModelCache);
+    const cache = components.get(ModelCache);
 
-      // figure out which elements are hidden and if hidden set visibility on fragment
+    // figure out which elements are hidden and if hidden set visibility on fragment
+    if (visibleOnDoubleClick) {
       elements.forEach((element) => {
         const frag = cache.getFragmentByElement(element);
         if (!frag || !frag.hiddenItems.has(element.expressID)) return;
@@ -153,7 +185,26 @@ const FloatingBox: React.FC<TreeNodeBoxProps> = ({ name, node, visibleOnDoubleCl
       });
     }
 
-    highlighter.highlightByID("select", idMaps[0], false, false, undefined);
+    //find out whats visible and only select that
+    const fragmentIdMap: FRAGS.FragmentIdMap = {};
+
+    // go through each fragment id map and if any of those elements are hidden then dont include them or create a new fragment idMap
+    elements.forEach((element) => {
+      const frag = cache.getFragmentByElement(element);
+
+      // Skip if fragment doesn't exist or if the element is not hidden
+      if (!frag || !frag.hiddenItems.has(element.expressID)) return;
+
+      // If this fragment ID doesn't exist in our object yet, initialize it with an empty Set
+      if (!fragmentIdMap[frag.id]) {
+        fragmentIdMap[frag.id] = new Set<number>();
+      }
+
+      fragmentIdMap[frag.id].add(element.expressID);
+    });
+
+    highlighter.highlightByID("select", fragmentIdMap, false, false, undefined);
+    setEnabled(node?.id ?? "", true);
     setIsSelected(true);
   };
 
@@ -172,12 +223,8 @@ const FloatingBox: React.FC<TreeNodeBoxProps> = ({ name, node, visibleOnDoubleCl
     } else {
       highlighter.clear("hover");
     }
+    // console.log("hover clear", highlighter?.selection["hover"]);
   }, [isHovered]);
-
-  const ToggleVisibility = () => {
-    setIsVisible(!isVisible);
-    // update visibility
-  };
 
   return (
     <Tooltip title={name} arrow placement="right">
@@ -198,15 +245,15 @@ const FloatingBox: React.FC<TreeNodeBoxProps> = ({ name, node, visibleOnDoubleCl
             display: "flex",
             alignItems: "center",
             borderColor: colors.grey[1000],
-            border: isSelected ? "1px solid #ccc" : "0.8px solid #ccc",
-            backgroundColor: isSelected || isHovered ? colors.grey[800] : colors.grey[1000],
+            // border: isSelected ? "1.5px solid #ccc" : "0.8px solid #ccc",
+            border: "0.8px solid #ccc",
+            backgroundColor: isHovered ? colors.grey[800] : colors.grey[1000],
             transition: "all 0.2s ease",
             justifyContent: "space-between",
             overflow: "hidden", // Ensures no overflow issues
           }}
         >
-          {/* <Icon icon="system-uicons:boxes" color={isSelected ? colors.primary[100] : colors.grey[500]} /> */}
-          <Icon icon="game-icons:wood-beam" color={isSelected || isHovered ? colors.primary[100] : colors.grey[500]} />
+          <Icon icon="game-icons:wood-beam" color={isHovered ? colors.primary[100] : colors.grey[500]} />
           <Typography
             noWrap
             // maxWidth="105px"
@@ -216,7 +263,7 @@ const FloatingBox: React.FC<TreeNodeBoxProps> = ({ name, node, visibleOnDoubleCl
             alignContent="left"
             sx={{
               flexGrow: 1,
-              color: isSelected || isHovered ? colors.primary[100] : colors.grey[600],
+              color: isHovered ? colors.primary[100] : colors.grey[600],
               ...nonSelectableTextStyle,
               ml: 1,
               display: { xs: "none", sm: "block" },
@@ -247,14 +294,13 @@ const FloatingBox: React.FC<TreeNodeBoxProps> = ({ name, node, visibleOnDoubleCl
           </Typography>
           <IconButton
             size="small"
-            // color={isSelected ? "primary" : "secondary"}
             sx={{ marginLeft: "8px", color: isHovered ? colors.primary[100] : colors.grey[500] }}
             onClick={(e: any) => {
               e.stopPropagation();
-              ToggleVisibility();
+              setEnabled(node?.id ?? "", !isEnabled);
             }}
           >
-            {isVisible ? <Icon icon="mdi:checkbox-outline" /> : <Icon icon="mdi:checkbox-blank-outline" />}
+            {isEnabled ? <Icon icon="mdi:checkbox-outline" /> : <Icon icon="mdi:checkbox-blank-outline" />}
           </IconButton>
         </Box>
       </Box>

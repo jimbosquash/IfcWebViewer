@@ -292,8 +292,8 @@ export const groupElementsByPropertyName = (elements: BuildingElement[], propert
   const grouped = new Map<string, BuildingElement[]>();
   elements.forEach(element => {
     const value = element.properties.find(prop => prop.name === property)?.value || 'Unknown';
-    if(value === "Unknown")
-      console.log("unknown data found",property,element.properties )
+    // if(value === "Unknown")
+    //   console.log("unknown data found",property,element.properties )
     if (!grouped.has(value)) {
       grouped.set(value, []);
     }

@@ -1,13 +1,19 @@
 import { Box, IconButton, Tooltip, useTheme, Typography } from "@mui/material";
 import { Icon } from "@iconify/react";
 import { tokens } from "../../../theme";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as OBF from "@thatopen/components-front";
 import PropertiesPanel from "./src/propertyPanel";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelCache } from "../../../bim-components/modelCache";
 
-export const RightSidePanel: React.FC = () => {
+interface RightSidePanelProps {
+  onWidthChange: (width: number) => void;
+}
+
+export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange }) => {
+  const panelRef = useRef<HTMLDivElement>(null);
+
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
@@ -29,13 +35,32 @@ export const RightSidePanel: React.FC = () => {
 
     return () => {
       cache.onModelAdded.remove(() => listenForModels());
-      console.log("side panel stop listening");    };
+      console.log("side panel stop listening");
+    };
   }, [components]);
 
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        if (entry.target === panelRef.current) {
+          onWidthChange(entry.contentRect.width);
+        }
+      }
+    });
+
+    if (panelRef.current) {
+      resizeObserver.observe(panelRef.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [onWidthChange]);
+
   const listenForModels = () => {
-    console.log('right panel listening for highlight')
+    console.log("right panel listening for highlight");
     if (!autoOpen) return;
-    handleIconClick(propertiesPanel(), "overView")
+    handleIconClick(propertiesPanel(), "overView");
     setAutoOpen(false);
   };
 
@@ -80,10 +105,13 @@ export const RightSidePanel: React.FC = () => {
     if (panelContent.name === panelName && panelOpen) {
       setPanelOpen(false); // Close the panel on double click
       console.log("close panel");
+      onWidthChange(0);
+
     } else {
       setPanelContent({ content, name: panelName });
       setPanelOpen(true); // Open or change content on single click
       console.log("set panel");
+      onWidthChange(panelWidth);
     }
     console.log("panel input", panelContent, content, panelOpen);
   };
@@ -100,7 +128,7 @@ export const RightSidePanel: React.FC = () => {
   };
 
   return (
-    <Box display="flex" height="100vh" width="100vw" component={"div"} position="absolute">
+    <Box ref={panelRef} display="flex" height="100vh" width="100vw" component={"div"} position="absolute">
       <Box
         component={"div"}
         style={{ pointerEvents: "auto", backgroundColor: colors.primary[100], borderColor: colors.primary[900] }} // or 400
@@ -128,8 +156,9 @@ export const RightSidePanel: React.FC = () => {
           </IconButton>
         </Tooltip>
       </Box>
-      {/* Sliding Panel */}
+      {/* exanpding Panel */}
       <Box
+      ref={panelRef}
         component="div"
         borderLeft="1px solid"
         position="absolute"

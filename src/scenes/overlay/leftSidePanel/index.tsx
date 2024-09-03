@@ -50,6 +50,7 @@ export const LeftSideBox: React.FC = () => {
 
     setPanelOpen(true);
     setAutoOpen(false);
+    
   };
 
   const handleIconClick = (content: JSX.Element, panelName: string) => {

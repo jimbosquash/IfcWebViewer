@@ -46,8 +46,23 @@ export class ModelViewManager extends OBC.Component {
      * A collection of building elements that can be changed by other components to prevent specific elements from
      * showing during visibility update. it is the responsibility of the other component to also clear this collection.
      */
-    private _AdditionalHiddenElements: Set<BuildingElement> = new Set();
+    private _additionalHiddenElements: Set<BuildingElement> = new Set();
 
+    /**
+     * A collection of building elements that can be changed by other components to prevent specific elements from
+     * showing during visibility update. it is the responsibility of the other component to also clear this collection.
+     */
+    get ExludedElements(): Set<BuildingElement> {
+        return this._additionalHiddenElements;
+    }
+
+    /**
+     * A collection of building elements that can be changed by other components to prevent specific elements from
+     * showing during visibility update. it is the responsibility of the other component to also clear this collection.
+     */
+    set ExludedElements(elementsToExclude: Set<BuildingElement>) {
+        this._additionalHiddenElements = elementsToExclude;
+    }
 
     readonly onTreeChanged = new OBC.Event<Tree<BuildingElement> | undefined>();
     readonly onBuildingElementsChanged = new OBC.Event<BuildingElement[]>();
@@ -359,10 +374,10 @@ export class ModelViewManager extends OBC.Component {
         if (visibilityTypes) {
 
             //remove hidden from visible group and add to hidden
-            const filterredVisibles = visibilityTypes?.get(VisibilityState.Visible)?.filter(element => !this._AdditionalHiddenElements.has(element))
+            const filterredVisibles = visibilityTypes?.get(VisibilityState.Visible)?.filter(element => !this._additionalHiddenElements.has(element))
             if(filterredVisibles)
             visibilityTypes?.set(VisibilityState.Visible,filterredVisibles)
-            const newHidden = visibilityTypes?.get(VisibilityState.Hidden)?.filter(element => !this._AdditionalHiddenElements.has(element))
+            const newHidden = visibilityTypes?.get(VisibilityState.Hidden)?.filter(element => !this._additionalHiddenElements.has(element))
             if(newHidden)
             visibilityTypes?.get(VisibilityState.Hidden)?.push(...newHidden)
             

@@ -1,5 +1,5 @@
 import { Snackbar, Alert, useTheme, Box, Paper, Typography } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useComponentsContext } from "../../context/ComponentsContext";
 import ActionButtonPanel from "./actionButtonPanel/actionButtonPanel";
 import * as OBC from "@thatopen/components";
@@ -13,6 +13,8 @@ import { uploadFile } from "../../utilities/IfcFileLoader";
 import LeftSideBox from "./leftSidePanel";
 import RightSidePanel from "./rightSidePanel";
 import ColorPaletteModal from "../../components/ColorPalleteModal";
+import CameraIconPanel from "./src/CameraIconPanel";
+import { Icon } from "@iconify/react";
 
 const Overlay = () => {
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -23,6 +25,8 @@ const Overlay = () => {
   const theme = useTheme();
   const { isPropertiesPanelVisible } = useTopBarContext();
   const [hasLoadedModel, setHasLoadedModel] = useState<boolean>(false);
+  const [rightPanelWidth, setRightPanelWidth] = useState(0); // Default width
+
 
   useEffect(() => {
     if (!components) return;
@@ -46,13 +50,6 @@ const Overlay = () => {
   };
 
   const handleLoadedModel = (data: FRAGS.FragmentsGroup | null) => {
-    if (data !== null) {
-
-      const taskManager = components?.get(TaskManager);
-      if (!taskManager) return;
-
-      // taskManager.
-    }
     setHasModel(true);
     console.log("overlay handel opening", hasModel);
     setSnackbarOpen(true);
@@ -60,8 +57,13 @@ const Overlay = () => {
 
   const handleFileUpload = async (data: File) => {
     console.log("OPENING FILE PLEASE WAIT.");
-    await uploadFile(data,components)
+    await uploadFile(data, components);
   };
+
+  const handleRightPanelWidthChange = useCallback((newWidth: number) => {
+    setRightPanelWidth(newWidth);
+    console.log('rightpanel size change',newWidth)
+  }, []);
 
   return (
     <div
@@ -74,7 +76,6 @@ const Overlay = () => {
         pointerEvents: "none",
       }}
     >
-      
       {!hasModel && (
         <Box
           component="div"
@@ -109,21 +110,33 @@ const Overlay = () => {
         </Box>
       )}
 
-        <InfoPanel />
-        <ActionButtonPanel />
+      <InfoPanel />
+      <ActionButtonPanel />
+      {/* Position CameraIconPanel relative to RightSidePanel */}
+      {hasModel && <Box
+        component="div"
+        sx={{
+          position: "absolute",
+          top: 0,
+          right: `${rightPanelWidth + 50}px`,
+          height: "100%",
+          transition: "right 0.2s ease-in-out",
+          pointerEvents: "auto",
+        }}
+      >
+        <CameraIconPanel />
+      </Box>}
 
-
-      <LeftSideBox/>
-      <RightSidePanel/>
+      <LeftSideBox />
+      <RightSidePanel onWidthChange={handleRightPanelWidthChange} />
 
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={5000}
-        
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
-        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: "100%", zIndex:'1200' }}>
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: "100%", zIndex: "1200" }}>
           {fileName} loaded successfully!
         </Alert>
       </Snackbar>
@@ -131,14 +144,3 @@ const Overlay = () => {
   );
 };
 export default Overlay;
-
-
-// {isPropertiesPanelVisible && (
-//   <div style={{ pointerEvents: "auto" }}>
-//     <PropertyOverViewPanel />
-//     {/* <FloatingDataGrid /> */}
-//   </div>
-// )}
-
-
-
