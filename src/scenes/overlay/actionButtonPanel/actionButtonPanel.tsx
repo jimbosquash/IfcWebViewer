@@ -142,7 +142,6 @@ const ActionButtonPanel = () => {
           }}
         >
           <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "40px" }}>
-            <CameraButton />
 
             <VisibilityPropertiesButton />
 
@@ -175,8 +174,6 @@ const ActionButtonPanel = () => {
 
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
 
-            <PlanViewButton />
-            <SetOrthogonalCamera variant="panel" />
             <ShowTagsButton variant="panel"/>
 
             {/* <Button onClick={() => {handleTaskCreate()}}>task</Button>

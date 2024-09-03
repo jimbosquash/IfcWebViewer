@@ -35,7 +35,7 @@ export const PlanViewButton = () => {
     cam.controls.camera.up.set(size.x > size.z ? 0 : 1, 1, 0);
     await cam.controls.setLookAt(center.x, cameraHeight, center.z, center.x, center.y, center.z, false);
     console.log("cam target center:", center.x, center.y, center.z);
-    zoomAll;
+    zoomAll();
   };
   const zoomAll = () => {
     if (!components) return;
