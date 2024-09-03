@@ -8,6 +8,7 @@ import ColorPaletteModal from "../../../components/ColorPalleteModal";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelCache } from "../../../bim-components/modelCache";
 import ProjectOverviewPanel from "./src/ProjectOverViewPanel";
+import TaskBrowserPanel from "./src/TaskBrowserPanel";
 
 const minWidth = 220;
 
@@ -115,6 +116,7 @@ export const LeftSideBox: React.FC = () => {
           Use comments to by clicking the button then clicking on desired element. Comments will only be saved if you
           export a new Ifc model.{" "}
         </Typography>
+        <TaskBrowserPanel/>
         {/* // Use the navigation arrows to move through them. */}
       </Box>
     );

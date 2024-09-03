@@ -28,6 +28,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "src/scenes/overlay/rightSidePanel/src/AssemblyInfoPanel.tsx", "archive/sideBar.tsx"],
+  "include": ["src", "src/scenes/overlay/rightSidePanel/src/AssemblyInfoPanel.tsx", "archive/sideBar.tsx", "archive/uploadIfcButton.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

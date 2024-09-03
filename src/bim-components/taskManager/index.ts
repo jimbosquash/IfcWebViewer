@@ -1,7 +1,4 @@
 import * as OBC from "@thatopen/components";
-
-
-
 import * as WEBIFC from "web-ifc"
 import { transformCsv } from "./src/transform-csv"
 
@@ -14,8 +11,6 @@ import { transformCsv } from "./src/transform-csv"
 
 export class TaskManager extends OBC.Component {
     static uuid = "bd12cd80-7d34-4ab0-b34e-05b7dd617e46" as const;
-    readonly list: Comment[] = []
-    readonly onCommentAdded = new OBC.Event<Comment>()
 
     private _enabled = false
 

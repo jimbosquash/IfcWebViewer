@@ -12,12 +12,24 @@ export class ModelCache extends OBC.Component {
      * key = modelID or fragmentGroup.uuid, value is ifc model
      */
     private _models: Map<string, FRAGS.FragmentsGroup> = new Map<string, FRAGS.FragmentsGroup>;
+    /**
+     * key = module uuid, value = *Uint8Array used for saving adjusted files
+     */
+    private _modelData: Map<string, Uint8Array> = new Map<string, Uint8Array>;
     static uuid = "005d1863-99d7-453d-96ef-c07b309758ce" as const;
     readonly onModelAdded = new OBC.Event<FRAGS.FragmentsGroup>()
     readonly onModelStartRemoving = new OBC.Event<FRAGS.FragmentsGroup>()
     readonly onBuildingElementsChanged = new OBC.Event<BuildingElement[]>()
     readonly onWorldSet = new OBC.Event<OBC.World>()
     private _world: OBC.World | null = null;
+
+    /**
+     * 
+     * @param modelID the uuid of the fragment representing the model
+     */
+    getModelData = (modelID: string) => {
+        return this._modelData.get(modelID);
+    }
 
     // todo: should this be Map<modelID: string, expressIDs :Set<number>>?
     private _buildingElements: BuildingElement[] | undefined;
@@ -129,11 +141,12 @@ export class ModelCache extends OBC.Component {
     // delete
     // remove building building elements
 
-    async add(model: FRAGS.FragmentsGroup): Promise<boolean> {
+    async add(model: FRAGS.FragmentsGroup, data: Uint8Array): Promise<boolean> {
         if (this._models.has(model.uuid))
             return false;
 
         this._models.set(model.uuid, model)
+        this._modelData.set(model.uuid,data)
         console.log("model added to cache", model)
         this.onModelAdded.trigger(model)
 

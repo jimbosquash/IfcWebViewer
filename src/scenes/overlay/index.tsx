@@ -56,7 +56,7 @@ const Overlay = () => {
   };
 
   const handleFileUpload = async (data: File) => {
-    console.log("OPENING FILE PLEASE WAIT.");
+    console.log("Opening Ifc file please wait.");
     await uploadFile(data, components);
   };
 
@@ -111,7 +111,9 @@ const Overlay = () => {
       )}
 
       <InfoPanel />
+
       <ActionButtonPanel />
+
       {/* Position CameraIconPanel relative to RightSidePanel */}
       {hasModel && <Box
         component="div"

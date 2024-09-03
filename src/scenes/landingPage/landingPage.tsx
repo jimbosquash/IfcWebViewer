@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react"
 import SpinnningBox from "./spinningBox"
 import {Box, Button, Fab, IconButton, useTheme} from "@mui/material";
 import ButtonGroup from '@mui/material/ButtonGroup';
-import UploadIfcButton from "../../components/uploadIfcButton"
+import UploadIfcButton from "../../../archive/uploadIfcButton"
 import UploadOutlinedIcon from "@mui/icons-material/UploadOutlined";
 import { useThree } from "@react-three/fiber"
 

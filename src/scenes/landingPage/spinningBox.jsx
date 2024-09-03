@@ -6,7 +6,7 @@ import { useRef,useState } from "react"
 import React from "react"
 import { defaultGetRowsToExport } from "@mui/x-data-grid/internals"
 import { green } from "@mui/material/colors"
-import UploadIfcButton from "../../components/uploadIfcButton"
+import UploadIfcButton from "../../../archive/uploadIfcButton"
 import {Button, Fab, useTheme} from "@mui/material";
 import Typography from '@mui/material/Typography';
 import CardActions from '@mui/material/CardActions';

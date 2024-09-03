@@ -23,7 +23,7 @@ export const uploadFile = async (file: File, components: OBC.Components): Promis
     const model = await ifcLoader.load(data);
     model.name = file.name.replace(".ifc", "");
     setMeshFaceDoubleSided(model)
-    modelCache.add(model)
+    modelCache.add(model, data);
     return model;
 };
 
@@ -67,3 +67,18 @@ const setMeshFaceDoubleSided = (model: FragmentsGroup): void => {
       console.error('Error in setMeshFaceDoubleSided:', error);
     }
   };
+
+  
+  export const uploadIfcFromUserInput = (components: OBC.Components) => {
+    const fileOpener = document.createElement("input");
+    fileOpener.type = "file";
+    fileOpener.accept = ".ifc";
+    fileOpener.onchange = async () => {
+      if (fileOpener.files === null || fileOpener.files.length === 0) return;
+      const file = fileOpener.files[0];
+      fileOpener.remove();
+      uploadFile(file,components);
+    };
+    fileOpener.click();
+  };
+  
