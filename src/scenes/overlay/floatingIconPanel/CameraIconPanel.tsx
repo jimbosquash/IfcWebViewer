@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Box, SpeedDial, SxProps, Theme, Tooltip } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { Icon } from "@iconify/react";
-import IconPanel, { IconButtonConfig } from "./IconPanel";
-import { PlanViewButton } from "../actionButtonPanel/src/planViewButton";
+import IconPanel, { IconButtonConfig } from "./src/IconPanel";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import {
   setCameraNavigation,
   setCameraProjection,
   setOrthogonalView,
   setPlanView,
+  setView,
 } from "../../../utilities/CameraUtilities";
-import CameraButton from "../actionButtonPanel/src/cameraButton";
 import * as OBC from "@thatopen/components";
 import { ModelCache } from "../../../bim-components/modelCache";
 
@@ -69,7 +68,7 @@ const CameraIconPanel: React.FC = () => {
     setCameraLock(!isCameraUnlocked);
   };
 
-  const buttonConfigs: IconButtonConfig[] = [
+  const cameraControlButtons: IconButtonConfig[] = [
     {
         icon: isCameraUnlocked ? <Icon icon="mdi:camera-lock-open-outline" /> : <Icon icon="mdi:camera-lock-outline" />,
         tooltip: isCameraUnlocked ? "Lock Camera" : "Unlock Camera",
@@ -116,20 +115,60 @@ const CameraIconPanel: React.FC = () => {
     },
   ];
 
+  const cameraViews: IconButtonConfig[] = [
+    {
+      icon: <Typography>Left</Typography>,
+      tooltip: "Left View",
+      color: isCameraUnlocked ? "primary" : "success",
+      ariaLabel: "LeftView",
+      disabled: !isCameraUnlocked,
+      size: "small",
+      onClick: () => setView(components,'left',undefined),
+    },
+    {
+      icon: <Typography>Right</Typography>,
+      tooltip: "Right View",
+      color: isCameraUnlocked ? "primary" : "success",
+      ariaLabel: "RightView",
+      disabled: !isCameraUnlocked,
+      size: "small",
+      onClick: () => setView(components,'right',undefined),
+    },
+    {
+      icon: <Typography>Front</Typography>,
+      tooltip: "Front View",
+      color: isCameraUnlocked ? "primary" : "success",
+      ariaLabel: "FrontView",
+      disabled: !isCameraUnlocked,
+      size: "small",
+      onClick: () => setView(components,'front',undefined),
+    },
+    {
+      icon: <Typography>Back</Typography>,
+      tooltip: "Back View",
+      color: isCameraUnlocked ? "primary" : "success",
+      ariaLabel: "BackView",
+      disabled: !isCameraUnlocked,
+      size: "small",
+      onClick: () => setView(components,'back',undefined),
+    },
+  ];
+
   return (
     <Box
       component="div"
       sx={{
         position: "absolute",
-        right: 0,
+        right: 20,
         top: "50%",
         transform: "translateY(-50%)",
-        transition: "right 0.3s ease",
+        transition: "right 0.1s ease",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      <IconPanel buttons={buttonConfigs} />
+      <IconPanel buttons={cameraControlButtons} />
+      <IconPanel buttons={cameraViews} />
     </Box>
   );
 };

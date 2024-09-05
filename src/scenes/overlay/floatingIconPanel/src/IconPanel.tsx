@@ -24,10 +24,6 @@ const IconPanel: React.FC<FloatingIconButtonsProps> = ({ buttons, containerSx })
     <Box
       component="div"
       sx={{
-        position: "fixed",
-        right: 16,
-        top: "50%",
-        transform: "translateY(-50%)",
         display: "flex",
         flexDirection: "column",
         ...containerSx,

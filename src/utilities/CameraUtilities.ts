@@ -12,118 +12,211 @@ import { CameraProjection } from "@thatopen/components";
  * @param components 
  * @returns 
  */
-  export async function setPlanView(components: OBC.Components) {
-    const cache = components?.get(ModelCache);
-    if (!cache?.world) return;
+export async function setPlanView(components: OBC.Components) {
+  const cache = components?.get(ModelCache);
+  if (!cache?.world) return;
 
-    let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
-    cam.projection.set("Orthographic");
-    cam.set("Plan" as OBC.NavModeID);
+  let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
+  cam.projection.set("Orthographic");
+  cam.set("Plan" as OBC.NavModeID);
 
-    const bbox = new THREE.Box3().setFromObject(cache.world.scene.three);
-    const center = bbox.getCenter(new THREE.Vector3());
-    const size = bbox.getSize(new THREE.Vector3());
+  const bbox = new THREE.Box3().setFromObject(cache.world.scene.three);
+  const center = bbox.getCenter(new THREE.Vector3());
+  const size = bbox.getSize(new THREE.Vector3());
 
-    // Calculate the larger of width and depth for optimal framing
-    const maxSize = Math.max(size.x, size.z);
+  // Calculate the larger of width and depth for optimal framing
+  const maxSize = Math.max(size.x, size.z);
 
-    // Set camera position
-    const cameraHeight = maxSize * 5; // Ensure camera is high enough
+  // Set camera position
+  const cameraHeight = maxSize * 5; // Ensure camera is high enough
 
-    // Set camera target to look at the center
-    cam.controls.camera.up.set(size.x > size.z ? 0 : 1, 1, 0);
-    await cam.controls.setLookAt(center.x, cameraHeight, center.z, center.x, center.y, center.z, false);
-    console.log("cam target center:", center.x, center.y, center.z);
-    zoomAllorSelected(components,false);
-  };
+  // Set camera target to look at the center
+  cam.controls.camera.up.set(size.x > size.z ? 0 : 1, 1, 0);
+  await cam.controls.setLookAt(center.x, cameraHeight, center.z, center.x, center.y, center.z, false);
+  console.log("cam target center:", center.x, center.y, center.z);
+  zoomAllorSelected(components, false);
+};
 
-  /**
-   * zoom to all elements, optionaly zoom to only selected elements determined with the OBF.Highlighter.Selected elements
-   * @param components 
-   * @param zoomSelected 
-   * @returns 
-   */
-  export async function zoomAllorSelected(components: OBC.Components,zoomSelected: boolean) {
-    if (!components) return;
-    const cache = components.get(ModelCache);
-    const bboxer = components.get(OBC.BoundingBoxer);
-    if (!cache.world) return;
+/**
+ * Set view to input view desired. will set nav mode to orthogonal and pan.
+ * @param components 
+ * @param viewType 
+ * @param zoomVisible if true zoom to visible geometry, if false zoom to all model. if undefined do not zoom
+ * @returns 
+ */
+export async function setView(components: OBC.Components, viewType: "front" | "back" | "left" | "right" | "top" | "bottom", zoomVisible: boolean | undefined) {
+  const cache = components?.get(ModelCache);
+  if (!cache?.world) return;
+
+  let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
+  // cam.projection.set("Orthographic");
+  // cam.set("Plan" as OBC.NavModeID);
 
 
-    if(zoomSelected)
-    {
-      const highlighter = components.get(OBF.Highlighter);
-      const selected  = highlighter.selection["select"];
-      if(selected){
-      await highlighter.highlightByID('select',selected,true,true,undefined,undefined);
+  // get geometry to fit to view + creat bbox
+  const bboxer = components.get(OBC.BoundingBoxer);
+
+  if (!cache.world.meshes || cache.world.meshes.size === 0) return;
+  cache.world.meshes.forEach(m => bboxer.addMesh(m))
+  //const bbox = new THREE.Box3().setFromObject(cache.world.scene.three);
+  const bbox = bboxer.get();
+  const center = bbox.getCenter(new THREE.Vector3());
+  const size = bbox.getSize(new THREE.Vector3());
+
+  // Calculate the larger of width and depth for optimal framing
+  const maxSize = Math.max(size.x, size.z);
+  // Set camera position
+  const cameraDistance = maxSize * 5; // Ensure camera is high enough
+
+
+  // get camera position based on view type
+
+  let viewDirection: THREE.Vector3;
+  switch (viewType) {
+    case 'front':
+      viewDirection = new THREE.Vector3(-1, 0, 0)
+      break;
+    case 'back':
+      viewDirection = new THREE.Vector3(1, 0, 0)
+      break;
+    case 'right':
+      viewDirection = new THREE.Vector3(0, 0, 1)
+      break;
+    case 'left':
+      viewDirection = new THREE.Vector3(0, 0, -1)
+      break;
+    case 'top':
+      viewDirection = new THREE.Vector3(0, -1, 0)
+      break;
+    case 'bottom':
+      viewDirection = new THREE.Vector3(0, 1, 0)
+      break;
+  }
+
+
+  // Set camera target to look at the center
+  // cam.controls.camera.up.set(0, 1, 0);
+  // await cam.controls.lookInDirectionOf(viewDirection.x, viewDirection.y, viewDirection.z, false)
+  // await cam.controls.fitToBox(bbox, false, { paddingTop: 5, paddingBottom: 5, paddingLeft: 5, paddingRight: 5 })
+  // await cam.controls.fitToBox(bbox, false, { paddingTop: 1, paddingBottom: 1, paddingLeft: 1, paddingRight: 1 })
+  await cam.controls.setLookAt(viewDirection.x * cameraDistance, viewDirection.y * cameraDistance, viewDirection.z * cameraDistance, center.x, center.y, center.z, false);
+  console.log("cam target center:", viewDirection, center.x, center.y, center.z);
+
+  // let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
+
+  // await cache.world.camera?.controls?.fitToBox(bboxer.getMesh(), false)
+    await cam.controls.fitToBox(bbox, false, { cover:false, paddingTop: -2, paddingBottom: -2, paddingLeft: -1, paddingRight: -1 })
+
+
+};
+
+/**
+ * zoom to all elements, optionaly zoom to only selected elements determined with the OBF.Highlighter.Selected elements
+ * @param components 
+ * @param zoomSelected 
+ * @returns 
+ */
+export async function zoomAllorSelected(components: OBC.Components, zoomSelected: boolean) {
+  if (!components) return;
+  const cache = components.get(ModelCache);
+  if (!cache.world) return;
+
+
+  if (zoomSelected) {
+    const highlighter = components.get(OBF.Highlighter);
+    const selected = highlighter.selection["select"];
+    if (selected) {
+      await highlighter.highlightByID('select', selected, true, true, undefined, undefined);
       return;
     }
+  }
+
+  if (!cache.world?.meshes || cache.world.meshes.size === 0)
+    return;
+
+  zoom(components, cache.world.meshes, cache.world.camera, true, true)
+};
+
+/**
+ * 
+ * @param components 
+ * @param meshes 
+ * @param camera 
+ * @param fitToSphere if flase then will fit to box, this can make unextected views
+ */
+export async function zoom(components: OBC.Components, meshes: Set<THREE.Mesh>, camera: OBC.BaseCamera, fitToSphere: boolean, transition: boolean) {
+  const bboxer = components.get(OBC.BoundingBoxer);
+
+  // you can get rid of the time out
+  setTimeout(async () => {
+    if (!meshes || meshes.size === 0) return;
+    meshes.forEach(m => bboxer.addMesh(m))
+    // let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
+    if (fitToSphere) {
+      await camera?.controls?.fitToSphere(bboxer.getSphere(), transition)
+    } else {
+      await camera?.controls?.fitToBox(bboxer.getMesh(), transition)
     }
 
-    setTimeout(async () => {
-      if (!cache.world?.meshes || cache.world.meshes.size === 0) return;
-      cache.world.meshes.forEach(m => bboxer.addMesh(m))
-      // let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
-      await cache.world.camera?.controls?.fitToSphere(bboxer.getSphere(),true)
-      // await cam.fit(cache.world?.meshes, 0.5);
-    }, 50);
-  };
+    // await cam.fit(cache.world?.meshes, 0.5);
+  }, transition ? 50 : 0);
+}
 
-  /**
-   * set camera to orthogonal view. meaning to view the model from above on an angle to get whole view
-   * of model. do not change Projection or NavMode unless requested
-   * @param components 
-   * @returns 
-   */
-  export async function setOrthogonalView(components: OBC.Components, projection: CameraProjection | undefined, navMode: undefined | OBC.NavModeID) {
-    const cache = components?.get(ModelCache);
-    if (!cache?.world) return;
+/**
+ * set camera to orthogonal view. meaning to view the model from above on an angle to get whole view
+ * of model. do not change Projection or NavMode unless requested
+ * @param components 
+ * @returns 
+ */
+export async function setOrthogonalView(components: OBC.Components, projection: CameraProjection | undefined, navMode: undefined | OBC.NavModeID) {
+  const cache = components?.get(ModelCache);
+  if (!cache?.world) return;
 
-    let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
-    //cam.projection.set("Orthographic");
-    //cam.set("Plan" as OBC.NavModeID);
+  let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
+  //cam.projection.set("Orthographic");
+  //cam.set("Plan" as OBC.NavModeID);
 
-    const bbox = new THREE.Box3().setFromObject(cache.world.scene.three);
-    const center = bbox.getCenter(new THREE.Vector3());
-    const size = bbox.getSize(new THREE.Vector3());
+  const bbox = new THREE.Box3().setFromObject(cache.world.scene.three);
+  const center = bbox.getCenter(new THREE.Vector3());
+  const size = bbox.getSize(new THREE.Vector3());
 
-    // Calculate the larger of width and depth for optimal framing
-    const maxSize = Math.max(size.x, size.z);
+  // Calculate the larger of width and depth for optimal framing
+  const maxSize = Math.max(size.x, size.z);
 
-    // Set camera position
-    const cameraHeight = maxSize * 5; // Ensure camera is high enough
+  // Set camera position
+  const cameraHeight = maxSize * 5; // Ensure camera is high enough
 
-    // Calculate the distance the camera should be from the center of the bounding box
-    const maxDim = Math.max(size.x, size.y, size.z);
-    //const fov = cam.three.fov * (Math.PI / 180); // convert vertical fov to radians
+  // Calculate the distance the camera should be from the center of the bounding box
+  const maxDim = Math.max(size.x, size.y, size.z);
+  //const fov = cam.three.fov * (Math.PI / 180); // convert vertical fov to radians
 
-    let cameraDistance = maxDim; /// (2 * Math.tan(fov / 2));
+  let cameraDistance = maxDim; /// (2 * Math.tan(fov / 2));
 
-    // Add some padding to the distance
-    cameraDistance *= 1.2;
-    if(projection !== undefined){
-        cam.projection.set(projection);
-    }
-    if(navMode !== undefined) {
-        cam.set(navMode);
-    }
+  // Add some padding to the distance
+  cameraDistance *= 1.2;
+  if (projection !== undefined) {
+    cam.projection.set(projection);
+  }
+  if (navMode !== undefined) {
+    cam.set(navMode);
+  }
 
-    // Set camera target to look at the center
-    cam.controls.camera.up.set(0, 1, 0);
-    // cam.controls.camera.up.set(size.x > size.z ? 0 : 1, 1, 0);
+  // Set camera target to look at the center
+  cam.controls.camera.up.set(0, 1, 0);
+  // cam.controls.camera.up.set(size.x > size.z ? 0 : 1, 1, 0);
 
-    const calc = cameraDistance / Math.sqrt(2);
-    await cam.controls.setLookAt(
-      center.x + calc,
-      center.y + calc,
-      center.z + calc,
-      center.x,
-      center.y,
-      center.z,
-      false
-    );
-    zoomAllorSelected(components,false);
-  };
+  const calc = cameraDistance / Math.sqrt(2);
+  await cam.controls.setLookAt(
+    center.x + calc,
+    center.y + calc,
+    center.z + calc,
+    center.x,
+    center.y,
+    center.z,
+    false
+  );
+  zoomAllorSelected(components, false);
+};
 /**
  * set the Camera Navigation mode and zoom if true.
  * @param components 
@@ -131,19 +224,19 @@ import { CameraProjection } from "@thatopen/components";
  * @param zoom 
  * @returns 
  */
-  export function setCameraNavigation(components: OBC.Components, newMode: OBC.NavModeID, zoom: boolean) {
-    const cache = components?.get(ModelCache);
-    if (!cache?.world) return;
-    let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
-    console.log("cam mode setting:", newMode);
+export function setCameraNavigation(components: OBC.Components, newMode: OBC.NavModeID, zoom: boolean) {
+  const cache = components?.get(ModelCache);
+  if (!cache?.world) return;
+  let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
+  console.log("cam mode setting:", newMode);
 
-    cam.set(newMode)
-    cam.controls.camera.up.set(0, 1, 0);
-    cam.controls.updateCameraUp();
-    if(zoom) {
-      zoomAllorSelected(components,true);
-    } 
-  };
+  cam.set(newMode)
+  cam.controls.camera.up.set(0, 1, 0);
+  cam.controls.updateCameraUp();
+  if (zoom) {
+    zoomAllorSelected(components, true);
+  }
+};
 
 /**
  * set camera projection and zoom to all if set to true
@@ -152,26 +245,26 @@ import { CameraProjection } from "@thatopen/components";
  * @param zoom 
  * @returns 
  */
-  export function setCameraProjection (components: OBC.Components,newProjection: CameraProjection, zoom: boolean) {
-    const cache = components?.get(ModelCache);
-    if (!cache?.world) return;
-    let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
+export function setCameraProjection(components: OBC.Components, newProjection: CameraProjection, zoom: boolean) {
+  const cache = components?.get(ModelCache);
+  if (!cache?.world) return;
+  let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
 
-    if (cam.projection.current === newProjection) return;
+  if (cam.projection.current === newProjection) return;
 
-    console.log("cam mode setting:", newProjection);
+  console.log("cam mode setting:", newProjection);
 
-    if (newProjection === "Orthographic") {
-      cam.set("Orbit" as OBC.NavModeID);
-      cam.projection.set("Orthographic");
-    } else if (newProjection === "Perspective") {
-      cam.projection.set("Perspective");
-      cam.set("Orbit" as OBC.NavModeID);
-    }
-    cam.controls.camera.up.set(0, 1, 0);
-    cam.controls.updateCameraUp();
+  if (newProjection === "Orthographic") {
+    cam.set("Orbit" as OBC.NavModeID);
+    cam.projection.set("Orthographic");
+  } else if (newProjection === "Perspective") {
+    cam.projection.set("Perspective");
+    cam.set("Orbit" as OBC.NavModeID);
+  }
+  cam.controls.camera.up.set(0, 1, 0);
+  cam.controls.updateCameraUp();
 
-    if(zoom) {
-      zoomAllorSelected(components,false);
-    } 
-  };
+  if (zoom) {
+    zoomAllorSelected(components, false);
+  }
+};

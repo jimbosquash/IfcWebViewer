@@ -13,7 +13,7 @@ import { uploadFile } from "../../utilities/IfcFileLoader";
 import LeftSideBox from "./leftSidePanel";
 import RightSidePanel from "./rightSidePanel";
 import ColorPaletteModal from "../../components/ColorPalleteModal";
-import CameraIconPanel from "./src/CameraIconPanel";
+import CameraIconPanel from "./floatingIconPanel/CameraIconPanel";
 import { Icon } from "@iconify/react";
 
 const Overlay = () => {
