@@ -11,7 +11,7 @@ import { TreeNode, TreeUtils } from "../../../../utilities/Tree";
 import { zoomToBuildingElements } from "../../../../utilities/BuildingElementUtilities";
 import { RiBox3Line } from "react-icons/ri";
 
-export const BuildingStepBox: React.FC<GroupPanelProps> = ({ node }) => {
+export const BuildingStepBox: React.FC<GroupPanelProps> = ({ node,treeID }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [modelViewManager, setModelViewManager] = useState<ModelViewManager | undefined>();
@@ -88,7 +88,7 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({ node }) => {
       const currentVisibility = modelViewManager.GroupVisibility.get(node.id);
       const newVisState =
         currentVisibility === VisibilityState.Hidden ? VisibilityState.Visible : VisibilityState.Hidden;
-      modelViewManager.setVisibility(node.id, newVisState, true);
+      modelViewManager.setVisibility(node.id,treeID, newVisState, true);
       setIsVisible(newVisState !== VisibilityState.Hidden);
       // update visibility
     }
