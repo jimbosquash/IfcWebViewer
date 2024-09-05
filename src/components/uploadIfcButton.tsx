@@ -2,7 +2,6 @@ import { Button, useTheme } from "@mui/material";
 import { useComponentsContext } from "../context/ComponentsContext";
 import { tokens } from "../theme";
 import { uploadIfcFromUserInput } from "../utilities/IfcFileLoader";
-import { Icon } from "@iconify/react";
 
 export const UploadIfcButton: React.FC = () => {
   const components = useComponentsContext();
@@ -26,3 +25,5 @@ export const UploadIfcButton: React.FC = () => {
     </div>
   );
 };
+
+export default UploadIfcButton;
