@@ -1,4 +1,4 @@
-import { AppBar, Box, Button, IconButton, Toolbar, Tooltip, Typography, useTheme } from "@mui/material";
+import { AppBar, Box, IconButton, Toolbar, Tooltip, Typography, useTheme } from "@mui/material";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import { useContext, useEffect, useState } from "react";
@@ -6,7 +6,6 @@ import { ColorModeContext, tokens } from "../../theme";
 import { useTopBarContext } from "../../context/TopBarContext";
 import { useComponentsContext } from "../../context/ComponentsContext";
 import { ModelCache } from "../../bim-components/modelCache";
-import { UploadButton } from "../../bim-components/src/uploadButton";
 import { UploadIfcButton } from "../../components/UploadIfcButton";
 
 const height = "52px";
