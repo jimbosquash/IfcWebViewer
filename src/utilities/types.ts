@@ -1,15 +1,15 @@
 
 
 export enum VisibilityMode {
-    Isolate, // hide all others 
-    Passive, // do nothing
-    showGroup, // show group and hide all others
-    Translucent // transculcent all others
+    Isolate = "Isolate", // hide all others 
+    Passive = "Passive", // do nothing
+    showGroup = "showGroup", // show group and hide all others
+    Translucent ="" // transculcent all others
 }
 export enum VisibilityState {
-    Visible,
-    Hidden,
-    Ghost
+    Visible = "Visible",
+    Hidden = 'Hidden',
+    Ghost = "Ghost"
 }
 
 export enum KnowGroupType {
@@ -61,7 +61,9 @@ export interface SelectionGroup {
     Count = "Aantal",
     BuildingNumber = "Bouwnummer",
     ProductCode = "Productcode",
-    Material = 'Materiaal'
+    Material = 'Materiaal',
+    Assembly = 'Assembly',
+    BuildingStep = "BuildingStep",
   }
   
   

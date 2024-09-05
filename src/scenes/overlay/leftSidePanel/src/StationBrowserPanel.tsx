@@ -1,8 +1,6 @@
-import { Box, useTheme, Typography, IconButton } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import { tokens } from "../../../../theme";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import StationBox from "./StationBox";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
@@ -10,7 +8,7 @@ import { Tree, TreeNode } from "../../../../utilities/Tree";
 import { BuildingElement } from "../../../../utilities/types";
 import { nonSelectableTextStyle } from "../../../../styles";
 
-const AssemblyBrowser = () => {
+const StationBrowserPanel = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
@@ -73,4 +71,4 @@ const AssemblyBrowser = () => {
   );
 };
 
-export default AssemblyBrowser;
+export default StationBrowserPanel;

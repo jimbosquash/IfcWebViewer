@@ -21,18 +21,18 @@ export function GetAdjacentGroup(
   // If no current group, return the first or last station group based on direction
   if (!current) {
 
-    const station = tree.getFirstOrUndefinedNode(n => n.type === KnowGroupType.Station);
-    console.log('getting default group',station,tree)
+    const firstGroup = tree.getFirstOrUndefinedNode(n => n.type !== "Project");
+    console.log('getting default group',firstGroup,tree)
 
-    if (!station) return undefined;
+    if (!firstGroup) return undefined;
 
-    const el = TreeUtils.getChildren(station, n => n.type === KnowGroupType.BuildingElement)
+    const el = TreeUtils.getChildren(firstGroup, n => n.type === KnowGroupType.BuildingElement)
       .map(n => n.data)
       .filter((data): data is NonNullable<typeof data> => data != null)
       .flat();
 
 
-    return { groupType: "Station", id: station.id, groupName: station.name, elements: el };
+    return { groupType: firstGroup.type, id: firstGroup.id, groupName: firstGroup.name, elements: el };
   }
 
   const groupOfType = tree.getNodes(n => n.type === current.groupType).map(n => n.id);
@@ -273,7 +273,7 @@ export const setUpTreeFromProperties = (elements: BuildingElement[], nodeOrder: 
 
     const currentNodeType = nodeOrder[currentLevel];
     const groupedElements = groupElementsByPropertyName(currentElements, currentNodeType);
-    console.log("Grouping elements by prop", groupedElements)
+    // console.log("Grouping elements by prop", groupedElements)
 
     groupedElements.forEach((groupElements, groupValue) => {
       const nodeId = `${parentNode.id}_${currentNodeType}_${groupValue}`;
@@ -284,7 +284,7 @@ export const setUpTreeFromProperties = (elements: BuildingElement[], nodeOrder: 
 
   if (root)
     createSubTree(root, elements, 0)
-
+  console.log('tree created', tree)
   return tree;
 }
 

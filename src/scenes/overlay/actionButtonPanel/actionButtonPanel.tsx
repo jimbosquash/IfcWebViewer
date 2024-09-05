@@ -17,6 +17,8 @@ import { VisibilityPropertiesButton } from "./src/visibilityPropertiesButton";
 import { PlanViewButton } from "./src/planViewButton";
 import SetOrthogonalCamera from "../../../components/SetOrthogonalCamera";
 import ShowTagsButton from "../../../components/ShowTagsButton";
+import { PiSelectionBackgroundBold } from "react-icons/pi";
+import { GiClick } from "react-icons/gi";
 
 interface floatingButtonProps {
   togglePropertyPanelVisibility: () => void;
@@ -29,14 +31,15 @@ const ActionButtonPanel = () => {
   const components = useComponentsContext();
   const [visibilityMode, setVisibilityMode] = useState<VisibilityMode>();
   const [newIfcFile, setnewIfcFile] = useState<Uint8Array>();
+  // const [selectedVisibilityMode, setVisibiliyMode] = useState<VisibilityMode>();
 
   useEffect(() => {
     if (!components) return;
 
     const viewManager = components.get(ModelViewManager);
     if (!viewManager) return;
-    const fragments = components.get(OBC.FragmentsManager);
-    const cache = components.get(ModelCache);
+    setVisibilityMode(viewManager.VisibilityMode);
+    console.log("Visibility mode set", viewManager.VisibilityMode);
 
     viewManager.onVisibilityModeChanged.add(handelVisibilityModeChange);
     //fragments.onFragmentsLoaded.add((data) => handleLoadedModel(data));
@@ -49,6 +52,19 @@ const ActionButtonPanel = () => {
     };
   }, [components]);
 
+  const toggleVisibilityMode = () => {
+    const viewManager = components?.get(ModelViewManager);
+    // if (!visibilityMode || !viewManager || visibilityMode === viewManager.VisibilityMode) return;
+    // setVisibiliyMode(visibilityMode);
+
+    if (visibilityMode === "Isolate") viewManager.VisibilityMode = VisibilityMode.Passive;
+    if (visibilityMode === "Passive") viewManager.VisibilityMode = VisibilityMode.Isolate;
+    setVisibilityMode(viewManager.VisibilityMode);
+
+    console.log("Visibility mode", visibilityMode, viewManager.VisibilityMode);
+    // handleClose();
+  };
+
   const setAdjacentGroup = async (adjacency: "previous" | "next") => {
     console.log();
 
@@ -60,11 +76,10 @@ const ActionButtonPanel = () => {
       console.log("No group selected, default will be used");
     }
     // console.log("Setting adjacent",current);
-
+    console.log("GetAdjacentGroup to", current);
     const newGroup = GetAdjacentGroup(current, viewManager.Tree, adjacency);
 
-    if(!newGroup) {
-      
+    if (!newGroup) {
     }
 
     if (newGroup) {
@@ -142,8 +157,22 @@ const ActionButtonPanel = () => {
           }}
         >
           <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "40px" }}>
-
-            <VisibilityPropertiesButton />
+            <Tooltip
+              title={visibilityMode === VisibilityMode.Isolate ? "Set to Previous Visible Mode" : "Set to Isolate mode"}
+            >
+              <Button
+                onClick={toggleVisibilityMode}
+                style={{ color: colors.grey[200], border: "0" }}
+                variant={"outlined"}
+              >
+                {visibilityMode === VisibilityMode.Isolate ? (
+                  <Icon icon="mdi-light:vector-difference-ab" />
+                ) : (
+                  <Icon icon="mdi-light:vector-arrange-below" />
+                )}
+              </Button>
+            </Tooltip>
+            {/* <VisibilityPropertiesButton /> */}
 
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
 
@@ -174,7 +203,7 @@ const ActionButtonPanel = () => {
 
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
 
-            <ShowTagsButton variant="panel"/>
+            <ShowTagsButton variant="panel" />
 
             {/* <Button onClick={() => {handleTaskCreate()}}>task</Button>
             <SaveButton data={newIfcFile} filename={"newTaskFile"} /> */}

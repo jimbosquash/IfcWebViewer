@@ -127,7 +127,7 @@ export class HighlightExtension extends OBC.Component {
                     const newTag = this.createNewTag(this.world, this._hitLabel);
                     this._previewElement.dispose();
                     this._previewElement = newTag;
-                    console.log("Checkhit success modelID:", element)
+                    // console.log("Checkhit success modelID:", element)
                 }
 
             }

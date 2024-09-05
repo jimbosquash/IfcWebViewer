@@ -2,7 +2,7 @@ import { Box, IconButton, Tooltip, useTheme, Typography, Paper, styled } from "@
 import { Icon } from "@iconify/react";
 import { tokens } from "../../../theme";
 import { useEffect, useState } from "react";
-import AssemblyBrowser from "./src/AssemblyBrowser";
+import StationBrowserPanel from "./src/StationBrowserPanel";
 import { BimSettings } from "../../../components/BimSettings";
 import ColorPaletteModal from "../../../components/ColorPalleteModal";
 import { useComponentsContext } from "../../../context/ComponentsContext";
@@ -51,7 +51,6 @@ export const LeftSideBox: React.FC = () => {
 
     setPanelOpen(true);
     setAutoOpen(false);
-    
   };
 
   const handleIconClick = (content: JSX.Element, panelName: string) => {
@@ -116,7 +115,7 @@ export const LeftSideBox: React.FC = () => {
           Use comments to by clicking the button then clicking on desired element. Comments will only be saved if you
           export a new Ifc model.{" "}
         </Typography>
-        <TaskBrowserPanel/>
+        <TaskBrowserPanel />
         {/* // Use the navigation arrows to move through them. */}
       </Box>
     );
@@ -222,7 +221,8 @@ export const LeftSideBox: React.FC = () => {
           backgroundColor: colors.primary[100],
           borderColor: colors.primary[900],
           zIndex: 1000,
-          padding: "0px",
+
+          // padding: "0px",
         }}
       >
         {/* Resize Handle */}
@@ -238,12 +238,34 @@ export const LeftSideBox: React.FC = () => {
           }}
           onMouseDown={handleMouseDown}
         />
-        {/* Panel Content */}
+
+        {/* Main Panel Content Container */}
         <Box
           component="div"
-          flexGrow={1} // Allow the content to take up the remaining space
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            flexGrow: 1,
+            width:'100%',
+            height: "100%",
+          }}
         >
-          {panelContent.content}
+          {/* You can add a header here if needed */}
+
+          {/* Scrollable Content Area */}
+          <Box
+            component="div"
+            style={{
+              flexGrow: 1,
+              // overflowY: "auto",
+              // overflowX: "hidden",
+              // padding: "16px",
+            }}
+          >
+            {panelContent.content}
+          </Box>
+
+          {/* You can add a footer here if needed */}
         </Box>
       </Box>
     </Box>

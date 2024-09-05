@@ -70,14 +70,35 @@ export const TopDisplay = () => {
             </Box>
 
             <Box
-              component="img"
-              src="/images/Sustainer-Logo-Beeldscherm-RGB-Kleur-Klein.png"
-              alt="Logo"
+              component="div"
+              display="flex"
+              alignItems="flex-end" // Changed from 'center' to 'flex-end'
+              justifyContent="center" // Added to center horizontally
               sx={{
-                height: "52px",
-                objectFit: "contain",
+                height: "100%", // Ensure the box takes full height of its container
+                width: "100%", // Ensure the box takes full width of its container
               }}
-            />
+            >
+              <Box
+                component="img"
+                src="/images/Sustainer-Logo-Beeldscherm-RGB-Kleur-Klein.png"
+                alt="Logo"
+                sx={{
+                  height: "52px",
+                  objectFit: "contain",
+                  marginRight: "0px", // Added some spacing between logo and text
+                }}
+              />
+              <Typography variant="h4"
+                style={{
+                  marginBottom:'12px',
+                  color: theme.palette.mode !== "dark" ? tokens("light").grey[700] : tokens("dark").grey[700],
+                  alignSelf: "bottom", // Align the text vertically with the logo
+                }}
+              >
+                .iva
+              </Typography>
+            </Box>
 
             <Box component="div" alignContent="center">
               <Tooltip title={"display mode"}>

@@ -109,7 +109,7 @@ export class Tree<T> {
         let traverseSuccessful = false;
 
         const traverse = (node: TreeNode<T>) => {
-            console.log('traversing', node, predicate(node));
+            // console.log('traversing', node, predicate(node));
             if(traverseSuccessful) return true;
 
             if (predicate(node)) {
