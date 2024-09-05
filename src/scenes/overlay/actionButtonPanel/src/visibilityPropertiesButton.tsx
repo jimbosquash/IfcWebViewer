@@ -39,7 +39,7 @@ export const VisibilityPropertiesButton = () => {
     setVisibiliyMode(visibilityMode);
 
     if (visibilityMode?.toString() === "Isolate") viewManager.VisibilityMode = VisibilityMode.Isolate;
-    if (visibilityMode?.toString() === "Passive") viewManager.VisibilityMode = VisibilityMode.Passive;
+    if (visibilityMode?.toString() === "Passive") viewManager.VisibilityMode = VisibilityMode.showPreviousTreeNodes;
     
 
     console.log("Visibility mode",visibilityMode?.toString(), viewManager.VisibilityMode)
@@ -85,7 +85,7 @@ export const VisibilityPropertiesButton = () => {
             >
               <Tooltip title="Select">
                 <ToggleButton
-                  selected={selectedVisibilityMode === VisibilityMode.Passive}
+                  selected={selectedVisibilityMode === VisibilityMode.showPreviousTreeNodes}
                   size="small"
                   value="Passive"
                   aria-label="left aligned"

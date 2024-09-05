@@ -19,23 +19,23 @@ export const ProjectOverviewPanel = () => {
   const colors = tokens(theme.palette.mode);
   const [value, setValue] = useState(0);
   const components = useComponentsContext();
-  const [tree, setTree] = useState<Tree<BuildingElement>>();
+  // const [tree, setTree] = useState<Tree<BuildingElement>>();
 
   useEffect(() => {
-    if (!components) return;
-    components
-      .get(ModelCache)
-      .onBuildingElementsChanged.add((data) => getPropertyTree(data, [knownProperties.Material]));
-    const cache = components.get(ModelCache);
-    if (cache.BuildingElements) {
-      getPropertyTree(cache.BuildingElements, [knownProperties.Material]);
-    }
+    // if (!components) return;
+    // components
+    //   .get(ModelCache)
+    //   .onBuildingElementsChanged.add((data) => getPropertyTree(data, [knownProperties.Material]));
+    // const cache = components.get(ModelCache);
+    // if (cache.BuildingElements) {
+    //   getPropertyTree(cache.BuildingElements, [knownProperties.Material]);
+    // }
 
-    return () => {
-      components
-        .get(ModelCache)
-        .onBuildingElementsChanged.remove((data) => getPropertyTree(data, [knownProperties.Material]));
-    };
+    // return () => {
+    //   components
+    //     .get(ModelCache)
+    //     .onBuildingElementsChanged.remove((data) => getPropertyTree(data, [knownProperties.Material]));
+    // };
   }, [components]);
 
   // a functino that will create a tree for material, then give it to cache and set it here for child
@@ -44,14 +44,14 @@ export const ProjectOverviewPanel = () => {
   // SOLUTION: have a collection of building elements to hide or show in viewer that panel edits.
   // QUESTION: how does this work if i have multiple layers of panels setting visibility, one will override the other
   // SOLUTION: there will only be one source that is changing this hide collection for now and it is simplest to add into update cycle
-  const getPropertyTree = (buildingElements: BuildingElement[], propertyTree: string[]) => {
-    if (!buildingElements) return;
-    // console.log("tree", tree)
+  // const getPropertyTree = (buildingElements: BuildingElement[], propertyTree: string[]) => {
+  //   if (!buildingElements) return;
+  //   // console.log("tree", tree)
 
-    const matTree = setUpTreeFromProperties(buildingElements, propertyTree);
-    console.log("tree", matTree);
-    setTree(matTree);
-  };
+  //   const matTree = setUpTreeFromProperties(buildingElements, propertyTree);
+  //   console.log("tree", matTree);
+  //   setTree(matTree);
+  // };
 
   return (
     <>
@@ -144,7 +144,7 @@ export const ProjectOverviewPanel = () => {
                   paddingBottom: "50px",
                 }}
               >
-              <AssemblyBrowserPanel name="Material Tree" tree={tree} />
+              <AssemblyBrowserPanel />
               </Box>
             </Box>
           </CustomTabPanel>
@@ -193,7 +193,7 @@ export const ProjectOverviewPanel = () => {
                 }}
               >
                 {/* Children components go here */}
-                <MaterialBrowserPanel name="Material Tree" tree={tree} />
+                {/* <MaterialBrowserPanel name="Material Tree" tree={tree} /> */}
               </Box>
             </Box>
           </CustomTabPanel>

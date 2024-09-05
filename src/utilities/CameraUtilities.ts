@@ -51,6 +51,7 @@ export async function setView(components: OBC.Components, viewType: "front" | "b
   let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
   // cam.projection.set("Orthographic");
   // cam.set("Plan" as OBC.NavModeID);
+  cam.onAfterUpdate.trigger(cam); // to do so a listener can know to change mode in UI
 
 
   // get geometry to fit to view + creat bbox
@@ -95,19 +96,9 @@ export async function setView(components: OBC.Components, viewType: "front" | "b
 
 
   // Set camera target to look at the center
-  // cam.controls.camera.up.set(0, 1, 0);
-  // await cam.controls.lookInDirectionOf(viewDirection.x, viewDirection.y, viewDirection.z, false)
-  // await cam.controls.fitToBox(bbox, false, { paddingTop: 5, paddingBottom: 5, paddingLeft: 5, paddingRight: 5 })
-  // await cam.controls.fitToBox(bbox, false, { paddingTop: 1, paddingBottom: 1, paddingLeft: 1, paddingRight: 1 })
   await cam.controls.setLookAt(viewDirection.x * cameraDistance, viewDirection.y * cameraDistance, viewDirection.z * cameraDistance, center.x, center.y, center.z, false);
-  console.log("cam target center:", viewDirection, center.x, center.y, center.z);
-
-  // let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
-
-  // await cache.world.camera?.controls?.fitToBox(bboxer.getMesh(), false)
-    await cam.controls.fitToBox(bbox, false, { cover:false, paddingTop: -2, paddingBottom: -2, paddingLeft: -1, paddingRight: -1 })
-
-
+  // console.log("cam target center:", viewDirection, center.x, center.y, center.z);
+  await cam.controls.fitToBox(bbox, false, { cover:false, paddingTop: -2, paddingBottom: -2, paddingLeft: -1, paddingRight: -1 })
 };
 
 /**

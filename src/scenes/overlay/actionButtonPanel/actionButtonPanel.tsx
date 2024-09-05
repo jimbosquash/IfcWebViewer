@@ -1,5 +1,4 @@
 import { Box, Button, ButtonGroup, Divider, Tooltip, useTheme } from "@mui/material";
-import { useEffect, useState } from "react";
 import { tokens } from "../../../theme";
 import * as OBC from "@thatopen/components";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
@@ -8,62 +7,17 @@ import { GetAdjacentGroup } from "../../../utilities/BuildingElementUtilities";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 import { ModelCache } from "../../../bim-components/modelCache";
-import { SelectionGroup, VisibilityMode } from "../../../utilities/types";
-import CameraButton from "./src/cameraButton";
 import { TaskManager } from "../../../bim-components/taskManager";
 import { IsolateButton } from "./src/IsolateButton";
 import { Icon } from "@iconify/react";
-import { VisibilityPropertiesButton } from "./src/visibilityPropertiesButton";
-import { PlanViewButton } from "./src/planViewButton";
-import SetOrthogonalCamera from "../../../components/SetOrthogonalCamera";
 import ShowTagsButton from "../../../components/ShowTagsButton";
-import { PiSelectionBackgroundBold } from "react-icons/pi";
-import { GiClick } from "react-icons/gi";
-
-interface floatingButtonProps {
-  togglePropertyPanelVisibility: () => void;
-  toggleGroupsPanelVisibility: () => void;
-}
+import VisibilityModeButton from "./src/visibilityModeButton";
 
 const ActionButtonPanel = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
-  const [visibilityMode, setVisibilityMode] = useState<VisibilityMode>();
-  const [newIfcFile, setnewIfcFile] = useState<Uint8Array>();
-  // const [selectedVisibilityMode, setVisibiliyMode] = useState<VisibilityMode>();
 
-  useEffect(() => {
-    if (!components) return;
-
-    const viewManager = components.get(ModelViewManager);
-    if (!viewManager) return;
-    setVisibilityMode(viewManager.VisibilityMode);
-    console.log("Visibility mode set", viewManager.VisibilityMode);
-
-    viewManager.onVisibilityModeChanged.add(handelVisibilityModeChange);
-    //fragments.onFragmentsLoaded.add((data) => handleLoadedModel(data));
-    // cache.onModelAdded.add((data) => handleLoadedModel(data));
-
-    return () => {
-      viewManager.onVisibilityModeChanged.remove(handelVisibilityModeChange);
-      //fragments.onFragmentsLoaded.remove((data) => handleLoadedModel(data));
-      // cache.onModelAdded.remove((data) => handleLoadedModel(data));
-    };
-  }, [components]);
-
-  const toggleVisibilityMode = () => {
-    const viewManager = components?.get(ModelViewManager);
-    // if (!visibilityMode || !viewManager || visibilityMode === viewManager.VisibilityMode) return;
-    // setVisibiliyMode(visibilityMode);
-
-    if (visibilityMode === "Isolate") viewManager.VisibilityMode = VisibilityMode.Passive;
-    if (visibilityMode === "Passive") viewManager.VisibilityMode = VisibilityMode.Isolate;
-    setVisibilityMode(viewManager.VisibilityMode);
-
-    console.log("Visibility mode", visibilityMode, viewManager.VisibilityMode);
-    // handleClose();
-  };
 
   const setAdjacentGroup = async (adjacency: "previous" | "next") => {
     console.log();
@@ -78,47 +32,19 @@ const ActionButtonPanel = () => {
     // console.log("Setting adjacent",current);
     console.log("GetAdjacentGroup to", current);
     const newGroup = GetAdjacentGroup(current, viewManager.Tree, adjacency);
-
-    if (!newGroup) {
-    }
+    console.log("next group", current);
 
     if (newGroup) {
       try {
-        await updateVisibility(viewManager, newGroup);
+        if(!viewManager.Tree) return;
         viewManager.SelectedGroup = newGroup;
+        viewManager.updateBasedOnVisibilityMode(undefined,undefined, viewManager.Tree.id);
         //zoomToSelected(viewManager.getBuildingElements(newGroup.id),components);
       } catch (error) {
         console.error("Error updating visibility:", error);
         // Handle the error appropriately (e.g., show an error message to the user)
       }
     }
-  };
-
-  const updateVisibility = async (viewManager: ModelViewManager, group: SelectionGroup) => {
-    try {
-      if (viewManager.VisibilityMode === VisibilityMode.Isolate) {
-        IsolateSelected(viewManager.components, group);
-      }
-      if (viewManager.VisibilityMode === VisibilityMode.Passive) {
-        viewManager.SequentiallyVisible(group);
-        await viewManager.select(group);
-      }
-    } catch (error) {
-      console.error("Error updating visibility:", error);
-    }
-  };
-
-  const handelVisibilityModeChange = () => {
-    const viewManager = components?.get(ModelViewManager);
-    if (!viewManager) return;
-
-    viewManager.VisibilityMode;
-    setVisibilityMode(viewManager.VisibilityMode);
-  };
-
-  const IsolateSelected = (components: OBC.Components, selected: SelectionGroup) => {
-    const viewManager = components.get(ModelViewManager);
-    viewManager.isolate(selected);
   };
 
   const handleTaskCreate = async () => {
@@ -130,7 +56,6 @@ const ActionButtonPanel = () => {
 
     if (!testData) return;
     const newIfcFile = await taskManager.setupExistingTasks(0, testData);
-    setnewIfcFile(newIfcFile);
   };
 
   const showAll = () => {
@@ -157,25 +82,9 @@ const ActionButtonPanel = () => {
           }}
         >
           <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "40px" }}>
-            <Tooltip
-              title={visibilityMode === VisibilityMode.Isolate ? "Set to Previous Visible Mode" : "Set to Isolate mode"}
-            >
-              <Button
-                onClick={toggleVisibilityMode}
-                style={{ color: colors.grey[200], border: "0" }}
-                variant={"outlined"}
-              >
-                {visibilityMode === VisibilityMode.Isolate ? (
-                  <Icon icon="mdi-light:vector-difference-ab" />
-                ) : (
-                  <Icon icon="mdi-light:vector-arrange-below" />
-                )}
-              </Button>
-            </Tooltip>
-            {/* <VisibilityPropertiesButton /> */}
-
+          
+            <VisibilityModeButton/>
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
-
             <Tooltip title="Previous group">
               <Button
                 style={{ color: colors.grey[400], border: "0" }}
@@ -200,9 +109,7 @@ const ActionButtonPanel = () => {
                 <NavigateNextIcon fontSize="large" />
               </Button>
             </Tooltip>
-
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
-
             <ShowTagsButton variant="panel" />
 
             {/* <Button onClick={() => {handleTaskCreate()}}>task</Button>
@@ -228,13 +135,6 @@ const ActionButtonPanel = () => {
       </Box>
     </>
   );
-};
-
-const floatingButtonStyle = {
-  display: "flex",
-  alignItems: "center",
-  padding: "12px",
-  fontSize: "small",
 };
 
 export default ActionButtonPanel;

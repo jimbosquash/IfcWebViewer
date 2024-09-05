@@ -42,13 +42,13 @@ export const BuildingStepBox: React.FC<GroupPanelProps> = ({ node }) => {
   useEffect(() => {
     if (!components) return;
     const viewManager = components.get(ModelViewManager);
-    viewManager.onGroupVisibilitySet.add((data) => handleVisibilityyUpdate(data));
+    viewManager.onGroupVisibilitySet.add((data) => handleVisibilityyUpdate(data.visibilityMap));
     viewManager.onSelectedGroupChanged.add((data) => handleSelectedGroupChanged(data));
     setModelViewManager(viewManager);
     if (name) setIsVisible(modelViewManager?.GroupVisibility?.get(name) !== VisibilityState.Hidden);
 
     return () => {
-      viewManager.onGroupVisibilitySet.remove((data) => handleVisibilityyUpdate(data));
+      viewManager.onGroupVisibilitySet.remove((data) => handleVisibilityyUpdate(data.visibilityMap));
       viewManager.onSelectedGroupChanged.remove((data) => handleSelectedGroupChanged(data));
     };
   }, [components]);

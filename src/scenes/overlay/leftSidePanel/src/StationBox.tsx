@@ -1,28 +1,24 @@
 import { Box, Typography, IconButton, useTheme, Tooltip } from "@mui/material";
-import React, { useCallback, useContext, useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import { tokens } from "../../../../theme";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import BuildingStepBox from "./BuildingStepBox";
 import { zoomToBuildingElements } from "../../../../utilities/BuildingElementUtilities";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import { BuildingElement, KnowGroupType, SelectionGroup, VisibilityState } from "../../../../utilities/types";
 import { TreeNode, TreeUtils } from "../../../../utilities/Tree";
 import { nonSelectableTextStyle } from "../../../../styles";
-import { BsBoxes, BsFileMinus, BsPlus } from "react-icons/bs";
-import { PlusOne } from "@mui/icons-material";
 import { PiMinus, PiPlus } from "react-icons/pi";
 import { Icon } from "@iconify/react";
-import { color } from "framer-motion";
 
 export interface GroupPanelProps {
   node: TreeNode<BuildingElement>;
+  treeID: string;
 }
 
-const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
+const StationBox: React.FC<GroupPanelProps> = ({ node, treeID }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
@@ -40,7 +36,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
   const treeNode = useRef<TreeNode<BuildingElement>>();
 
   useEffect(() => {
-    if (!modelViewManager) return;
+    if (!modelViewManager || !modelViewManager.GroupVisibility) return;
     const visState = modelViewManager.GroupVisibility?.get(node.id);
     if (visState === VisibilityState.Visible) setIsVisible(true);
     else setIsVisible(false);
@@ -71,13 +67,13 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
   useEffect(() => {
     if (!components) return;
     const viewManager = components.get(ModelViewManager);
-    viewManager.onGroupVisibilitySet.add((data) => handleVisibilityyUpdate(data));
+    viewManager.onGroupVisibilitySet.add((data) => handleVisibilityyUpdate(data.visibilityMap));
     viewManager.onSelectedGroupChanged.add((data) => handleSelectedGroupChanged(data));
     setModelViewManager(viewManager);
     if (name) setIsVisible(modelViewManager?.GroupVisibility?.get(name) !== VisibilityState.Hidden);
 
     return () => {
-      viewManager.onGroupVisibilitySet.remove((data) => handleVisibilityyUpdate(data));
+      viewManager.onGroupVisibilitySet.remove((data) => handleVisibilityyUpdate(data.visibilityMap));
       viewManager.onSelectedGroupChanged.remove((data) => handleSelectedGroupChanged(data));
     };
   }, [components]);
@@ -117,7 +113,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
       const currentVisibility = modelViewManager.GroupVisibility.get(node.id);
       const newVisState =
         currentVisibility === VisibilityState.Hidden ? VisibilityState.Visible : VisibilityState.Hidden;
-      modelViewManager.setVisibility(node.id, newVisState, true);
+      modelViewManager.setVisibility(node.id,treeID, newVisState, true);
       setIsVisible(newVisState !== VisibilityState.Hidden);
       // update visibility
     }
@@ -148,7 +144,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
     if (!elements || !components) return;
     zoomToBuildingElements(elements, components);
     // ToggleVisibility();
-    if (modelViewManager?.SelectedGroup) modelViewManager?.select(modelViewManager?.SelectedGroup);
+    if (modelViewManager?.SelectedGroup) modelViewManager?.select(modelViewManager?.SelectedGroup,treeID);
   };
 
   return (
@@ -237,7 +233,7 @@ const StationBox: React.FC<GroupPanelProps> = ({ node }) => {
         {childVisible && children && (
           <Box width='95%' component="div" sx={{ marginLeft: "5px", marginTop: "10px" }}>
             {children.map((node) => (
-              <BuildingStepBox key={node.id} node={node} />
+              <BuildingStepBox key={node.id} node={node} treeID={treeID} />
             ))}
           </Box>
         )}

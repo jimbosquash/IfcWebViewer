@@ -1,11 +1,28 @@
 
 
+/**
+ * Used to determine how to update the visibility tree and there fore visibility state of selection groups using the ModelViewManager
+ */
 export enum VisibilityMode {
-    Isolate = "Isolate", // hide all others 
-    Passive = "Passive", // do nothing
-    showGroup = "showGroup", // show group and hide all others
-    Translucent ="" // transculcent all others
+  /**
+   * Hide all elements but selected
+   */
+    Isolate = "Isolate",
+    /**
+     * isolates all but elements in the same parent node that come before this node
+     */
+    showPrevious = "ShowPrevious", 
+    /**
+     * isolates all but elements in the same parent node
+     */
+    showNeighbors = "ShowSiblings",
+    /**
+     * Select active group do not change any visibility
+     */
+    selectGroup = "SelectGroup" 
+
 }
+
 export enum VisibilityState {
     Visible = "Visible",
     Hidden = 'Hidden',

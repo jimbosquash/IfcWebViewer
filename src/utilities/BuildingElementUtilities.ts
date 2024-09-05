@@ -16,27 +16,14 @@ export function GetAdjacentGroup(
   tree: Tree<BuildingElement> | undefined,
   direction: 'next' | 'previous' = 'next'
 ): SelectionGroup | undefined {
+  
   if (!tree) return undefined;
 
-  // If no current group, return the first or last station group based on direction
-  if (!current) {
-
-    const firstGroup = tree.getFirstOrUndefinedNode(n => n.type !== "Project");
-    console.log('getting default group',firstGroup,tree)
-
-    if (!firstGroup) return undefined;
-
-    const el = TreeUtils.getChildren(firstGroup, n => n.type === KnowGroupType.BuildingElement)
-      .map(n => n.data)
-      .filter((data): data is NonNullable<typeof data> => data != null)
-      .flat();
-
-
-    return { groupType: firstGroup.type, id: firstGroup.id, groupName: firstGroup.name, elements: el };
-  }
+  // If no current group, return the first group
+  if (!current) return getFirstGroup(tree);
 
   const groupOfType = tree.getNodes(n => n.type === current.groupType).map(n => n.id);
-  console.log("Group of same type", groupOfType);
+  console.log("Group of same type",tree,current, groupOfType);
 
   if (!groupOfType) {
     console.log("Get adjacent group failed. grouping type not found", current.groupType);
@@ -62,15 +49,22 @@ export function GetAdjacentGroup(
   return undefined;
 }
 
-export const setUpGroup = (elements: BuildingElement[]) => {
-  // make the groups and then pack them together
-  let stations = groupElementsByPropertyName(elements, "Station")
-  let steps = groupElementsByPropertyName(elements, "BuildingStep")
-  const groupMap = new Map<string, Map<string, BuildingElement[]>>();
-  groupMap.set("Station", stations);
-  groupMap.set("BuildingStep", steps);
-  return groupMap;
+function getFirstGroup(tree: Tree<BuildingElement>) {
+  
+  const firstGroup = tree.getFirstOrUndefinedNode(n => n.type !== "Project");
+  console.log('getting default group',firstGroup,tree)
+
+  if (!firstGroup) return undefined;
+
+  const el = TreeUtils.getChildren(firstGroup, n => n.type === KnowGroupType.BuildingElement)
+    .map(n => n.data)
+    .filter((data): data is NonNullable<typeof data> => data != null)
+    .flat();
+
+
+  return { groupType: firstGroup.type, id: firstGroup.id, groupName: firstGroup.name, elements: el };
 }
+
 
 /**
  * Zooms to elements by getting their fragmetIDs, creating a bounding box with their meshes and calling camera.control.fitToSphere
@@ -257,9 +251,9 @@ export const isolate = async (elements: BuildingElement[], components: OBC.Compo
  * we assume that grouping is done by property values and that building elements have the properties 
  * in node order.
  */
-export const setUpTreeFromProperties = (elements: BuildingElement[], nodeOrder: string[] | knownProperties[] = ["Station", "BuildingStep"]) => {
+export const setUpTreeFromProperties = (id: string,elements: BuildingElement[], nodeOrder: string[] | knownProperties[] = ["Station", "BuildingStep"]) => {
 
-  const tree = new Tree<BuildingElement>("Project", "Project");
+  const tree = new Tree<BuildingElement>(id,"Project", "Project");
   const root = tree.getNode("Project")
 
   const createSubTree = (parentNode: TreeNode<BuildingElement>, currentElements: BuildingElement[], currentLevel: number) => {
@@ -272,25 +266,30 @@ export const setUpTreeFromProperties = (elements: BuildingElement[], nodeOrder: 
     }
 
     const currentNodeType = nodeOrder[currentLevel];
+    console.log("Grouping elements by prop", currentElements,currentNodeType)
     const groupedElements = groupElementsByPropertyName(currentElements, currentNodeType);
-    // console.log("Grouping elements by prop", groupedElements)
 
     groupedElements.forEach((groupElements, groupValue) => {
       const nodeId = `${parentNode.id}_${currentNodeType}_${groupValue}`;
       tree.addNode(parentNode.id, nodeId, groupValue, currentNodeType);
+      // console.log('create subTree',tree.getNode(nodeId),groupElements )
       createSubTree(tree.getNode(nodeId)!, groupElements, currentLevel + 1);
     });
   };
 
   if (root)
     createSubTree(root, elements, 0)
-  console.log('tree created', tree)
+  console.log('tree created', id,elements,tree)
   return tree;
 }
 
 export const groupElementsByPropertyName = (elements: BuildingElement[], property: string): Map<string, BuildingElement[]> => {
   const grouped = new Map<string, BuildingElement[]>();
   elements.forEach(element => {
+    if(!element.properties){
+      console.log('element failed to find property', element, elements)
+      return;
+    }
     const value = element.properties.find(prop => prop.name === property)?.value || 'Unknown';
     // if(value === "Unknown")
     //   console.log("unknown data found",property,element.properties )

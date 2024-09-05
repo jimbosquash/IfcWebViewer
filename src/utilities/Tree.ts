@@ -53,14 +53,18 @@ export class TreeUtils {
 
 
 export class Tree<T> {
+    private _id: string;
     private _root: TreeNode<T>;
     private _nodeMap: Map<string, TreeNode<T>> = new Map();
+
+    get id() {return this._id}
 
     get root(): TreeNode<T> { return this._root }
     // get nodeMap
     // get root
-    constructor(rootId: string, rootType: string) {
+    constructor(id: string, rootId: string, rootType: string) {
         this._root = this.createNode(rootId, rootId, rootType, null, false);
+        this._id = id;
     }
 
     private createNode(id: string, name: string, type: string, data: T | null, isLeaf: boolean, parent?: TreeNode<T>): TreeNode<T> {

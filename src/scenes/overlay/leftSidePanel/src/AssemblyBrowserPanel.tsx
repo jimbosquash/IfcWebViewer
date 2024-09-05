@@ -9,12 +9,7 @@ import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import { setUpTreeFromProperties } from "../../../../utilities/BuildingElementUtilities";
 import TreeTableRow from "../../../../components/TreeTableRow";
 
-interface TreeOverviewProps {
-  name: string;
-  tree: Tree<BuildingElement> | undefined;
-}
-
-export const AssemblyBrowserPanel: React.FC<TreeOverviewProps> = () => {
+export const AssemblyBrowserPanel: React.FC = () => {
   const [nodes, setNodes] = useState<TreeNode<BuildingElement>[]>();
   const [nodeVisibility, setNodeVisibility] = useState<Map<string, VisibilityState>>(); // key = node.id, value = visibility state
   const [visibleOnDoubleClick, setVisibleOnDoubleClick] = useState<boolean>(true);
@@ -31,8 +26,8 @@ export const AssemblyBrowserPanel: React.FC<TreeOverviewProps> = () => {
     if (cache.BuildingElements) {
       let existingTreeContainer = viewManager.getViewTree(treeName);
       if (!existingTreeContainer) {
-        const newTree = setUpTreeFromProperties(cache.BuildingElements, treeStructure);
-        existingTreeContainer = viewManager.setViewTree(treeName, newTree);
+        const newTree = setUpTreeFromProperties('assembly',cache.BuildingElements, treeStructure);
+        existingTreeContainer = viewManager.addTree(treeName, newTree);
       }
       if (!existingTreeContainer) return;
 
@@ -50,7 +45,7 @@ export const AssemblyBrowserPanel: React.FC<TreeOverviewProps> = () => {
     if (!buildingElements) return;
     // create new tree and set it as view manager tree
 
-    const matTree = setUpTreeFromProperties(buildingElements, propertyTree);
+    const matTree = setUpTreeFromProperties('assembly',buildingElements, propertyTree);
     const viewManager = components.get(ModelViewManager);
     let existingTreeContainer = viewManager.getViewTree(treeName);
 
@@ -58,9 +53,9 @@ export const AssemblyBrowserPanel: React.FC<TreeOverviewProps> = () => {
     //     const replicatedVisMap = existingTreeContainer.visibilityMap;
     // }
 
-    const newTree = setUpTreeFromProperties(buildingElements, treeStructure);
+    const newTree = setUpTreeFromProperties('assembly',buildingElements, treeStructure);
     //todo : set up visMap so that it takes state from last time
-    existingTreeContainer = viewManager.setViewTree(treeName, newTree, existingTreeContainer?.visibilityMap);
+    existingTreeContainer = viewManager.addTree(treeName, newTree, existingTreeContainer?.visibilityMap);
 
     if (!existingTreeContainer) return;
     setTree(existingTreeContainer.tree);
