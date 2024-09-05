@@ -6,7 +6,7 @@ import { ColorModeContext, tokens } from "../../theme";
 import { useTopBarContext } from "../../context/TopBarContext";
 import { useComponentsContext } from "../../context/ComponentsContext";
 import { ModelCache } from "../../bim-components/modelCache";
-import { UploadIfcButton } from "../../components/UploadIfcButton";
+// import { UploadIfcButton } from "../../components/UploadIfcButton";
 
 const height = "52px";
 export const TopDisplay = () => {
@@ -65,7 +65,7 @@ export const TopDisplay = () => {
           >
             {/* <img src="/images/Sustainer-Beeldmerk-Beeldscherm-RGB-Kleur-Groot.png" alt="Logo" className="h-14"></img> */}
             <Box component="div" alignContent="center">
-              {modelLoaded && <UploadIfcButton />}
+              {/* {modelLoaded && <UploadIfcButton />} */}
             </Box>
 
             <Box
