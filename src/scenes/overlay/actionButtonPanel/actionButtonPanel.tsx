@@ -12,12 +12,14 @@ import { IsolateButton } from "./src/IsolateButton";
 import { Icon } from "@iconify/react";
 import ShowTagsButton from "../../../components/ShowTagsButton";
 import VisibilityModeButton from "./src/visibilityModeButton";
+import { useState } from "react";
+import { TreeUtils } from "../../../utilities/Tree";
 
 const ActionButtonPanel = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
-
+  const [groupType, setGroupType] = useState<string>();
 
   const setAdjacentGroup = async (adjacency: "previous" | "next") => {
     console.log();
@@ -36,9 +38,9 @@ const ActionButtonPanel = () => {
 
     if (newGroup) {
       try {
-        if(!viewManager.Tree) return;
+        if (!viewManager.Tree) return;
         viewManager.SelectedGroup = newGroup;
-        viewManager.updateBasedOnVisibilityMode(undefined,undefined, viewManager.Tree.id);
+        viewManager.updateBasedOnVisibilityMode(undefined, undefined, viewManager.Tree.id);
         //zoomToSelected(viewManager.getBuildingElements(newGroup.id),components);
       } catch (error) {
         console.error("Error updating visibility:", error);
@@ -64,6 +66,41 @@ const ActionButtonPanel = () => {
     hider.set(true);
   };
 
+  // const toggleGroupType = () => {
+  //   const viewManager = components.get(ModelViewManager);
+  //   const current = viewManager.SelectedGroup;
+  //   if(!current) return;
+  //   console.log("group type",current.groupType)
+  //   const node = viewManager.Tree?.getNode(current.id);
+
+  //   if(current.groupType === "BuildingStep")
+  //     setGroupType("Assembly")
+  //     if(node?.children) {
+  //       const firstChild = [...node?.children.values()][0]
+  //       const newGroup =  { groupType: firstChild.type, id: firstChild.id, groupName: firstChild.name, elements: TreeUtils.getChildrenNonNullData(firstChild) };
+
+  //       viewManager.SelectedGroup = newGroup;
+  //       if(viewManager.Tree?.id){
+  //       viewManager.updateBasedOnVisibilityMode(undefined, undefined, viewManager.Tree.id);}
+  //     }
+
+  //     else {
+  //       setGroupType("BuildingStep")
+  //       if(node?.parent) {
+  //         const newGroup =  { groupType: node?.parent.type, id: node?.parent.id, groupName: node?.parent.name, elements: TreeUtils.getChildrenNonNullData(node?.parent) };
+
+  //         viewManager.SelectedGroup = newGroup;
+  //         if(viewManager.Tree?.id){
+  //         viewManager.updateBasedOnVisibilityMode(undefined, undefined, viewManager.Tree.id);}
+  //       }
+
+  //     }
+
+
+
+  // }
+  
+
   return (
     <>
       <Box component={"div"}>
@@ -82,8 +119,18 @@ const ActionButtonPanel = () => {
           }}
         >
           <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "40px" }}>
-          
-            <VisibilityModeButton/>
+            
+            <Tooltip title={"Navigate Building Steps"}>
+              <Button
+                // onClick={toggleGroupType}
+                style={{ color: colors.grey[200], border: "0" }}
+                variant={"outlined"}
+              >
+                {groupType === "Assembly" ? <Icon icon="solar:box-outline" /> :<Icon icon="ri:shapes-line" />}
+              </Button>
+            </Tooltip>
+
+            <VisibilityModeButton />
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
             <Tooltip title="Previous group">
               <Button

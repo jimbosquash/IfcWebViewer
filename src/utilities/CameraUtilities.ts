@@ -34,7 +34,11 @@ export async function setPlanView(components: OBC.Components) {
   cam.controls.camera.up.set(size.x > size.z ? 0 : 1, 1, 0);
   await cam.controls.setLookAt(center.x, cameraHeight, center.z, center.x, center.y, center.z, false);
   console.log("cam target center:", center.x, center.y, center.z);
-  zoomAllorSelected(components, false);
+  // zoomAllorSelected(components, false,false);
+  if (!cache.world?.meshes || cache.world.meshes.size === 0)
+    return;
+
+  zoom(components, cache.world.meshes, cache.world.camera, false, false)
 };
 
 /**
@@ -87,10 +91,12 @@ export async function setView(components: OBC.Components, viewType: "front" | "b
       viewDirection = new THREE.Vector3(0, 0, -1)
       break;
     case 'top':
-      viewDirection = new THREE.Vector3(0, -1, 0)
+      viewDirection = new THREE.Vector3(0, 1, 0)
+      cam.controls.camera.up.set(size.x > size.z ? 0 : 1, 1, 0);
       break;
     case 'bottom':
-      viewDirection = new THREE.Vector3(0, 1, 0)
+      viewDirection = new THREE.Vector3(0, -1, 0)
+      cam.controls.camera.up.set(size.x > size.z ? 0 : 1, 1, 0);
       break;
   }
 
@@ -98,7 +104,7 @@ export async function setView(components: OBC.Components, viewType: "front" | "b
   // Set camera target to look at the center
   await cam.controls.setLookAt(viewDirection.x * cameraDistance, viewDirection.y * cameraDistance, viewDirection.z * cameraDistance, center.x, center.y, center.z, false);
   // console.log("cam target center:", viewDirection, center.x, center.y, center.z);
-  await cam.controls.fitToBox(bbox, false, { cover:false, paddingTop: -2, paddingBottom: -2, paddingLeft: -1, paddingRight: -1 })
+  await cam.controls.fitToBox(bbox, false, { cover: false, paddingTop: -2, paddingBottom: -2, paddingLeft: -1, paddingRight: -1 })
 };
 
 /**
@@ -107,7 +113,7 @@ export async function setView(components: OBC.Components, viewType: "front" | "b
  * @param zoomSelected 
  * @returns 
  */
-export async function zoomAllorSelected(components: OBC.Components, zoomSelected: boolean) {
+export async function zoomAllorSelected(components: OBC.Components, zoomSelected: boolean, transition: boolean = true) {
   if (!components) return;
   const cache = components.get(ModelCache);
   if (!cache.world) return;
@@ -125,7 +131,7 @@ export async function zoomAllorSelected(components: OBC.Components, zoomSelected
   if (!cache.world?.meshes || cache.world.meshes.size === 0)
     return;
 
-  zoom(components, cache.world.meshes, cache.world.camera, true, true)
+  zoom(components, cache.world.meshes, cache.world.camera, true, transition)
 };
 
 /**
@@ -206,7 +212,7 @@ export async function setOrthogonalView(components: OBC.Components, projection: 
     center.z,
     false
   );
-  zoomAllorSelected(components, false);
+  await zoomAllorSelected(components, false,false);
 };
 /**
  * set the Camera Navigation mode and zoom if true.

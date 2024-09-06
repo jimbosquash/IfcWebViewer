@@ -102,7 +102,7 @@ const CameraIconPanel: React.FC = () => {
       size: "small",
       tooltip: "Orthogonal view",
       disabled: !isCameraUnlocked,
-      onClick: () => { if(isCameraUnlocked) setOrthogonalView(components, undefined, undefined)},
+      onClick: () => { setOrthogonalView(components, undefined, undefined)},
     },
     {
       icon: <Icon icon="mdi:floor-plan" />,
@@ -111,7 +111,7 @@ const CameraIconPanel: React.FC = () => {
       tooltip: "Plan view",
       size: "small",
       disabled: !isCameraUnlocked,
-      onClick: () => { if(isCameraUnlocked)setPlanView(components)},
+      onClick: () => { setPlanView(components)},
     },
   ];
 

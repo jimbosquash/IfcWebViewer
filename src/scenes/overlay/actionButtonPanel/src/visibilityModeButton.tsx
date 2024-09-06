@@ -44,7 +44,8 @@ export const VisibilityModeButton = () => {
 
     setVisibilityMode(viewManager.VisibilityMode);
 
-    viewManager.updateBasedOnVisibilityMode(undefined, undefined);
+    if(viewManager?.Tree?.id)
+    viewManager.updateBasedOnVisibilityMode(undefined, undefined,viewManager?.Tree?.id);
 
     console.log("Visibility mode", viewManager.VisibilityMode);
   };
