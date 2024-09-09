@@ -30,18 +30,23 @@ const IconPanel: React.FC<FloatingIconButtonsProps> = ({ buttons, containerSx })
       }}
     >
       {buttons.map((button, index) => (
-        <Tooltip placement="left" title={button.tooltip ?? button.ariaLabel}>
-          <Fab 
-            disabled={button.disabled ?? false}
-            key={index}
-            color={button.color || "primary"}
-            aria-label={button.ariaLabel}
-            onClick={button.onClick}
-            size={button.size || "medium"}
-            sx={{ ...defaultButtonSx, ...button.sx }}
-          >
-            {button.icon}
-          </Fab>
+        <Tooltip
+          key={index}
+          placement="left"
+          title={button.tooltip ?? button.ariaLabel}
+        >
+          <span> {/* Add a span wrapper to resolve the tooltip issue with disabled buttons */}
+            <Fab
+              disabled={button.disabled ?? false}
+              color={button.color || "primary"}
+              aria-label={button.ariaLabel}
+              onClick={button.onClick}
+              size={button.size || "medium"}
+              sx={{ ...defaultButtonSx, ...button.sx }}
+            >
+              {button.icon}
+            </Fab>
+          </span>
         </Tooltip>
       ))}
     </Box>

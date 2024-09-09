@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Box, Typography } from "@mui/material";
 import { Icon } from "@iconify/react";
 import IconPanel, { IconButtonConfig } from "./src/IconPanel";
@@ -31,32 +31,32 @@ const CameraIconPanel: React.FC = () => {
     setProjectionMode(cam.projection.current);
     setCameraLock(cam.controls.enabled);
 
-    //cam.controls.
-
-    //cam.projection.onChanged.add(() => setSelectedProjection(cam.projection.current));
-
     return () => {
-      //cam.projection.onChanged.remove(() => setSelectedProjection(cam.projection.current));
     };
-  });
+  }, [components]);
 
-  const toggleProjectionMode = () => {
+
+  const toggleProjectionMode = useCallback(() => {
     const cache = components?.get(ModelCache);
-    if (!cache || !cache?.world?.camera.controls?.enabled) return;
+    if (!cache || !cache.world?.camera.controls?.enabled) return;
 
-    setCameraProjection(components, projectionMode === "Perspective" ? "Orthographic" : "Perspective", true);
-    setProjectionMode(projectionMode === "Perspective" ? "Orthographic" : "Perspective");
-  };
+    const newMode = projectionMode === "Perspective" ? "Orthographic" : "Perspective";
+    setCameraProjection(components, newMode, true);
+    setProjectionMode(newMode);
+  }, [components, projectionMode]);
 
-  const toggleNavigationMode = () => {
+
+
+  const toggleNavigationMode = useCallback(() => {
     const cache = components?.get(ModelCache);
     if (!cache || !cache?.world?.camera.controls?.enabled) return;
 
     setCameraNavigation(components, navMode === "Orbit" ? "Plan" : "Orbit", true);
     setNavMode(navMode === "Orbit" ? "Plan" : "Orbit");
-  };
+  }, [components, projectionMode]);
 
-  const toggleCameraLock = () => {
+
+  const toggleCameraLock = useCallback(() => {
     // setCameraNavigation(components, navMode === "Orbit" ? "Plan" : "Orbit", true);
     const cache = components?.get(ModelCache);
     if (!cache?.world) return;
@@ -66,17 +66,17 @@ const CameraIconPanel: React.FC = () => {
     cam.controls.enabled = !isCameraUnlocked;
 
     setCameraLock(!isCameraUnlocked);
-  };
+  }, [components, projectionMode]);
 
-  const cameraControlButtons: IconButtonConfig[] = [
+  const cameraControlButtons = useMemo<IconButtonConfig[]>(() => [
     {
-        icon: isCameraUnlocked ? <Icon icon="mdi:camera-lock-open-outline" /> : <Icon icon="mdi:camera-lock-outline" />,
-        tooltip: isCameraUnlocked ? "Lock Camera" : "Unlock Camera",
-        color: isCameraUnlocked ? "primary" : "warning",
-        ariaLabel: "capture",
-        size: "small",
-        onClick: () => toggleCameraLock(),
-      },
+      icon: isCameraUnlocked ? <Icon icon="mdi:camera-lock-open-outline" /> : <Icon icon="mdi:camera-lock-outline" />,
+      tooltip: isCameraUnlocked ? "Lock Camera" : "Unlock Camera",
+      color: isCameraUnlocked ? "primary" : "warning",
+      ariaLabel: "capture",
+      size: "small",
+      onClick: () => toggleCameraLock(),
+    },
     {
       icon: navMode === "Orbit" ? <Icon icon="lucide:rotate-3d" /> : <Icon icon="tabler:arrows-move" />,
       tooltip: navMode === "Orbit" ? "Switch to Pan" : "Switch to Orbit",
@@ -102,7 +102,7 @@ const CameraIconPanel: React.FC = () => {
       size: "small",
       tooltip: "Orthogonal view",
       disabled: !isCameraUnlocked,
-      onClick: () => { setOrthogonalView(components, undefined, undefined)},
+      onClick: () => { setOrthogonalView(components, undefined, undefined) },
     },
     {
       icon: <Icon icon="mdi:floor-plan" />,
@@ -111,11 +111,13 @@ const CameraIconPanel: React.FC = () => {
       tooltip: "Plan view",
       size: "small",
       disabled: !isCameraUnlocked,
-      onClick: () => { setPlanView(components)},
+      onClick: () => { setPlanView(components) },
     },
-  ];
+  ], [isCameraUnlocked, projectionMode, navMode, components]);
 
-  const cameraViews: IconButtonConfig[] = [
+
+
+  const cameraViews = useMemo<IconButtonConfig[]>(() => [
     {
       icon: <Typography>Left</Typography>,
       tooltip: "Left View",
@@ -123,7 +125,7 @@ const CameraIconPanel: React.FC = () => {
       ariaLabel: "LeftView",
       disabled: !isCameraUnlocked,
       size: "small",
-      onClick: () => setView(components,'left',undefined),
+      onClick: () => setView(components, 'left', undefined),
     },
     {
       icon: <Typography>Right</Typography>,
@@ -132,7 +134,7 @@ const CameraIconPanel: React.FC = () => {
       ariaLabel: "RightView",
       disabled: !isCameraUnlocked,
       size: "small",
-      onClick: () => setView(components,'right',undefined),
+      onClick: () => setView(components, 'right', undefined),
     },
     {
       icon: <Typography>Front</Typography>,
@@ -141,7 +143,7 @@ const CameraIconPanel: React.FC = () => {
       ariaLabel: "FrontView",
       disabled: !isCameraUnlocked,
       size: "small",
-      onClick: () => setView(components,'front',undefined),
+      onClick: () => setView(components, 'front', undefined),
     },
     {
       icon: <Typography>Back</Typography>,
@@ -150,9 +152,9 @@ const CameraIconPanel: React.FC = () => {
       ariaLabel: "BackView",
       disabled: !isCameraUnlocked,
       size: "small",
-      onClick: () => setView(components,'back',undefined),
+      onClick: () => setView(components, 'back', undefined),
     },
-  ];
+  ], [isCameraUnlocked, projectionMode, navMode, components]);
 
   return (
     <Box

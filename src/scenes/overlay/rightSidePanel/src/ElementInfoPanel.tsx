@@ -10,21 +10,17 @@ import {
   TableHead,
   TableRow,
   Tooltip,
-  Checkbox,
   useTheme,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
-import { ModelViewManager } from "../../../../bim-components/modelViewer";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { SelectionGroup, BuildingElement, knownProperties } from "../../../../utilities/types";
+import { BuildingElement, knownProperties } from "../../../../utilities/types";
 import { Icon } from "@iconify/react";
 import * as OBF from "@thatopen/components-front";
-import * as OBC from "@thatopen/components";
 import { tokens } from "../../../../theme";
-import { select } from "../../../../utilities/BuildingElementUtilities";
-import { Console } from "console";
 import { FragmentIdMap } from "@thatopen/fragments";
 import { ModelCache } from "../../../../bim-components/modelCache";
+import React from "react";
 
 const ElementInfoPanel = () => {
   const theme = useTheme();
@@ -44,8 +40,7 @@ const ElementInfoPanel = () => {
 
     highlighter.events.select.onHighlight.add((data) => handleSelectionChanged(data));
     const currentSelection = highlighter.selection['select'];
-    if(currentSelection)
-    {
+    if (currentSelection) {
       handleSelectionChanged(currentSelection)
     }
 
@@ -87,7 +82,7 @@ const ElementInfoPanel = () => {
       };
       newRows.push(row);
     });
-    console.log("table rows created", newRows);
+    //console.log("table rows created", newRows);
 
     setRows(newRows);
   };
@@ -140,7 +135,7 @@ const ElementInfoPanel = () => {
             </Box>
             <Grid container direction="column">
               <Typography variant="h6">
-                {!selected ? "Selected element" : findProperty(selected, "Productcode")?.value}
+                {!selected ? "Selected element" : findProperty(selected, knownProperties.ProductCode)?.value}
               </Typography>
               <Typography variant="body2">{!selected ? "Selected element" : selected.name}</Typography>
             </Grid>
@@ -165,12 +160,6 @@ const ElementInfoPanel = () => {
   );
 };
 
-        // <Grid item xs={3}>
-        //   <Box component="div" sx={{ height: "auto", p: 2 }}>
-        //     {/* <Typography variant="body2">Summary data of selected element</Typography> */}
-        //     </Box>
-        //     </Grid> 
-        //     *
 
 interface dataTableProps {
   data: any[];
@@ -179,40 +168,50 @@ interface dataTableProps {
 }
 
 const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChanged }) => {
-  const [selected, setSelected] = useState<readonly number[]>([]);
+  const memoizedColumns = useMemo(() => columns, [columns]);
+  const memoizedData = useMemo(() => data, [data]);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const [selected, setSelected] = useState<readonly number[]>([]);
 
   useEffect(() => {
     setSelected([]);
   }, [data]);
 
-  //   console.log("table new data", data);
-  function handleClick(event: any, id: any): void {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected: readonly number[] = [];
+  const handleClick = useCallback(
+    (event: React.MouseEvent<unknown>, key: number): void => {
+      const selectedIndex = selected.indexOf(key);
+      let newSelected: readonly number[] = [];
 
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
-    setSelected(newSelected);
-    onSelectChanged(newSelected);
-  }
+      if (selectedIndex === -1) {
+        newSelected = newSelected.concat(selected, key);
+      } else if (selectedIndex === 0) {
+        newSelected = newSelected.concat(selected.slice(1));
+      } else if (selectedIndex === selected.length - 1) {
+        newSelected = newSelected.concat(selected.slice(0, -1));
+      } else if (selectedIndex > 0) {
+        newSelected = newSelected.concat(
+          selected.slice(0, selectedIndex),
+          selected.slice(selectedIndex + 1)
+        );
+      }
+      setSelected(newSelected);
+      onSelectChanged(newSelected);
+    },
+    [selected, onSelectChanged]
+  );
 
-  const isSelected = (id: number) => selected.indexOf(id) !== -1;
+  const isSelected = useCallback(
+    (key: number) => selected.indexOf(key) !== -1,
+    [selected]
+  );
 
   return (
     <TableContainer component={Paper}>
       <Table stickyHeader sx={{ width: "100%" }} size={"small"} aria-label="simple table">
         <TableHead>
           <TableRow>
-            {columns.map((column) => (
+            {memoizedColumns.map((column) => (
               <TableCell
                 key={column.id}
                 align={column.align}
@@ -224,34 +223,16 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
           </TableRow>
         </TableHead>
         <TableBody>
-          {data &&
-            data.map((row, index) => {
-              const isItemSelected = isSelected(row.key);
-
+          {memoizedData &&
+            memoizedData.map((row) => {
               return (
-                <Tooltip title={row.value}>
-                  <TableRow
-                    hover
-                    onClick={(event) => handleClick(event, row.key)}
-                    key={row.id}
-                    selected={isItemSelected}
-                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                  >
-                    <TableCell
-                      sx={{ paddingLeft: "10px", paddingRight: "0px", color: colors.primary[800] }}
-                      align="left"
-                      component="th"
-                      scope="row"
-                    >
-                      {row.name}
-                    </TableCell>
-
-                    <TableCell align="left" sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
-                      {row.value}
-                    </TableCell>
-                  </TableRow>
-                </Tooltip>
-              );
+                <MemoizedTableRow
+                  key={row.key} // Unique key for each row
+                  row={row}
+                  isItemSelected={isSelected(row.key)}
+                  handleClick={handleClick}
+                />
+              )
             })}
         </TableBody>
       </Table>
@@ -272,5 +253,30 @@ const columns: Column[] = [
   { id: "name", label: "Name", minWidth: 100, maxWidth: 100 },
   { id: "value", label: "Value", minWidth: 100, maxWidth: 100 },
 ];
+
+
+const MemoizedTableRow = React.memo(({ row, isItemSelected, handleClick }: any) => (
+  <Tooltip key={row.key} title={row.value}>
+    <TableRow
+      hover
+      onClick={(event) => handleClick(event, row.key)}
+      key={row.key}
+      selected={isItemSelected}
+      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+    >
+      <TableCell
+        sx={{ paddingLeft: "10px", paddingRight: "0px" }}
+        align="left"
+        component="th"
+        scope="row"
+      >
+        {row.name}
+      </TableCell>
+      <TableCell align="left" sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
+        {row.value}
+      </TableCell>
+    </TableRow>
+  </Tooltip>
+));
 
 export default ElementInfoPanel;
