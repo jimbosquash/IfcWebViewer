@@ -32,9 +32,9 @@ const ActionButtonPanel = () => {
       console.log("No group selected, default will be used");
     }
     // console.log("Setting adjacent",current);
-    console.log("GetAdjacentGroup to", current);
+    console.log("GetAdjacentGroup to", current?.id);
     const newGroup = GetAdjacentGroup(current, viewManager.Tree, adjacency);
-    console.log("next group", current);
+    console.log("next group", newGroup?.id);
 
     if (newGroup) {
       try {

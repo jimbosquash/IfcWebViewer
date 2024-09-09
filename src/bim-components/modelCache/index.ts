@@ -106,7 +106,7 @@ export class ModelCache extends OBC.Component {
      * @returns 
      */
     getElementByFragmentIdMap(fragmentIdMap: FragmentIdMap): Set<BuildingElement> | undefined {
-        console.log('get elements by Id Map', fragmentIdMap, this._models)
+        //console.log('get elements by Id Map', fragmentIdMap, this._models)
 
         if (!fragmentIdMap || !this._buildingElements) return;
 
@@ -146,7 +146,7 @@ export class ModelCache extends OBC.Component {
             return false;
 
         this._models.set(model.uuid, model)
-        this._modelData.set(model.uuid,data)
+        //this._modelData.set(model.uuid,data)
         console.log("model added to cache", model)
         this.onModelAdded.trigger(model)
 

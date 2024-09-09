@@ -130,7 +130,7 @@ const Overlay = () => {
       </Box>}
 
       <LeftSideBox />
-      <RightSidePanel onWidthChange={handleRightPanelWidthChange} />
+      {/* <RightSidePanel onWidthChange={handleRightPanelWidthChange} /> */}
 
       <Snackbar
         open={snackbarOpen}

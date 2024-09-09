@@ -23,10 +23,10 @@ export function GetAdjacentGroup(
   if (!current) return getFirstGroup(tree);
 
   const groupOfType = tree.getNodes(n => n.type === current.groupType).map(n => n.id);
-  console.log("Group of same type",tree,current, groupOfType);
+  // console.log("Group of same type",tree,current, groupOfType);
 
   if (!groupOfType) {
-    console.log("Get adjacent group failed. grouping type not found", current.groupType);
+    // console.log("Get adjacent group failed. grouping type not found", current.groupType);
     return undefined;
   }
 
@@ -40,7 +40,7 @@ export function GetAdjacentGroup(
   }
 
   const newNode = tree.getNode(groupOfType[adjacentIndex]);
-  console.log("New group selection",currentIndex, newNode);
+  // console.log("New group selection",currentIndex, newNode);
 
   if (newNode) {
     return { groupType: newNode.type, id: newNode.id, groupName: newNode.name, elements: TreeUtils.getChildrenNonNullData(newNode) };
@@ -266,7 +266,7 @@ export const setUpTreeFromProperties = (id: string,elements: BuildingElement[], 
     }
 
     const currentNodeType = nodeOrder[currentLevel];
-    console.log("Grouping elements by prop", currentElements,currentNodeType)
+    //console.log("Grouping elements by prop", currentElements,currentNodeType)
     const groupedElements = groupElementsByPropertyName(currentElements, currentNodeType);
 
     groupedElements.forEach((groupElements, groupValue) => {
@@ -279,7 +279,7 @@ export const setUpTreeFromProperties = (id: string,elements: BuildingElement[], 
 
   if (root)
     createSubTree(root, elements, 0)
-  console.log('tree created', id,elements,tree)
+  //console.log('tree created', id,elements,tree)
   return tree;
 }
 
