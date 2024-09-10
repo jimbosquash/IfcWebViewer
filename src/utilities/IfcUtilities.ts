@@ -37,14 +37,68 @@ export function GetFragmentIdMaps(elements: BuildingElement[], components: OBC.C
         const fragIdMap = model?.getFragmentMap(expressIds);
         result = result.concat(fragIdMap)
 
-        Object.entries(fragIdMap).forEach((value,key) => {
+        Object.entries(fragIdMap).forEach((value, key) => {
             const fragment = model.items.find(frag => frag.id === value[0])
-            if(!fragment) return;
+            if (!fragment) return;
 
         })
     });
     return result;
 }
+
+// allows you to pass these idmaps into helpful functions with @thatopen
+export function GetVisibleFragmentIdMaps(elements: BuildingElement[], components: OBC.Components): FRAGS.FragmentIdMap[] {
+
+    if (!components) return [];
+
+    const cache = components.get(ModelCache);
+    if (!cache) return [];
+
+    let result: FragmentIdMap[] = [];
+
+    const elementsByModel = elements.reduce((acc, e) => {
+        const modelId = e.modelID;
+        if (!acc.has(modelId)) {
+            acc.set(modelId, [])
+        }
+        acc.get(modelId)!.push(e.expressID)
+        return acc;
+
+    }, new Map<string, number[]>);
+
+
+    elementsByModel.forEach((expressIds, modelId) => {
+        const model = cache.getModel(modelId);
+        if (!model) return;
+        const fragIdMap = model?.getFragmentMap(expressIds);
+        console.log('get visible fragments id map', fragIdMap, expressIds)
+        result = result.concat(fragIdMap)
+
+        Object.entries(fragIdMap).forEach(([fragID, value], key) => {
+
+            const fragment = model.items.find(frag => frag.id === fragID)
+            if (!fragment) return;
+
+            const test = fragIdMap[fragID];
+            fragIdMap[fragID] = new Set([...test].filter(x => fragment.hiddenItems.has(x)))
+        })
+    });
+    console.log("test", result)
+
+    return result;
+}
+
+// export function GetFragmentIdMaps2(elements: BuildingElement[], components: OBC.Components) {
+//     const elementsByModel = elements.reduce((acc, e) => {
+//         const modelId = e.modelID;
+//         if (!acc.has(modelId)) {
+//             acc.set(modelId, [])
+//         }
+//         acc.get(modelId)!.push(e.expressID)
+//         return acc;
+
+//     }, new Map<string, number[]>);
+// }
 
 
 // export function GetFragment(FragmentIdMap : FragmentIdMap, components: OBC.Components)
@@ -63,6 +117,8 @@ export function GetFragmentIdMaps(elements: BuildingElement[], components: OBC.C
 
 
 
+
+
 /**
  * search all input Model's fragments and check visibility through HiddenIds collection.
  * @param models all ifc models to search from
@@ -76,10 +132,85 @@ export function GetAllVisibleExpressIDs(models: FRAGS.FragmentsGroup[]): Map<str
         model.items.forEach(frag => {
             [...frag.ids].filter(x => !frag.hiddenItems.has(x)).forEach(id => visibleElements.add(id));
         })
+
+
         allVisibleElements.set(model.uuid, visibleElements)
     })
     return allVisibleElements;
 }
+
+/**
+ * Find the visible building elements based on the fragment hidden collection and return grouped by modelID
+ * @param buildingElements 
+ * @param components 
+ * @returns key = ModelID, Value = ExpressIDs
+ */
+export function GetVisibleExpressIDs(buildingElements: BuildingElement[], components: OBC.Components): Map<string, Set<number>> {
+    const fragments = getFragments(buildingElements, components)
+    let allVisibleElements: Map<string, Set<number>> = new Map();
+    fragments.forEach((elements, fragment) => {
+        if (!elements) return;
+
+        const modelID = elements[0].modelID;
+
+        const visibleIdSet = [...fragment.ids].filter(x => !fragment.hiddenItems.has(x));
+        console.log('get visible elementIds', visibleIdSet, [...fragment.ids], fragment.hiddenItems)
+        const group = allVisibleElements.get(modelID);
+        if (group)
+            visibleIdSet.forEach(e => group.add(e));
+        else {
+            allVisibleElements.set(modelID, new Set(visibleIdSet))
+        }
+    })
+    console.log('all visible elementIds', allVisibleElements)
+    return allVisibleElements;
+}
+
+/**
+ * get express ids by model
+ * @param buildingElements 
+ * @returns Key = modelID, value = expressIDs
+ */
+export function getExpressIDsByModel(buildingElements: BuildingElement[]) {
+    const elementsByModel = buildingElements.reduce((acc, e) => {
+        const modelId = e.modelID;
+        if (!acc.has(modelId)) {
+            acc.set(modelId, [])
+        }
+        acc.get(modelId)!.push(e.expressID)
+        return acc;
+
+    }, new Map<string, number[]>);
+    return elementsByModel;
+}
+
+
+export function getFragments(buildingElements: BuildingElement[], components: OBC.Components): Map<FRAGS.Fragment, BuildingElement[]> {
+    const expressIDsByModel = getExpressIDsByModel(buildingElements);
+    if (!expressIDsByModel) return new Map();
+
+    const cache = components.get(ModelCache);
+
+    // search each model incase there are multiple for fragments
+    const fragments: Map<FRAGS.Fragment, BuildingElement[]> = new Map();
+    expressIDsByModel.forEach((expressIds, modelId) => {
+        const model = cache.getModel(modelId);
+        if (!model) return;
+
+        // get fragment id by building element express id groups and return fragment with relevant building Elements
+        const fragIdMap = model?.getFragmentMap(expressIds);
+        Object.entries(fragIdMap).forEach(([fragID, expressIDs], index) => {
+            const fragment = model.items.find(frag => frag.id === fragID)
+            if (!fragment) return;
+            // get the building elements by express ids and set to fragment Map
+            fragments.set(fragment, buildingElements.filter(be => expressIDs.has(be.expressID)))
+        })
+    });
+
+    console.log('get fragments', expressIDsByModel, fragments)
+    return fragments;
+}
+
 
 export function GetCenterPoints(models: FRAGS.FragmentsGroup[], buildingElements: BuildingElement[], components: OBC.Components): Map<BuildingElement, Tag> {
 
@@ -318,9 +449,10 @@ export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, com
     console.log('getBuildingElements: elements')
     await OBC.IfcPropertiesUtils.getRelationMap(loadedModel, WEBIFC.IFCRELDEFINESBYPROPERTIES, (async (propertySetID, _relatedElementsIDs) => {
 
-        if(!_relatedElementsIDs) {
+        if (!_relatedElementsIDs) {
             // console.log('getBuildingElements: _relatedElementsIDs',propertySetID, _relatedElementsIDs)
-            return;}
+            return;
+        }
 
         _relatedElementsIDs.forEach(relatingElement => {
             // console.log('getBuildingElements: relatingElement',relatingElement)

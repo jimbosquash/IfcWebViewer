@@ -102,7 +102,7 @@ export const ShowTagsButton: REACT.FC<DynamicButtonProp> = ({ variant }) => {
 
     const tagger = components.get(ModelTagger);
     tagger.enabled = !enabled;
-    tagger.visible = !enabled;
+    //tagger.visible = !enabled;
     setEnabled(!enabled);
   };
 

@@ -1,13 +1,19 @@
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
+import * as FRAGS from "@thatopen/fragments";
 import { Mark } from "@thatopen/components-front";
 import * as THREE from "three";
 import { GetPropertyByName } from "../../utilities/BuildingElementUtilities";
-import { GetAllVisibleExpressIDs, GetCenterPoints } from "../../utilities/IfcUtilities";
+import { GetAllVisibleExpressIDs, GetCenterPoints, getExpressIDsByModel, getFragments, GetVisibleExpressIDs, GetVisibleFragmentIdMaps as getVisibleFragmentIdMaps } from "../../utilities/IfcUtilities";
 import { BuildingElement, knownProperties } from "../../utilities/types";
 import { ModelCache } from "../modelCache";
 import { ModelViewManager } from "../modelViewer";
 import { Tag } from "./src/Tag";
+
+export enum TagVisibilityMode {
+    TagSelectionGroup = "TagSelectionGroup",
+    TagVisible = "TagVisible"
+}
 
 /**
  * Responsible for generating and display marks or tags which float over a 3d element in the view port. Make
@@ -24,6 +30,7 @@ export class ModelTagger extends OBC.Component {
     private _previewElement: OBF.Mark | null = null
     private _visible: boolean = false;
     private _materialColor: Map<string, string> = new Map<string, string>;
+    private _tagVisibilityMode: TagVisibilityMode = TagVisibilityMode.TagSelectionGroup;
 
     /**
      * key = expressID, value = mark
@@ -47,13 +54,13 @@ export class ModelTagger extends OBC.Component {
     }
 
 
-    set visible(value: boolean) {
-        this._visible = value;
-        // console.log('model Tagger setting visiblity', this._markers)
-        if (!this._markers)
-            return;
-        this.updateVisibilityFromModel();
-    }
+    // set visible(value: boolean) {
+    //     this._visible = value;
+    //     // console.log('model Tagger setting visiblity', this._markers)
+    //     if (!this._markers)
+    //         return;
+    //     this.setVisibility();
+    // }
 
 
     get visible() { return this._visible }
@@ -76,19 +83,20 @@ export class ModelTagger extends OBC.Component {
 
         // add or remove listeners to change visibility and marker set
         if (!value) {
-            viewManager.onVisibilityUpdated.remove(() => this.createTagsFromModelVisibility())
-            cache.onBuildingElementsChanged.remove((data) => this.createTagsFromModelVisibility())
-            this._markers.forEach(mark => mark.visible = false)
+            viewManager.onVisibilityUpdated.remove(() => this.setTags())
+            cache.onBuildingElementsChanged.remove(() => this.setTags())
+            this._markers.forEach(mark => {
+                // mark.visible = false
+                mark.dispose()
+            })
+            this._markers = new Map();
         }
         if (value) {
-            viewManager.onVisibilityUpdated.add(() => this.createTagsFromModelVisibility())
-            cache.onBuildingElementsChanged.add((data) => this.createTagsFromModelVisibility())
-
-            if (cache.BuildingElements) {
-                this.updateTags(cache.BuildingElements)
-                this.updateVisibilityFromModel();
-            }
-
+            viewManager.onVisibilityUpdated.add(() => this.setTags())
+            cache.onBuildingElementsChanged.add(() => this.setTags())
+            // set up tags 
+            this.setTags()
+            // this.setVisibility();
         }
     }
 
@@ -96,10 +104,28 @@ export class ModelTagger extends OBC.Component {
         return this._enabled
     }
 
+
+    private setTags = () => {
+        switch (this._tagVisibilityMode) {
+            case TagVisibilityMode.TagVisible:
+                this.createTagsFromModelVisibility();
+                return;
+            case TagVisibilityMode.TagSelectionGroup:
+                const modelViewManager = this.components.get(ModelViewManager);
+                const selectedElements = modelViewManager.SelectedGroup?.elements
+                if (!selectedElements) return; // or first make every thing disabled
+                console.log('setting tags', selectedElements)
+                this.createTagsFromBuildingElements(selectedElements);
+        }
+    }
+
+
+
+
     /**
      * search three js model and find what is visible and set visibility based on that
      */
-    private updateVisibilityFromModel = () => {
+    private createTagsFromModelVisibility = () => {
         const cache = this.components.get(ModelCache);
         if (cache.BuildingElements) {
             // console.log('creating new markers', cache.BuildingElements)
@@ -108,29 +134,30 @@ export class ModelTagger extends OBC.Component {
             allVisibleIDs.forEach((expressIDs, modelID) => {
                 allVisibleElements.push(...cache.getElementsByExpressId(expressIDs, modelID))
             })
-            this.updateVisible(allVisibleElements);
+            this.updateTags(allVisibleElements);
         }
     }
 
-        /**
-     * search three js model and find what is visible and set visibility based on that
+    /**
+     * Create search three js model and find what is visible and set visibility based on that
      */
-         private createTagsFromModelVisibility = () => {
-            const cache = this.components.get(ModelCache);
-            if (cache.BuildingElements) {
-                // console.log('creating new markers', cache.BuildingElements)
-                const allVisibleIDs = GetAllVisibleExpressIDs(cache.models())
-                const allVisibleElements: BuildingElement[] = [];
-                allVisibleIDs.forEach((expressIDs, modelID) => {
-                    allVisibleElements.push(...cache.getElementsByExpressId(expressIDs, modelID))
-                })
-                this.updateTags(allVisibleElements);
-            }
-        }
+    private createTagsFromBuildingElements = (buildingElements: BuildingElement[]) => {
+        const cache = this.components.get(ModelCache);
+        if (cache.BuildingElements) {
+            const VisibleIDsByModel = GetVisibleExpressIDs(buildingElements, this.components)
+            console.log('create tags from building elements',VisibleIDsByModel)
 
+            const visibleElements: BuildingElement[] = [];
+            VisibleIDsByModel.forEach((expressIDs, modelID) => {
+                visibleElements.push(...cache.getElementsByExpressId(expressIDs, modelID))
+            })
+            this.updateTags(visibleElements);
+        }
+    }
 
     /**
-     * when model is loaded search for the center of all geometry and store it in a Map with expressIDs
+     * when model is loaded search for the center of all geometry and store it in a Map with expressIDs.
+     * dispose of current tags and set tags for each buildingElement
      * @param buildingElements 
      * @returns 
      */
@@ -144,22 +171,72 @@ export class ModelTagger extends OBC.Component {
         }
     }
 
+    
+    // private setVisibility = () => {
+    //     switch (this._tagVisibilityMode) {
+    //         case TagVisibilityMode.TagVisible:
+    //             this.setVisibilityFromModel();
+    //             return;
+    //         case TagVisibilityMode.TagSelectionGroup:
+    //             const modelViewManager = this.components.get(ModelViewManager);
+    //             const selectedElements = modelViewManager.SelectedGroup?.elements
+    //             if (!selectedElements) return; // or first make every thing disabled
+    //             this.setVisibilityFromElements(selectedElements);
+    //     }
+    // }
 
-    private updateVisible(buildingElements: BuildingElement[]) {
-        if (!this.enabled) return;
-        //set up markers for visible things
-        console.log('new visibility change', this._markers, buildingElements)
+    // /**
+    //  * Update visibility based on input BuildingElements enabled visibility for only tags with an expressID of input building Elements
+    //  * @param buildingElements 
+    //  */
+    // private updateVisible(buildingElements: BuildingElement[]) {
+    //     if (!this.enabled) return;
+    //     //set up markers for visible things
+    //     // console.log('new visibility change', this._markers, buildingElements)
 
-        this._markers.forEach((value, key) => {
-            const visSet = buildingElements.find(element => element.expressID === key);
-            if (visSet) {
-                value.visible = true;
-                // console.log('vis found', entry[1].id)
-            } else
-                value.visible = false;
-        })
+    //     this._markers.forEach((value, key) => {
+    //         const visSet = buildingElements.find(element => element.expressID === key);
+    //         value.visible = visSet !== undefined;
+    //     })
+    // }
 
-    }
+        /**
+     * search three js model and find what is visible and set visibility based on that
+     */
+        //  private setVisibilityFromModel = () => {
+        //     const cache = this.components.get(ModelCache);
+        //     if (cache.BuildingElements) {
+        //         // console.log('creating new markers', cache.BuildingElements)
+        //         const allVisibleIDs = GetAllVisibleExpressIDs(cache.models())
+        //         const allVisibleElements: BuildingElement[] = [];
+        //         allVisibleIDs.forEach((expressIDs, modelID) => {
+        //             allVisibleElements.push(...cache.getElementsByExpressId(expressIDs, modelID))
+        //         })
+        //         this.updateVisible(allVisibleElements);
+        //     }
+        // }
+    
+    /**
+     * search three js model and find what is visible and set visibility based on that
+     */
+    //  private setVisibilityFromElements = (selectedElements: BuildingElement[]) => {
+    //     const res = getVisibleFragmentIdMaps(selectedElements, this.components)
+    //     if (!res) return;
+
+    //     let allVisibleElements: BuildingElement[] = [];
+
+    //     res.forEach(fragMap => {
+    //         const vals = Object.values(fragMap)
+    //         const expressIDs = Object.values(fragMap).flatMap(fm => [...fm]);
+    //         const t = selectedElements.filter(e => expressIDs.find(id => e.expressID === id))
+    //         console.log('visible elements ', t, expressIDs, vals, fragMap, selectedElements)
+
+    //         allVisibleElements = [...allVisibleElements, ...t]
+    //     })
+
+    //     console.log('visible elements to tag', allVisibleElements, res)
+    //     this.updateVisible(allVisibleElements);
+    // }
 
 
     addTag(text: string, position?: THREE.Vector3) {

@@ -39,8 +39,7 @@ const ActionButtonPanel = () => {
     if (newGroup) {
       try {
         if (!viewManager.Tree) return;
-        viewManager.SelectedGroup = newGroup;
-        viewManager.updateBasedOnVisibilityMode(undefined, undefined, viewManager.Tree.id);
+        viewManager.setSelectionGroup(newGroup,true)
         //zoomToSelected(viewManager.getBuildingElements(newGroup.id),components);
       } catch (error) {
         console.error("Error updating visibility:", error);
@@ -131,6 +130,7 @@ const ActionButtonPanel = () => {
             </Tooltip>
 
             <VisibilityModeButton />
+
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
             <Tooltip title="Previous group">
               <Button
@@ -157,6 +157,7 @@ const ActionButtonPanel = () => {
               </Button>
             </Tooltip>
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
+            
             <ShowTagsButton variant="panel" />
 
             {/* <Button onClick={() => {handleTaskCreate()}}>task</Button>

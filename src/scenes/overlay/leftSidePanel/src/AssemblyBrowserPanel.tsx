@@ -161,7 +161,7 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
         {/* fixed panel section */}
 
         <ButtonGroup style={{ flexShrink: 0, marginTop: "18px", marginBottom: "10px", justifyContent: "center" }}>
-          <Tooltip
+          {/* <Tooltip
             title={
               visibleOnDoubleClick
                 ? "Dont make visible hidden items on double click"
@@ -172,7 +172,7 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
               <Icon style={{ color: colors.grey[600] }} icon="ic:outline-layers-clear" />
             </Button>
           </Tooltip>
-          {/* 
+          
           <Tooltip title={"Select All"}>
             <Button variant="contained" onClick={() => setVisibleOnDoubleClick(!visibleOnDoubleClick)}>
               <Icon style={{ color: colors.grey[600] }} icon="mdi:checkbox-multiple-marked-outline" />

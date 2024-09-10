@@ -124,13 +124,28 @@ export class ModelViewManager extends OBC.Component {
      * It is assumed that the selected group has an ID that matches the currently active tree. If this group comes from a tree you ar 
      * not sure is the active tree, first set that tree then select group.
      */
-    set SelectedGroup(selectionGroup: SelectionGroup | undefined) {
+    // set SelectedGroup(selectionGroup: SelectionGroup | undefined) {
+    //     if (!selectionGroup) return;
+    //     this._selectedGroup = selectionGroup;
+    //     console.log("ModelViewManager: selected group changed:", selectionGroup.id)
+    //     this.onSelectedGroupChanged.trigger(this._selectedGroup)
+
+        
+        
+    // // Add any additional logic needed when setting the selection group
+    // }
+/**
+     * It is assumed that the selected group has an ID that matches the currently active tree. If this group comes from a tree you ar 
+     * not sure is the active tree, first set that tree then select group.
+     */
+    setSelectionGroup(selectionGroup: SelectionGroup | undefined, updateModelVisibility: boolean) {
         if (!selectionGroup) return;
         this._selectedGroup = selectionGroup;
         console.log("ModelViewManager: selected group changed:", selectionGroup.id)
         this.onSelectedGroupChanged.trigger(this._selectedGroup)
-
-        // Add any additional logic needed when setting the selection group
+        if(updateModelVisibility && this.Tree?.id){
+            this.updateBasedOnVisibilityMode(undefined, undefined, this.Tree?.id);
+        }
     }
 
     get Tree(): Tree<BuildingElement> | undefined {
@@ -160,6 +175,8 @@ export class ModelViewManager extends OBC.Component {
 
         return TreeUtils.getChildrenNonNullData(groupNode)
     }
+
+
 
 
 
