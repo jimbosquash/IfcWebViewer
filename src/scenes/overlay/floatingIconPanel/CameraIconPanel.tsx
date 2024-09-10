@@ -12,6 +12,7 @@ import {
 } from "../../../utilities/CameraUtilities";
 import * as OBC from "@thatopen/components";
 import { ModelCache } from "../../../bim-components/modelCache";
+import { is } from "@react-three/fiber/dist/declarations/src/core/utils";
 
 const CameraIconPanel: React.FC = () => {
   const components = useComponentsContext();
@@ -63,9 +64,13 @@ const CameraIconPanel: React.FC = () => {
     let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
     if (!cam) return;
 
-    cam.controls.enabled = !isCameraUnlocked;
+    const newSet = !cam.controls.enabled;
+    // console.log('cam lock setting', cam.controls.enabled,newSet)
+    cam.controls.enabled = newSet;
+    // console.log('cam lock set', cam.controls.enabled)
 
-    setCameraLock(!isCameraUnlocked);
+    setCameraLock(newSet);
+
   }, [components, projectionMode]);
 
   const cameraControlButtons = useMemo<IconButtonConfig[]>(() => [
