@@ -99,8 +99,9 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
       console.log("setting visibility state", cacheVisState, newVisState);
 
       if (cacheVisState === newVisState) return;
-      tree.visibilityMap.set(node.id, newVisState);
-      modelViewManager.onGroupVisibilitySet.trigger({ treeID: treeID, visibilityMap: tree.visibilityMap });
+      // tree.visibilityMap.set(node.id, newVisState);
+      modelViewManager.setVisibility(node.id,treeID,newVisState,false)
+      modelViewManager.onGroupVisibilitySet.trigger({treeID: treeID, visibilityMap: tree.visibilityMap})
     };
 
 
@@ -112,8 +113,9 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
           ? visibilityMap.get(node.id)
           : modelViewManager.getViewTree(treeID)?.visibilityMap.get(node.id);
 
-        if (visState === undefined || visState === visibilityState) return;
         setVisibility(visState);
+        if (visState === undefined || visState === visibilityState) return;
+        // modelViewManager.updateVisibility(treeID)
       },
       [treeID, node?.id, modelViewManager, visibilityState]
     );
@@ -270,7 +272,10 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         >
           <VisibilityToggle
             visibilityState={visibilityState}
-            onClick={handleToggleVisibility}
+            onClick={(e) => {
+              handleToggleVisibility(e)
+              modelViewManager.updateVisibility(treeID)
+            }}
             color={getColor("text")}
           />
           {icon && <Icon icon={icon} style={{ flexShrink: 0, marginLeft: "5px" }} color={getColor("text")} />}

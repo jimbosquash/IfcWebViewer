@@ -19,22 +19,27 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
   const [visibleOnDoubleClick, setVisibleOnDoubleClick] = useState<boolean>(true);
   const components = useComponentsContext();
 
-  // called on component change 
+  const modelViewManager = useMemo(() => components?.get(ModelViewManager), [components]);
+
+  // called on component change
   const getPropertyTree = useCallback(
     (buildingElements: BuildingElement[]) => {
-      if (!buildingElements || !components) return;
+      if (!buildingElements || !modelViewManager) return;
 
-      const viewManager = components.get(ModelViewManager);
-      let existingTreeContainer = viewManager.getViewTree(treeName);
+      let existingTreeContainer = modelViewManager.getViewTree(treeName);
 
       const newTree = setUpTreeFromProperties(treeName, buildingElements, treeStructure);
-      existingTreeContainer = viewManager.addOrReplaceTree(treeName, newTree, existingTreeContainer?.visibilityMap);
+      existingTreeContainer = modelViewManager.addOrReplaceTree(
+        treeName,
+        newTree,
+        existingTreeContainer?.visibilityMap
+      );
 
       if (!existingTreeContainer) return;
       setNodeVisibility(existingTreeContainer.visibilityMap);
       setNodes([...existingTreeContainer.tree.root.children.values()]);
     },
-    [components]
+    [modelViewManager]
   );
 
   useEffect(() => {
@@ -42,7 +47,7 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
     const cache = components.get(ModelCache);
     const viewManager = components.get(ModelViewManager);
     cache.onBuildingElementsChanged.add((data) => getPropertyTree(data));
-    
+
     if (cache.BuildingElements) {
       let existingTreeContainer = viewManager.getViewTree(treeName);
       if (!existingTreeContainer) {
@@ -60,6 +65,22 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
     };
   }, [components, getPropertyTree]);
 
+  const clearAllVisibility = () => {
+    const map = new Map(modelViewManager.GroupVisibility);
+    const selectedId = modelViewManager.SelectedGroup?.id;
+    if (!selectedId) return;
+    const neighbors = modelViewManager.Tree?.getNodes(
+      (n) => n.type === modelViewManager.SelectedGroup?.groupType
+    ).flatMap((n) => n.id);
+    neighbors?.push(selectedId);
+    if (!neighbors) return;
+
+    map.forEach((entry, key) => {
+      map.set(key, neighbors?.find((ne) => ne === key) ? VisibilityState.Visible : VisibilityState.Hidden);
+    });
+
+    modelViewManager.GroupVisibility = map;
+  };
 
   // store and set the visibility of all nodes
   const setVisibility = useCallback(
@@ -139,7 +160,7 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
       >
         {/* fixed panel section */}
 
-        {/* <ButtonGroup style={{ flexShrink: 0, marginTop: "18px", marginBottom: "10px", justifyContent: "center" }}>
+        <ButtonGroup style={{ flexShrink: 0, marginTop: "18px", marginBottom: "10px", justifyContent: "center" }}>
           <Tooltip
             title={
               visibleOnDoubleClick
@@ -147,11 +168,11 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
                 : "Make visible hidden items on double click"
             }
           >
-            <Button variant="contained" onClick={() => setVisibleOnDoubleClick(!visibleOnDoubleClick)}>
+            <Button variant="contained" onClick={() => clearAllVisibility()}>
               <Icon style={{ color: colors.grey[600] }} icon="ic:outline-layers-clear" />
             </Button>
           </Tooltip>
-
+          {/* 
           <Tooltip title={"Select All"}>
             <Button variant="contained" onClick={() => setVisibleOnDoubleClick(!visibleOnDoubleClick)}>
               <Icon style={{ color: colors.grey[600] }} icon="mdi:checkbox-multiple-marked-outline" />
@@ -161,8 +182,8 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
             <Button variant="contained" onClick={() => setVisibleOnDoubleClick(!visibleOnDoubleClick)}>
               <Icon style={{ color: colors.grey[600] }} icon="mdi:checkbox-multiple-blank-outline" />
             </Button>
-          </Tooltip>
-        </ButtonGroup> */}
+          </Tooltip> */}
+        </ButtonGroup>
 
         <Box component="div" m="0px" maxHeight="100%" overflow="hidden" width="100%">
           {memoizedTreeTableRows}
