@@ -157,46 +157,40 @@ export const ShowTagsButton: REACT.FC<DynamicButtonProp> = ({ variant }) => {
         child.visible
       })
 
-      // const fragments = model.getFragmentMap();
-      // const elementsForModel = elementsByModelId.get(model.uuid);
-      // if (elementsForModel) {
-      //     const allFragments = GetFragmentsFromExpressIds(elementsForModel.map(element => element.expressID), fragments, model);
-      //     if (visibility === VisibilityState.Visible) {
-      //         allFragments.forEach((ids, frag) => frag.setVisibility(true, ids));
-      //         // allFragments.forEach((ids, frag) => frag.resetColor(ids));
-      //     }
-      //     else {
-      //         allFragments.forEach((ids, frag) => frag.setVisibility(false, ids));
-      //         // allFragments.forEach((ids, frag) => frag.setColor(transWhite, ids));
-      //     }
-      // }
     });
   };
 
+  const TagButtonIcon : React.FC<{ enabled: boolean }> =  ({enabled}) => {
+    return(<>
+      {!enabled ? <Icon icon="mdi:tag-off-outline" /> : <Icon icon="mdi:tag" />}
+      </>
+    )
+  }
+
   return (
     <>
-      <Tooltip title="Tag selected">
+      <Tooltip title={ enabled ? "Hide Tags" : "Show Tags"}>
         {variant === "panel" ? (
           <Button
             sx={{ backgroundColor: "transparent" }}
             onClick={() => toggleComments()}
             style={{ color: colors.grey[400], border: "0" }}
-            //   variant={open ? "contained" : "outlined"}
           >
-            {!enabled ? <Icon icon="ph:tag-bold" /> : <Icon icon="ph:tag-duotone" />}
+            <TagButtonIcon enabled={enabled} />
           </Button>
         ) : (
           <IconButton
             onClick={() => toggleComments()}
             style={{ color: colors.grey[400], border: "0" }}
-            //   variant={open ? "contained" : "outlined"}
           >
-            {!enabled ? <Icon icon="ph:tag-bold" /> : <Icon icon="ph:tag-duotone" />}
+            <TagButtonIcon enabled={enabled} />
           </IconButton>
         )}
       </Tooltip>
     </>
   );
 };
+
+
 
 export default ShowTagsButton;

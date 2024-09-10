@@ -47,12 +47,13 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
       }
       const elements = TreeUtils.getChildrenNonNullData(node);
 
-      modelViewManager.SelectedGroup = {
+      const selectedGroup : SelectionGroup = {
         id: node?.id,
         groupType: node.type,
         groupName: name,
         elements: elements,
       };
+      modelViewManager.setSelectionGroup(selectedGroup,false)
     };
 
     // when ModelVIewManager updates its vismap of parent tree check on visibility state
@@ -145,6 +146,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
 
       highlighter.highlightByID("select", fragmentIdMap, false, false, undefined);
       setSelected();
+      
     }, [node, components, visibleOnDoubleClick]);
 
     const getFragmentMapOfVisible = (elements: BuildingElement[]) => {

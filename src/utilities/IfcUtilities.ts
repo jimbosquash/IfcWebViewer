@@ -154,7 +154,7 @@ export function GetVisibleExpressIDs(buildingElements: BuildingElement[], compon
         const modelID = elements[0].modelID;
 
         const visibleIdSet = [...fragment.ids].filter(x => !fragment.hiddenItems.has(x));
-        console.log('get visible elementIds', visibleIdSet, [...fragment.ids], fragment.hiddenItems)
+        // console.log('get visible elementIds', visibleIdSet, [...fragment.ids], fragment.hiddenItems)
         const group = allVisibleElements.get(modelID);
         if (group)
             visibleIdSet.forEach(e => group.add(e));
@@ -162,7 +162,7 @@ export function GetVisibleExpressIDs(buildingElements: BuildingElement[], compon
             allVisibleElements.set(modelID, new Set(visibleIdSet))
         }
     })
-    console.log('all visible elementIds', allVisibleElements)
+    // console.log('all visible elementIds', allVisibleElements)
     return allVisibleElements;
 }
 
