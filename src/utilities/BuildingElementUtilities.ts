@@ -213,7 +213,6 @@ export const select = async (elements: BuildingElement[], components: OBC.Compon
  */
 export const isolate = async (elements: BuildingElement[], components: OBC.Components) => {
   if (!elements|| !components) return;
-  console.log("high light these elements")
 
   const hider = components.get(OBC.Hider);
   const modelCache = components.get(ModelCache);
