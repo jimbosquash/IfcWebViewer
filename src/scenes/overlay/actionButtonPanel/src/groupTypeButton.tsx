@@ -1,18 +1,16 @@
-import { Icon } from "@iconify/react"
-import { Button, ToggleButtonGroup, Tooltip, useTheme } from "@mui/material"
+import { Icon } from "@iconify/react";
+import { Button, ToggleButtonGroup, Tooltip, useTheme } from "@mui/material";
 import { useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { tokens } from "../../../../theme";
 
-
 export const GroupTypeButton = () => {
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
-    const components = useComponentsContext();
-    const [groupType, setGroupType] = useState<string>();
-    
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
+  const components = useComponentsContext();
+  const [groupType, setGroupType] = useState<string>();
 
-  const toggleButtonGroup = () => {}
+  const toggleButtonGroup = () => {};
   // const toggleGroupType = () => {
   //   const viewManager = components.get(ModelViewManager);
   //   const current = viewManager.SelectedGroup;
@@ -43,21 +41,17 @@ export const GroupTypeButton = () => {
 
   //     }
 
-
-
   // }
 
-    return(<>
-                <Tooltip title={"Navigate Building Steps"}>
-              <Button
-                onClick={toggleButtonGroup}
-                style={{ color: colors.grey[200], border: "0" }}
-                variant={"outlined"}
-              >
-                {groupType === "Assembly" ? <Icon icon="solar:box-outline" /> :<Icon icon="ri:shapes-line" />}
-              </Button>
-            </Tooltip>
-    </>)
-}
+  return (
+    <>
+      <Tooltip title={"Navigate Building Steps"}>
+        <Button onClick={toggleButtonGroup} style={{ color: colors.grey[200], border: "0" }} variant={"outlined"}>
+          {groupType === "Assembly" ? <Icon icon="solar:box-outline" /> : <Icon icon="ri:shapes-line" />}
+        </Button>
+      </Tooltip>
+    </>
+  );
+};
 
 export default GroupTypeButton;

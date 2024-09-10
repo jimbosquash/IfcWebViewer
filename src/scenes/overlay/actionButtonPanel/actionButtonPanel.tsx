@@ -12,6 +12,7 @@ import ShowTagsButton from "../../../components/ShowTagsButton";
 import VisibilityModeButton from "./src/visibilityModeButton";
 import GroupTypeButton from "./src/groupTypeButton";
 import NavigationButtonGroup from "./src/navigationButtonGroup";
+import { ZoomToVisibleButton } from "./src/zoomToVisibleButton";
 
 const ActionButtonPanel = () => {
   const theme = useTheme();
@@ -55,14 +56,16 @@ const ActionButtonPanel = () => {
           <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "40px" }}>
             <GroupTypeButton />
             <VisibilityModeButton />
+            <ZoomToVisibleButton/>
 
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
             <NavigationButtonGroup />
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
 
+
             <ShowTagsButton variant="panel" />
             <IsolateButton />
-            
+
             <Tooltip title="Show all">
               <Button
                 sx={{ backgroundColor: "transparent" }}

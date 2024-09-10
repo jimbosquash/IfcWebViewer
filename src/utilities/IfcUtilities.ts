@@ -1,6 +1,4 @@
 
-import { numberInputClasses } from "@mui/base";
-import { ThreeDRotation } from "@mui/icons-material";
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import * as THREE from 'three'
@@ -87,36 +85,6 @@ export function GetVisibleFragmentIdMaps(elements: BuildingElement[], components
 
     return result;
 }
-
-// export function GetFragmentIdMaps2(elements: BuildingElement[], components: OBC.Components) {
-//     const elementsByModel = elements.reduce((acc, e) => {
-//         const modelId = e.modelID;
-//         if (!acc.has(modelId)) {
-//             acc.set(modelId, [])
-//         }
-//         acc.get(modelId)!.push(e.expressID)
-//         return acc;
-
-//     }, new Map<string, number[]>);
-// }
-
-
-// export function GetFragment(FragmentIdMap : FragmentIdMap, components: OBC.Components)
-// {
-//     const cache = components.get(ModelCache);
-//     const model = cache.getModel(modelId);
-
-//     Object.entries(FragmentIdMap).forEach((value,key) => {
-//         const fragment = model.items.find(frag => frag.id === value[0])
-//         if(!fragment) return;
-
-//     })
-
-// }
-
-
-
-
 
 
 /**
