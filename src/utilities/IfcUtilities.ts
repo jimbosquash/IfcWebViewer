@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { FragmentIdMap } from "@thatopen/fragments";
 import * as WEBIFC from "web-ifc";
 import { ModelCache } from "../bim-components/modelCache";
-import { BuildingElement } from "./types";
+import { BasicProperty, BuildingElement } from "./types";
 import { Tag } from "../bim-components/modelTagger/src/Tag";
 
 // allows you to pass these idmaps into helpful functions with @thatopen
@@ -406,73 +406,130 @@ export function getUniqueElementCount(elements: BuildingElement[]) {
     return Object.keys(groupedByProductCode).length;
 }
 
-export async function GetBuildingElements(loadedModel: FRAGS.FragmentsGroup, components: OBC.Components | undefined) {
+export async function GetBuildingElements(model: FRAGS.FragmentsGroup, components: OBC.Components | undefined) : Promise<BuildingElement[]> {
     if (!components) {
         console.log('components not set, getBuildingElements exiting')
         return [];
     }
-    // this process attempting example https://github.com/ThatOpen/engine_components/blob/318f4dd9ebecb95e50759eb41f290df57c008fb3/packages/core/src/ifc/IfcRelationsIndexer/index.ts#L235
-    const foundElements = new Map<number, BuildingElement>();// = Map<number,buildingElement[]>;
-    const elements = loadedModel.getLocalProperties();
-    console.log('getBuildingElements: elements')
-    await OBC.IfcPropertiesUtils.getRelationMap(loadedModel, WEBIFC.IFCRELDEFINESBYPROPERTIES, (async (propertySetID, _relatedElementsIDs) => {
 
-        if (!_relatedElementsIDs) {
-            // console.log('getBuildingElements: _relatedElementsIDs',propertySetID, _relatedElementsIDs)
-            return;
-        }
-
-        _relatedElementsIDs.forEach(relatingElement => {
-            // console.log('getBuildingElements: relatingElement',relatingElement)
-
-            if (elements && relatingElement) {
-                const element = elements[relatingElement]
-                // console.log("element related", element)
-                const fragKey = Object.keys(loadedModel.getFragmentMap([element.expressID]))[0]
-
-                let newElement = foundElements.get(relatingElement);
-                if (!newElement) {
-                    newElement = {
-                        expressID: element.expressID,
-                        GlobalID: element.GlobalId?.value,
-                        FragmentID: fragKey,
-                        type: element.type,
-                        name: element.Name?.value,
-                        properties: [],
-                        modelID: loadedModel.uuid
-                    };
-                }
-                if (!newElement) return;
-
-                const pSetName = elements[propertySetID];
-                // console.log("element ifc pset", pSetName)
-                OBC.IfcPropertiesUtils.getPsetProps(loadedModel, propertySetID, (async (propertyId) => {
-                    const property = elements[propertyId];
-                    if (!property)
-                        return;
-
-                    newElement?.properties.push({
-                        name: property.Name.value,
-                        value: property.NominalValue.value,
-                        pSet: "Test"
-                    })
-
-                    // const propertyName = property.Name?.value;
-                    // const propertyValue = property.NominalValue?.value;
-                    // if (propertyName) {
-                    //     newElement.properties.push({ name: propertyName, value: propertyValue });
-                    // }
-
-                    // if(propertyName && propertyName.toLowerCase === "name")
-                    //     {newElement.name = propertyValue;}
-                }))
+    const newElements: BuildingElement[] = []// = Map<number,buildingElement[]>;
 
 
-                foundElements.set(relatingElement, newElement)
+    const indexer = components.get(OBC.IfcRelationsIndexer);
+    await indexer.process(model);
+    const classifier = components.get(OBC.Classifier);
+    classifier.byEntity(model);
+
+    console.log('clasified types,', classifier.list)
+    // each item in the list is the fragment guid and a list of express id of elements
+    // each element needs to go find all its relations
+
+
+    for (const [systemName, system] of Object.entries(classifier.list)) {
+        console.log('System name:', systemName)
+
+        for (const [className, fragmentMap] of Object.entries(system)) {
+            console.log(`  Class: ${className}`);
+
+            for (const [fragmentID, expressIDs] of Object.entries(fragmentMap)) {
+                console.log(`  fragment: ${fragmentID}`);
+
+                // Use Promise.all to handle multiple async operations in parallel
+                await Promise.all([...expressIDs].map(async (expressID: number) => {
+                    // console.log(`    expressID: ${expressID}`);
+
+                    //get the element and its base info (name, ids, ect)
+                    //get properties and add them to psets
+                    const newElement = await getBuildingElementBase(expressID,fragmentID, model, indexer);
+
+                    if (newElement) {
+                        const props = await GetAllDefinedBy(model, indexer, expressID);
+                        newElement.properties = props;
+                        // Do something with props...
+                        // console.log(`    props for ${expressID}:`, props);
+                        console.log('new element', newElement)
+                        newElements.push(newElement)
+
+                    } else {
+                        console.log('failed to create building element from expressID:', expressID)
+                    }
+                }));
+
             }
-        })
-    }))
-    // console.log("building Elements", foundElements)
-    return Array.from(foundElements.values());
+        }
+    }
+
+    return newElements;
 }
 
+/**
+ * Create a building element with its base information filled out, no property sets assigned here.
+ * @param expressID the id of the building element to find information of
+ * @param fragmentID the fragment id representing the 3d geometry/ type of this element
+ * @returns a building element with no property sets or undefined
+ */
+async function getBuildingElementBase(expressID: number,fragmentID: string, model: FRAGS.FragmentsGroup, indexer: OBC.IfcRelationsIndexer): Promise<BuildingElement | undefined> {
+
+    const element = await model.getProperties(expressID);
+    // console.log('element ', element);
+    if (!element) {
+        console.log("Failed to convert building element from expressID:", expressID)
+        return;
+    }
+
+    const newElement: BuildingElement = {
+        expressID: expressID,
+        GlobalID: element.GlobalId?.value,
+        FragmentID: fragmentID,
+        type: element.type,
+        name: element.Name?.value ?? undefined,
+        properties: [],
+        modelID: model.uuid
+    }
+
+    // try get name of its type
+    if (newElement.name === undefined) {
+        const type = indexer.getEntityRelations(model, expressID, "IsTypedBy");
+        if (type) {
+            for (const expressID of type) {
+                if (newElement.name === undefined) {
+                    const elementType = await model.getProperties(expressID);
+                    // console.log('typed by ', elementType);
+                    if (elementType) {
+                        newElement.name = elementType.Name.value;
+                        console.log('name found on type', name)
+                    }
+                }
+            }
+        }
+    }
+    return newElement;
+}
+
+async function GetAllDefinedBy(model: FRAGS.FragmentsGroup, indexer: OBC.IfcRelationsIndexer, elementID: number) : Promise<BasicProperty[]> {
+    const psets = indexer.getEntityRelations(model, elementID, "IsDefinedBy");
+
+
+    const props: BasicProperty[] = [];
+    if (psets) {
+        for (const expressID of psets) {
+            // You can get the pset attributes like this
+            const pset = await model.getProperties(expressID);
+            // console.log(pset);
+            // You can get the pset props like this or iterate over pset.HasProperties yourself
+            await OBC.IfcPropertiesUtils.getPsetProps(
+                model,
+                expressID,
+                async (propExpressID) => {
+                    const prop = await model.getProperties(propExpressID);
+                    // console.log(prop);
+                    // props.push(prop)
+                    props.push({ name: prop?.Name.value, value: prop?.NominalValue.value, pSet: pset?.Name})
+                },
+            );
+        }
+    }
+
+    return props;
+
+}

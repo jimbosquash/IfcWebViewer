@@ -1,7 +1,7 @@
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import { Fragment, FragmentIdMap } from "@thatopen/fragments";
-import { GetBuildingElements } from "../../utilities/IfcUtilities";
+import { GetBuildingElements, GetBuildingElements } from "../../utilities/IfcUtilities";
 import { BuildingElement } from "../../utilities/types";
 import { ModelViewManager } from "../modelViewer";
 
@@ -172,7 +172,7 @@ export class ModelCache extends OBC.Component {
             this.components.get(ModelViewManager).setUpDefaultTree(this._buildingElements);
             this.components.get(OBC.FragmentsManager).onFragmentsDisposed.add((data) => {
                 this.delete(data.groupID)
-                console.log("fragmentunloaded", data)
+                console.log("fragment unloaded", data)
             })
             return true;
         } catch (error) {

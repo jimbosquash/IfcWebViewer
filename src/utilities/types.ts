@@ -68,7 +68,13 @@ export interface SelectionGroup {
      * The Id of the FragmentGroup which represents the ifc model file
      */
     modelID: string; // the fraggroup id
-    properties: { name: string, value: string, pSet: string}[]
+    properties: BasicProperty[]
+  }
+
+  export interface BasicProperty {
+    name: string, 
+    value: string, 
+    pSet: string
   }
 
   // names of properties that we commonly use for ifc export

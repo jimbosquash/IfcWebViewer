@@ -17,6 +17,7 @@ export const uploadFile = async (file: File, components: OBC.Components): Promis
     await ifcLoader.setup();
 
     ifcLoader.settings.webIfc.COORDINATE_TO_ORIGIN = true;
+    ifcLoader.settings.webIfc.CIRCLE_SEGMENTS = 5;
     console.log("uploading ifc file", ifcLoader, modelCache)
     const buffer = await file.arrayBuffer();
     const data = new Uint8Array(buffer);
