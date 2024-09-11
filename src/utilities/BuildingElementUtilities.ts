@@ -72,7 +72,7 @@ function getFirstGroup(tree: Tree<BuildingElement>) {
  * @param components instance of components
  * @returns 
  */
-export const zoomToBuildingElements = (elements : BuildingElement[] | undefined, components: OBC.Components) => {
+export async function zoomToBuildingElements (elements : BuildingElement[] | undefined, components: OBC.Components, allowTransition: boolean) {
   if (!components || !elements) return;
   const cache = components.get(ModelCache);
   if (!cache.world) return;
@@ -107,12 +107,15 @@ export const zoomToBuildingElements = (elements : BuildingElement[] | undefined,
   if (isInf || isMInf || isZero) {
     return;
   }
-  sphere.radius *= 0.8;
+  const buffer = 0.8;
+  sphere.radius *= buffer;
   const camera = cache.world.camera as OBC.OrthoPerspectiveCamera;
+  await camera.controls.fitToSphere(sphere, allowTransition);
 
-  setTimeout(async () => {
-    camera.controls.fitToSphere(sphere, true);
-  }, 10);
+  // if(allowTransition)
+  // setTimeout(async () => {
+  //   await camera.controls.fitToSphere(sphere, allowTransition);
+  // }, 10);
 };
 
 // TODO: change method so that it highlights input building elements 

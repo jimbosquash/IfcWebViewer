@@ -90,7 +90,7 @@ export function GetVisibleFragmentIdMaps(elements: BuildingElement[], components
 /**
  * search all input Model's fragments and check visibility through HiddenIds collection.
  * @param models all ifc models to search from
- * @returns a map of model id (uuid) to a set of expressIds
+ * @returns a map of key =  modelID (uuid), value = Set<expressIds>
  */
 export function GetAllVisibleExpressIDs(models: FRAGS.FragmentsGroup[]): Map<string, Set<number>> {
     const allVisibleElements = new Map<string, Set<number>>();

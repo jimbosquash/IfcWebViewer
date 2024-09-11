@@ -1,7 +1,7 @@
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import { Fragment, FragmentIdMap } from "@thatopen/fragments";
-import { GetBuildingElements, GetBuildingElements } from "../../utilities/IfcUtilities";
+import { GetBuildingElements } from "../../utilities/IfcUtilities";
 import { BuildingElement } from "../../utilities/types";
 import { ModelViewManager } from "../modelViewer";
 
