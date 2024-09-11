@@ -27,6 +27,11 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
   });
 
   useEffect(() => {
+
+    onWidthChange(panelWidth);
+  },[panelWidth])
+
+  useEffect(() => {
     if (!components) return;
     const cache = components.get(ModelCache);
     console.log("side panel listening");
@@ -169,7 +174,7 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
           width: `${panelWidth}px`, // Dynamic width based on resizing
           height: "100%",
           transform: panelOpen ? "translateX(0)" : `translateX(${panelWidth}px)`,
-          transition: isResizing ? "none" : "transform 0.3s ease",
+          transition: isResizing ? "none" : "transform 0.2s ease",
           zIndex: 1000,
           backgroundColor: colors.primary[100],
           borderColor: colors.primary[900],

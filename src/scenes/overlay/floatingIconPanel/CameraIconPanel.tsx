@@ -12,7 +12,6 @@ import {
 } from "../../../utilities/CameraUtilities";
 import * as OBC from "@thatopen/components";
 import { ModelCache } from "../../../bim-components/modelCache";
-import { is } from "@react-three/fiber/dist/declarations/src/core/utils";
 
 const CameraIconPanel: React.FC = () => {
   const components = useComponentsContext();
