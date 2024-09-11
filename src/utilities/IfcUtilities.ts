@@ -7,6 +7,7 @@ import * as WEBIFC from "web-ifc";
 import { ModelCache } from "../bim-components/modelCache";
 import { BasicProperty, BuildingElement } from "./types";
 import { Tag } from "../bim-components/modelTagger/src/Tag";
+import { IfcElements } from "@thatopen/components";
 
 // allows you to pass these idmaps into helpful functions with @thatopen
 export function GetFragmentIdMaps(elements: BuildingElement[], components: OBC.Components) {
@@ -180,25 +181,26 @@ export function getFragments(buildingElements: BuildingElement[], components: OB
 }
 
 
-export function GetCenterPoints(models: FRAGS.FragmentsGroup[], buildingElements: BuildingElement[], components: OBC.Components): Map<BuildingElement, Tag> {
+// export function GetCenterPoints(models: FRAGS.FragmentsGroup[], buildingElements: BuildingElement[], components: OBC.Components): Map<BuildingElement, Tag> {
 
-    const tags = new Map<BuildingElement, Tag>();
+//     const tags = new Map<BuildingElement, Tag>();
 
-    buildingElements.forEach((buildingElement) => {
-        const model = models.find(m => m.uuid === buildingElement.modelID);
-        if (!model) {
-            console.log('Get Center failed: no model found', buildingElement.modelID)
-            return;
-        }
-        const center = GetCenterPoint(buildingElement, model, components);
-        if (!center) {
-            console.log('Get Center failed: no center point found', buildingElement)
-            return;
-        }
-        tags.set(buildingElement, new Tag(buildingElement.name, center));
-    })
-    return tags;
-}
+//     buildingElements.forEach((buildingElement) => {
+//         const model = models.find(m => m.uuid === buildingElement.modelID);
+//         if (!model) {
+//             console.log('Get Center failed: no model found', buildingElement.modelID)
+//             return;
+//         }
+//         const center = GetCenterPoint(buildingElement, model, components);
+//         if (!center) {
+//             console.log('Get Center failed: no center point found', buildingElement)
+//             return;
+//         }
+        
+//         tags.set(buildingElement, new Tag(buildingElement.name, center));
+//     })
+//     return tags;
+// }
 
 /**
  * Get a bounding box using the OBC.boundingBoxer and then get its center, reseting boundingBoxer after completion.
@@ -420,6 +422,11 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
     const classifier = components.get(OBC.Classifier);
     classifier.byEntity(model);
 
+    const ifcElements = IfcElements;
+
+    console.log("IfcElements",IfcElements)
+
+
     console.log('clasified types,', classifier.list)
     // each item in the list is the fragment guid and a list of express id of elements
     // each element needs to go find all its relations
@@ -481,7 +488,7 @@ async function getBuildingElementBase(expressID: number,fragmentID: string, mode
         expressID: expressID,
         GlobalID: element.GlobalId?.value,
         FragmentID: fragmentID,
-        type: element.type,
+        type: IfcElements[element.type],
         name: element.Name?.value ?? undefined,
         properties: [],
         modelID: model.uuid

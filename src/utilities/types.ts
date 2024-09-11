@@ -60,9 +60,9 @@ export interface SelectionGroup {
      */
     FragmentID: string;
     /**
-     * The type enumerated of all IFC types. use the @thatOpen ... to get text version
+     * The type enumerated of all IFC types. use the ifcElements Map to get number version
      */
-    type: number;
+    type: string;
     name: string;
     /**
      * The Id of the FragmentGroup which represents the ifc model file
