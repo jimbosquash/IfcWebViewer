@@ -35,7 +35,7 @@ const Overlay = () => {
     if (!fragments || !viewManager.current) return;
 
     fragments.onFragmentsLoaded.add((data) => handleLoadedModel(data));
-    viewManager.current.onSelectedGroupChanged.add((data) => handleLoadedModel(null));
+    //viewManager.current.onSelectedGroupChanged.add((data) => handleLoadedModel(null));
 
     return () => {
       fragments.onFragmentsLoaded.remove((data) => handleLoadedModel(data));
