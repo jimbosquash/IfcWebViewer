@@ -72,7 +72,7 @@ function getFirstGroup(tree: Tree<BuildingElement>) {
  * @param components instance of components
  * @returns 
  */
-export async function zoomToBuildingElements (elements : BuildingElement[] | undefined, components: OBC.Components, allowTransition: boolean) {
+export async function zoomToBuildingElements (elements : BuildingElement[] | undefined, components: OBC.Components, allowTransition: boolean, buffer: number = 0.8) {
   if (!components || !elements) return;
   const cache = components.get(ModelCache);
   if (!cache.world) return;
@@ -107,7 +107,7 @@ export async function zoomToBuildingElements (elements : BuildingElement[] | und
   if (isInf || isMInf || isZero) {
     return;
   }
-  const buffer = 0.8;
+  
   sphere.radius *= buffer;
   const camera = cache.world.camera as OBC.OrthoPerspectiveCamera;
   await camera.controls.fitToSphere(sphere, allowTransition);

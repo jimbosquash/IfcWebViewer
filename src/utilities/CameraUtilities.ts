@@ -4,6 +4,9 @@ import * as OBF from "@thatopen/components-front";
 import { ModelCache } from "../bim-components/modelCache";
 import * as THREE from "three";
 import { CameraProjection } from "@thatopen/components";
+import { GetAllVisibleExpressIDs } from "./IfcUtilities";
+import { zoomToBuildingElements } from "./BuildingElementUtilities";
+import { BuildingElement } from "./types";
 
 
 /**
@@ -38,7 +41,8 @@ export async function setPlanView(components: OBC.Components) {
   if (!cache.world?.meshes || cache.world.meshes.size === 0)
     return;
 
-  zoom(components, cache.world.meshes, cache.world.camera, false, false)
+    await zoomToVisible(components,0.35)
+  // zoom(components, cache.world.meshes, cache.world.camera, false, false)
 };
 
 /**
@@ -101,10 +105,30 @@ export async function setView(components: OBC.Components, viewType: "front" | "b
   }
 
 
+
   // Set camera target to look at the center
   await cam.controls.setLookAt(viewDirection.x * cameraDistance, viewDirection.y * cameraDistance, viewDirection.z * cameraDistance, center.x, center.y, center.z, false);
   // console.log("cam target center:", viewDirection, center.x, center.y, center.z);
+
   await cam.controls.fitToBox(bbox, false, { cover: false, paddingTop: -2, paddingBottom: -2, paddingLeft: -1, paddingRight: -1 })
+  await zoomToVisible(components, 0.35);
+
+};
+
+export async function zoomToVisible(components: OBC.Components, buffer : number = 0.8) {
+
+  const cache = components.get(ModelCache);
+
+  const visibleExpressIDs = GetAllVisibleExpressIDs(cache.models());
+
+  const visibleElements: BuildingElement[] = [];
+  visibleExpressIDs.forEach((expressIDs,modelID) => {
+    expressIDs.forEach(expressID => { 
+      const e = cache.getElementByExpressId(expressID,modelID);
+      if(e) visibleElements.push(e)})
+  })
+
+  await  zoomToBuildingElements(visibleElements,components,false,buffer)
 };
 
 /**
@@ -117,7 +141,6 @@ export async function zoomAllorSelected(components: OBC.Components, zoomSelected
   if (!components) return;
   const cache = components.get(ModelCache);
   if (!cache.world) return;
-
 
   if (zoomSelected) {
     const highlighter = components.get(OBF.Highlighter);
@@ -212,7 +235,8 @@ export async function setOrthogonalView(components: OBC.Components, projection: 
     center.z,
     false
   );
-  await zoomAllorSelected(components, false,false);
+  await zoomToVisible(components,0.55)
+  // await zoomAllorSelected(components, false,false);
 };
 /**
  * set the Camera Navigation mode and zoom if true.
@@ -262,6 +286,7 @@ export function setCameraProjection(components: OBC.Components, newProjection: C
   cam.controls.updateCameraUp();
 
   if (zoom) {
-    zoomAllorSelected(components, false);
+    // zoomAllorSelected(components, false);
+    zoomToVisible(components,0.55)
   }
 };
