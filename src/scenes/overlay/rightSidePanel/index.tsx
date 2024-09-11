@@ -27,9 +27,8 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
   });
 
   useEffect(() => {
-
     onWidthChange(panelWidth);
-  },[panelWidth])
+  }, [panelWidth]);
 
   useEffect(() => {
     if (!components) return;
@@ -111,7 +110,6 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
       setPanelOpen(false); // Close the panel on double click
       console.log("close panel");
       onWidthChange(0);
-
     } else {
       setPanelContent({ content, name: panelName });
       setPanelOpen(true); // Open or change content on single click
@@ -163,7 +161,7 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
       </Box>
       {/* exanpding Panel */}
       <Box
-      ref={panelRef}
+        ref={panelRef}
         component="div"
         borderLeft="1px solid"
         position="absolute"
@@ -195,8 +193,29 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
           }}
           onMouseDown={handleMouseDown}
         />
-        {/* Panel Content */}
-        {panelContent.content}
+        {/* Main Panel Content Container */}
+        <Box
+          component="div"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            flexGrow: 1,
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          {/* You can add a header here if needed */}
+
+          {/* Scrollable Content Area */}
+          <Box
+            component="div"
+            style={{
+              flexGrow: 1,
+            }}
+          >
+            {panelContent.content}
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

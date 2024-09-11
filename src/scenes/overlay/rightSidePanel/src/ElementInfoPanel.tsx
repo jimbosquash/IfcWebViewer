@@ -39,9 +39,9 @@ const ElementInfoPanel = () => {
     console.log("InfoPanel Setting up");
 
     highlighter.events.select.onHighlight.add((data) => handleSelectionChanged(data));
-    const currentSelection = highlighter.selection['select'];
+    const currentSelection = highlighter.selection["select"];
     if (currentSelection) {
-      handleSelectionChanged(currentSelection)
+      handleSelectionChanged(currentSelection);
     }
 
     return () => {
@@ -117,7 +117,10 @@ const ElementInfoPanel = () => {
         justifyContent="flex-start"
         alignItems="stretch"
         spacing={1}
-        sx={{ height: "100%", width: "100%" }}
+        sx={{ 
+          height: "100%",
+         width: "100%",
+        }}
       >
         <Grid item xs={1} sx={{ height: "auto", width: "100%", p: 0 }}>
           <Box
@@ -130,7 +133,7 @@ const ElementInfoPanel = () => {
               width: "100%",
             }}
           >
-            <Box height='60px' alignContent='center' component="div" sx={{ mr: 2 }}>
+            <Box height="60px" alignContent="center" component="div" sx={{ mr: 2 }}>
               <Icon color={colors.grey[400]} icon="system-uicons:box" />
             </Box>
             <Grid container direction="column">
@@ -146,10 +149,17 @@ const ElementInfoPanel = () => {
           <Box
             component="div"
             sx={{
+              flexGrow: 1,
+              display: "flex",
+                  flexDirection: "column",
+              overflowY: "auto",
+              overflowX: "hidden",
               width: "100%",
-              height: "20%",
-              overflow: "auto", // Enable scrolling when content exceeds height
-              p: 0,
+              paddingBottom: "50px",
+
+              // height: "20%",
+              // overflow: "auto", // Enable scrolling when content exceeds height
+              // p: 0,
             }}
           >
             <BasicDataTable onSelectChanged={onSelectChanged} columns={columns} data={rows} />
@@ -159,7 +169,6 @@ const ElementInfoPanel = () => {
     </>
   );
 };
-
 
 interface dataTableProps {
   data: any[];
@@ -190,10 +199,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
       } else if (selectedIndex === selected.length - 1) {
         newSelected = newSelected.concat(selected.slice(0, -1));
       } else if (selectedIndex > 0) {
-        newSelected = newSelected.concat(
-          selected.slice(0, selectedIndex),
-          selected.slice(selectedIndex + 1)
-        );
+        newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
       }
       setSelected(newSelected);
       onSelectChanged(newSelected);
@@ -201,10 +207,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
     [selected, onSelectChanged]
   );
 
-  const isSelected = useCallback(
-    (key: number) => selected.indexOf(key) !== -1,
-    [selected]
-  );
+  const isSelected = useCallback((key: number) => selected.indexOf(key) !== -1, [selected]);
 
   return (
     <TableContainer component={Paper}>
@@ -232,7 +235,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
                   isItemSelected={isSelected(row.key)}
                   handleClick={handleClick}
                 />
-              )
+              );
             })}
         </TableBody>
       </Table>
@@ -254,7 +257,6 @@ const columns: Column[] = [
   { id: "value", label: "Value", minWidth: 100, maxWidth: 100 },
 ];
 
-
 const MemoizedTableRow = React.memo(({ row, isItemSelected, handleClick }: any) => (
   <Tooltip key={row.key} title={row.value}>
     <TableRow
@@ -264,12 +266,7 @@ const MemoizedTableRow = React.memo(({ row, isItemSelected, handleClick }: any) 
       selected={isItemSelected}
       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
     >
-      <TableCell
-        sx={{ paddingLeft: "10px", paddingRight: "0px" }}
-        align="left"
-        component="th"
-        scope="row"
-      >
+      <TableCell sx={{ paddingLeft: "10px", paddingRight: "0px" }} align="left" component="th" scope="row">
         {row.name}
       </TableCell>
       <TableCell align="left" sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>

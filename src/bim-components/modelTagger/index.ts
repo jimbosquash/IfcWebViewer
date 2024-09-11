@@ -75,6 +75,8 @@ export class ModelTagger extends OBC.Component {
         console.log('tagger setting', this._enabled)
         const viewManager = this.components.get(ModelViewManager);
         const cache = this.components.get(ModelCache);
+        const tagger = this.components.get(OBF.Marker)
+        tagger.threshold = 10;
 
         // todo: remove to other area
         if (!value && this._previewElement) {
@@ -89,6 +91,9 @@ export class ModelTagger extends OBC.Component {
                 // mark.visible = false
                 mark.dispose()
             })
+            //const tagger = this.components.get(OBF.Marker)
+            tagger.dispose();
+
             this._markers = new Map();
         }
         if (value) {
@@ -164,11 +169,47 @@ export class ModelTagger extends OBC.Component {
     private updateTags(buildingElements: BuildingElement[]) {
         if (!this._enabled) return;
         this._markers.forEach(m => m.dispose())
-        const markers = this.createTags(buildingElements);
-        if (markers) {
-            this._markers = markers;
-            console.log('new Markers set', this._markers)
-        }
+        const markers = this.createMarkers(buildingElements);
+        // if (markers) {
+        //     this._markers = markers;
+        //     console.log('new Markers set', this._markers)
+        // }
+        const tags = this.createTags(buildingElements);
+
+        const tagger = this.components.get(OBF.Marker)
+        const world = this.components.get(ModelCache).world;
+
+        tagger.dispose();
+
+        if(!world) return;
+        tags.forEach((tag,element) => {
+            const key = tagger.create(world,tag.text,tag.position?? new THREE.Vector3,false)
+            if(key) {
+                // get marker from id
+                const mark = markers.get(element.expressID)
+                if(mark) {
+                    const markerByWorld = tagger.list.get(world.uuid)
+                    if(!markerByWorld || !markerByWorld.has(key)) return;
+
+                    const existingMarker = markerByWorld.get(key)
+                    const oldMarker = existingMarker?.label;
+                    if(!existingMarker) return;
+                    markerByWorld.set(key, {
+                        merged: existingMarker.merged,
+                        label: mark,
+                        key: key,
+                        static: existingMarker.static,
+                        type: existingMarker.type                        
+                    })
+
+                    oldMarker?.dispose();
+                }
+                
+            }
+
+        })
+
+
     }
 
     
@@ -253,7 +294,7 @@ export class ModelTagger extends OBC.Component {
      * @param elements 
      * @returns 
      */
-    createTags = (elements: BuildingElement[]): Map<number, Mark> => {
+    createTags = (elements: BuildingElement[]): Map<BuildingElement, Tag> => {
         const cache = this.components.get(ModelCache)
         // const marker = this.components.get(OBF.Marker)
         const allMarks = new Map<number, Mark>();
@@ -286,11 +327,29 @@ export class ModelTagger extends OBC.Component {
         });
 
 
+        return centers;
+    }
+
+    /**
+     * key = express id, value = new OBC.Mark
+     * @param elements 
+     * @returns 
+     */
+     createMarkers = (elements: BuildingElement[]): Map<number, Mark> => {
+        const cache = this.components.get(ModelCache)
+        // const marker = this.components.get(OBF.Marker)
+        const allMarks = new Map<number, Mark>();
+        if (this._world === null) {
+            console.log("Create tag failed due to no world set")
+            return new Map()
+        }
+        const centers = this.createTags(elements)
+
         centers.forEach((tag, element) => {
 
             console.log('createmarker')
             if (this._world?.uuid && tag.position) {
-                const mark = this.createNewTag(this._world, tag.text, tag.color);
+                const mark = this.createNewMark(this._world, tag.text, tag.color);
                 mark.three.position.copy(tag.position);
                 mark.three.visible = true;
                 console.log('createmarker', mark)
@@ -301,7 +360,7 @@ export class ModelTagger extends OBC.Component {
         return allMarks;
     }
 
-    private createNewTag = (world: OBC.World, label: string | null, color: string | undefined) => {
+    private createNewMark = (world: OBC.World, label: string | null, color: string | undefined) => {
         const icon = document.createElement("bim-label")
         icon.textContent = label;
         //icon.icon = "material-symbols:comment"

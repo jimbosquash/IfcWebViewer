@@ -205,7 +205,7 @@ export const LeftSideBox: React.FC = () => {
           </IconButton>
         )}
       </Box>
-      {/* Sliding Panel */}
+      {/* exanpding Panel */}
       <Box
         component={"div"}
         borderRight="1px solid"
@@ -257,9 +257,6 @@ export const LeftSideBox: React.FC = () => {
             component="div"
             style={{
               flexGrow: 1,
-              // overflowY: "auto",
-              // overflowX: "hidden",
-              // padding: "16px",
             }}
           >
             {panelContent.content}

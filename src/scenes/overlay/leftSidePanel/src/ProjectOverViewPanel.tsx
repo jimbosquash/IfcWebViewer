@@ -21,7 +21,6 @@ export const ProjectOverviewPanel = () => {
           width: "100%",
           padding: "0px",
           margin: "0px",
-          // boxSizing: "border-box",
         }}
       >
         <Box component={"div"} sx={{ borderBottom: 1, width: "100%", borderColor: "divider", marginLeft: "0px" }}>
