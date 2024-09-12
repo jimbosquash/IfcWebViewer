@@ -19,6 +19,7 @@ import * as THREE from "three";
 import * as BUI from "@thatopen/ui";
 import * as CUI from "@thatopen/ui-obc";
 import { ModelTagger } from "../../../../bim-components/modelTagger";
+import { ModelCache } from "../../../../bim-components/modelCache";
 
 // Define types for our setting components
 interface ToggleSettingProps {
@@ -90,6 +91,7 @@ const SettingsPanel: React.FC = () => {
   const [zoomOnSelection, setZoomOnSelection] = useState<boolean>(true);
   const [showFasteners, setShowFasteners] = useState<boolean>(true);
   const [showInstallations, setShowInstallations] = useState<boolean>(false);
+  const [enableGrid, setEnableGrid] = useState<boolean>(false);
 
   useEffect(() => {
     // get all settings that are state
@@ -107,6 +109,13 @@ const SettingsPanel: React.FC = () => {
     setZoomOnSelection(checked);
     const highlighter = components.get(OBF.Highlighter);
     highlighter.zoomToSelection = checked;
+  };
+
+  const handleGridToggle = (checked: boolean) => {
+    setEnableGrid(checked);
+    const grids = components.get(OBC.Grids).list;
+    grids.forEach(grid => {
+      grid.visible = checked})
   };
 
   const handleShowFastenersToggle = (checked: boolean) => {
@@ -151,6 +160,12 @@ const SettingsPanel: React.FC = () => {
         onChange={(e) => handleZoomToggle(e)}
       />
 
+      <ToggleSetting
+        label={enableGrid ? "Show Grid" : "Hide Grid"}
+        value={enableGrid}
+        onChange={(e) => handleGridToggle(e)}
+      />
+
       <Divider />
 
       <Typography variant="h6" gutterBottom>
@@ -169,11 +184,15 @@ const SettingsPanel: React.FC = () => {
         onChange={(e) => handleShowInstallationsToggle(e)}
       />
 
-      <ButtonSetting label="Change Tag Colors" onClick={() => {
-        components.get(ModelTagger).setupColors(false)
-        if(components.get(ModelTagger).enabled){
-        components.get(ModelTagger).setTags()}
-        }} />
+      <ButtonSetting
+        label="Change Tag Colors"
+        onClick={() => {
+          components.get(ModelTagger).setupColors(false);
+          if (components.get(ModelTagger).enabled) {
+            components.get(ModelTagger).setTags();
+          }
+        }}
+      />
 
       <Divider />
 
