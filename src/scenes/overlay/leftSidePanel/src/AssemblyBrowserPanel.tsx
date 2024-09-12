@@ -1,12 +1,10 @@
-import { Icon } from "@iconify/react";
 import { Box, Button, ButtonGroup, colors, Tooltip } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { TreeNode, TreeUtils } from "../../../../utilities/Tree";
+import { Tree, TreeNode, TreeUtils } from "../../../../utilities/Tree";
 import { BuildingElement, knownProperties, VisibilityState } from "../../../../utilities/types";
 import { ModelCache } from "../../../../bim-components/modelCache";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
-import { setUpTreeFromProperties } from "../../../../utilities/BuildingElementUtilities";
 import TreeTableRow from "../../../../components/TreeTableRow";
 import React from "react";
 
@@ -23,45 +21,33 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
 
   // called on component change
   const getPropertyTree = useCallback(
-    (buildingElements: BuildingElement[]) => {
-      if (!buildingElements || !modelViewManager) return;
+    (tree: Tree<BuildingElement>) => {
+      if (!tree || !modelViewManager) return;
 
-      let existingTreeContainer = modelViewManager.getViewTree(treeName);
-
-      const newTree = setUpTreeFromProperties(treeName, buildingElements, treeStructure);
-      existingTreeContainer = modelViewManager.addOrReplaceTree(
-        treeName,
-        newTree,
-        existingTreeContainer?.visibilityMap
-      );
-
-      if (!existingTreeContainer) return;
-      setNodeVisibility(existingTreeContainer.visibilityMap);
-      setNodes([...existingTreeContainer.tree.root.children.values()]);
+      console.log("get existing tree, in event listener",tree,modelViewManager)
+      if (!tree) return;
+      setNodeVisibility(modelViewManager.getVisibilityMap(tree.id));
+      setNodes([...tree.root.children.values()]);
     },
     [modelViewManager]
   );
 
   useEffect(() => {
     if (!components) return;
-    const cache = components.get(ModelCache);
     const viewManager = components.get(ModelViewManager);
-    cache.onBuildingElementsChanged.add((data) => getPropertyTree(data));
+    viewManager.onTreeChanged.add((data) => getPropertyTree(data));
 
-    if (cache.BuildingElements) {
-      let existingTreeContainer = viewManager.getViewTree(treeName);
-      if (!existingTreeContainer) {
-        const newTree = setUpTreeFromProperties(treeName, cache.BuildingElements, treeStructure);
-        existingTreeContainer = viewManager.addOrReplaceTree(treeName, newTree);
-      }
-      if (!existingTreeContainer) return;
+    let existingTree = modelViewManager.Tree;
 
-      setNodeVisibility(existingTreeContainer.visibilityMap);
-      setNodes([...existingTreeContainer.tree.root.children.values()]);
+    if (existingTree) {
+      console.log("get existing tree",existingTree)
+      setNodeVisibility(modelViewManager.getVisibilityMap(existingTree.id));
+      setNodes([...existingTree.root.children.values()]);
     }
 
     return () => {
-      components.get(ModelCache).onBuildingElementsChanged.remove((data) => getPropertyTree(data));
+      viewManager.onTreeChanged.remove((data) => getPropertyTree(data));
+
     };
   }, [components, getPropertyTree]);
 

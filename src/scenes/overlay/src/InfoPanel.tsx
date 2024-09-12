@@ -92,11 +92,12 @@ export const InfoPanel = () => {
       {infoPanelData && (
         <>
           <Typography
+          variant="h4"
             component="div"
             sx={{ ...subBoxStyle, 
               ...nonSelectableTextStyle,
               whiteSpace: 'nowrap',
-              width: '100px',
+              // width: '100%',
               minWidth: '100px',
               overflow: 'hidden',
               textOverflow: 'ellipsis', }}
@@ -106,6 +107,7 @@ export const InfoPanel = () => {
           </Typography>
           <Typography
             component="div"
+            variant="h5"
             sx={{ ...subBoxStyle, 
               ...nonSelectableTextStyle,
               flexGrow: 1,
@@ -119,7 +121,7 @@ export const InfoPanel = () => {
           {/* Add more items here as needed */}
         </>
       )}
-      {showToolTip && (
+      {/* {showToolTip && (
         <Box component="div"  sx={{
           position: 'absolute',
           top: '100%',
@@ -133,7 +135,7 @@ export const InfoPanel = () => {
           <Typography>Tooltip Item 2</Typography>
           <Typography>Tooltip Item 3</Typography>
         </Box>
-      )}
+      )} */}
     </Box>}</>
     
   );

@@ -50,7 +50,7 @@ export const ProjectOverviewPanel = () => {
               <Box component="div" flexDirection="row" display="flex" marginLeft="10px" gap="4">
                 <Icon style={{ color: colors.grey[500] }} icon="mdi:file-tree-outline" />
                 <Typography style={{ marginLeft: "8px", ...nonSelectableTextStyle }} variant="h5">
-                  Assembly Grouping
+                  Building Element Groups
                 </Typography>
               </Box>
               <Typography

@@ -41,7 +41,7 @@ export async function setPlanView(components: OBC.Components) {
   if (!cache.world?.meshes || cache.world.meshes.size === 0)
     return;
 
-    await zoomToVisible(components,0.45)
+    await zoomToVisible(components)
   // zoom(components, cache.world.meshes, cache.world.camera, false, false)
 };
 
@@ -111,7 +111,7 @@ export async function setView(components: OBC.Components, viewType: "front" | "b
   // console.log("cam target center:", viewDirection, center.x, center.y, center.z);
 
   await cam.controls.fitToBox(bbox, false, { cover: false, paddingTop: -2, paddingBottom: -2, paddingLeft: -1, paddingRight: -1 })
-  await zoomToVisible(components, 0.35);
+  await zoomToVisible(components);
 
 };
 
@@ -235,7 +235,7 @@ export async function setOrthogonalView(components: OBC.Components, projection: 
     center.z,
     false
   );
-  await zoomToVisible(components,0.55)
+  await zoomToVisible(components,0.80)
   // await zoomAllorSelected(components, false,false);
 };
 /**

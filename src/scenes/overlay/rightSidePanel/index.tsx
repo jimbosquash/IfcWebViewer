@@ -35,10 +35,11 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
     const cache = components.get(ModelCache);
     console.log("side panel listening");
 
-    cache.onModelAdded.add(() => listenForModels());
+    // open property panel on open model
+    //cache.onModelAdded.add(() => listenForModels());
 
     return () => {
-      cache.onModelAdded.remove(() => listenForModels());
+      //cache.onModelAdded.remove(() => listenForModels());
       console.log("side panel stop listening");
     };
   }, [components]);

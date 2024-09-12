@@ -53,7 +53,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         groupName: name,
         elements: elements,
       };
-      modelViewManager.setSelectionGroup(selectedGroup,false)
+      modelViewManager.setSelectionGroup(selectedGroup,true)
     };
 
     // when ModelVIewManager updates its vismap of parent tree check on visibility state
@@ -144,7 +144,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
 
       const fragmentIdMap = getFragmentMapOfVisible(elements);
 
-      highlighter.highlightByID("select", fragmentIdMap, false, false, undefined);
+      //highlighter.highlightByID("select", fragmentIdMap, false, false, undefined);
       setSelected();
       
     }, [node, components, visibleOnDoubleClick]);
@@ -269,6 +269,10 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         <Box
           component="div"
           onDoubleClick={handleDoubleClick}
+          onClick={(e) => {
+            handleToggleExpand(e)
+            modelViewManager.updateVisibility(treeID)
+          }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           sx={boxTheme}

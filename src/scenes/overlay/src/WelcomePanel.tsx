@@ -58,8 +58,8 @@ export const WelcomePanel = () => {
               maxWidth: "500px",
               width: "40%",
 
-              height: "20%",
-              maxHeight: "800px",
+              // height: "20%",
+              maxHeight: "1000px",
               textAlign: "center",
               display: "flex",
               flexDirection: "column",
