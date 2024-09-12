@@ -15,7 +15,7 @@ interface TabPanelProps {
         id={`simple-tabpanel-${index}`}
         aria-labelledby={`simple-tab-${index}`}
         style={{
-          height: '84vh',
+          height: '86vh',
           width: '100%',
           display: value === index ? 'flex' : 'none',
           flexDirection: 'column',

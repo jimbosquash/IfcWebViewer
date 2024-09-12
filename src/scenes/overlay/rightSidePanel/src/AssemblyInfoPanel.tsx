@@ -1,5 +1,4 @@
 import {
-  Grid,
   Box,
   Typography,
   TableContainer,
@@ -12,8 +11,9 @@ import {
   Tooltip,
   Checkbox,
   useTheme,
+  Divider,
 } from "@mui/material";
-import { MouseEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { SelectionGroup, KnowGroupType, BuildingElement, knownProperties } from "../../../../utilities/types";
@@ -25,7 +25,6 @@ const AssemblyInfoPanel = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
-  const viewManager = useRef<ModelViewManager>();
   const [selected, setSelected] = useState<SelectionGroup | null>();
   const [rows, setRows] = useState<any[]>([]);
 
@@ -84,8 +83,8 @@ const AssemblyInfoPanel = () => {
     return {
       key: index,
       name: element.name,
-      material: findProperty(element, "Materiaal")?.value,
-      productCode: findProperty(element, "Productcode")?.value,
+      material: findProperty(element, knownProperties.Material)?.value,
+      productCode: findProperty(element, knownProperties.ProductCode)?.value,
       expressID: element.expressID,
     };
   };
@@ -116,55 +115,51 @@ const AssemblyInfoPanel = () => {
 
   return (
     <>
-      <Grid
-        container
-        direction="column"
+      <Box
+        component="div"
+        display="flex"
+        flexDirection="column"
         justifyContent="flex-start"
         alignItems="stretch"
-        spacing={1}
         sx={{ height: "100%", width: "100%" }}
       >
-        <Grid item xs={1} sx={{ height: "auto", width: "100%", p: 0 }}>
-          <Box
-            component="div"
-            sx={{
-              p: 2,
-              display: "flex", // Flex container
-              flexDirection: "row", // Horizontal layout within this box
-              alignItems: "center", // Center align items vertically
-              width: "100%",
-            }}
-          >
-            <Box component="div" sx={{ mr: 2 }}>
-              <Icon
-                color={colors.grey[400]}
-                icon={selected?.groupType === KnowGroupType.Assembly ? "system-uicons:box" : "system-uicons:boxes"}
-              />
-            </Box>
-            <Typography variant="h6">{!selected ? "Assembly Name" : selected.groupName}</Typography>
+        <Box
+          component="div"
+          sx={{
+            p: 2,
+            display: "flex", // Flex container
+            flexDirection: "row", // Horizontal layout within this box
+            alignItems: "center", // Center align items vertically
+            width: "100%",
+          }}
+        >
+          <Box component="div" sx={{ mr: 2 }}>
+            <Icon
+              color={colors.grey[400]}
+              icon={selected?.groupType === KnowGroupType.Assembly ? "system-uicons:box" : "system-uicons:boxes"}
+            />
           </Box>
-        </Grid>
+          <Typography variant="h6">{!selected ? "Assembly Name" : selected.groupName}</Typography>
+        </Box>
 
-        <Grid item xs={3}>
-          <Box component="div" sx={{ height: "auto", p: 2 }}>
-            <Typography variant="body2">Summary data and status of assembly</Typography>
-          </Box>
-        </Grid>
+        <Box component="div" sx={{ height: "auto", p: 2 }}>
+          <Typography variant="body2">Summary data and status of assembly</Typography>
+        </Box>
 
-        <Grid item xs={5} sx={{ height: "calc(100vh - 200px)" }}>
-          <Box
-            component="div"
-            sx={{
-              width: "100%",
-              height: "20%",
-              overflow: "auto", // Enable scrolling when content exceeds height
-              p: 0,
-            }}
-          >
-            <BasicDataTable onSelectChanged={onSelectChanged} columns={columns} data={rows} />
-          </Box>
-        </Grid>
-      </Grid>
+        <Box
+          component="div"
+          sx={{
+            flexGrow: 1,
+            width: "100%",
+            height: "20%",
+            overflowX: "hidden",
+            overflowY: "auto", // Enable scrolling when content exceeds height
+          }}
+        >
+          <BasicDataTable onSelectChanged={onSelectChanged} columns={columns} data={rows} />
+        </Box>
+        <Divider/>
+      </Box>
     </>
   );
 };
@@ -204,7 +199,12 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
 
   return (
     <TableContainer component={Paper}>
-      <Table stickyHeader sx={{ width: "100%" }} size={"small"} aria-label="simple table">
+      <Table
+        stickyHeader
+        sx={{ height: "100%", width: "100%", overflowX: "hidden" }}
+        size={"small"}
+        aria-label="simple table"
+      >
         <TableHead>
           <TableRow>
             {columns.map((column) => (
@@ -247,15 +247,21 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
                     {row.Quantity}
                   </TableCell>
                   <Tooltip title={row.name}>
-                    <TableCell sx={{paddingLeft:'15px', paddingRight:'8px'}} align="center" component="th" scope="row">
+                    <TableCell
+                      sx={{ paddingLeft: "15px", paddingRight: "8px" }}
+                      align="center"
+                      component="th"
+                      scope="row"
+                    >
                       {row.material}
                     </TableCell>
-                    </Tooltip>
-
-                    <TableCell  align="right" sx={{paddingLeft:'0px'}}>{row.productCode}</TableCell>
-                    <TableCell align="left" sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
-                      {row.name}
-                    </TableCell>
+                  </Tooltip>
+                  <TableCell align="left" sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
+                    {row.name}
+                  </TableCell>
+                  <TableCell align="right" sx={{ paddingLeft: "0px" }}>
+                    {row.productCode}
+                  </TableCell>
                 </TableRow>
               );
             })}
@@ -284,8 +290,8 @@ const columns: Column[] = [
     align: "right",
     maxWidth: 20,
   },
-  { id: "code", label: "Product\u00a0Code", minWidth: 125, maxWidth: 100 },
   { id: "name", label: "Name", minWidth: 100, maxWidth: 120 },
+  { id: "code", label: "Product\u00a0Code", minWidth: 125, maxWidth: 100 },
 ];
 
 export default AssemblyInfoPanel;
