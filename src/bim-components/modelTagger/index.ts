@@ -16,6 +16,15 @@ export enum TagVisibilityMode {
     TagVisible = "TagVisible"
 }
 
+interface TaggerConfiguration {
+    showFasteners: boolean,
+    showInstallations: boolean,
+}
+
+const IFCMECHANICALFASTENER: string = "IFCMECHANICALFASTENER";
+// const IFCFLOWCONTROLLER: string = "IFCFLOWCONTROLLER";
+const IFCFLOW: string = "IFCFLOW";
+
 /**
  * Responsible for generating and display marks or tags which float over a 3d element in the view port. Make
  * sure to set the world for correct use.
@@ -32,8 +41,31 @@ export class ModelTagger extends OBC.Component {
     private _visible: boolean = false;
     private _materialColor: Map<string, string> = new Map();
     private _groupByType: Map<string, Number[]> = new Map();
-    private _typesNotVisible: string[] = ["IFCMECHANICALFASTENER"]
+    private _typesNotVisible: string[] = [IFCMECHANICALFASTENER]
     private _tagVisibilityMode: TagVisibilityMode = TagVisibilityMode.TagSelectionGroup;
+    private _configuration?: TaggerConfiguration = {
+        showFasteners: false,
+        showInstallations: false,
+    }
+
+    readonly onConfigurationSet = new OBC.Event<TaggerConfiguration>()
+
+    get Configuration() {
+        return this._configuration;
+    }
+
+    set Configuration(value: TaggerConfiguration | undefined) {
+        if (!value) return;
+        this._configuration = value;
+
+        console.log('tagger configurations set', this._configuration)
+
+        if (this.enabled) {
+            this.setTags()
+        }
+
+        this.onConfigurationSet.trigger(value);
+    }
 
     /**
      * key = expressID, value = mark
@@ -55,15 +87,6 @@ export class ModelTagger extends OBC.Component {
     get world() {
         return this._world
     }
-
-
-    // set visible(value: boolean) {
-    //     this._visible = value;
-    //     // console.log('model Tagger setting visiblity', this._markers)
-    //     if (!this._markers)
-    //         return;
-    //     this.setVisibility();
-    // }
 
 
     get visible() { return this._visible }
@@ -91,10 +114,8 @@ export class ModelTagger extends OBC.Component {
             viewManager.onVisibilityUpdated.remove(() => this.setTags())
             cache.onBuildingElementsChanged.remove(() => this.setTags())
             this._markers.forEach(mark => {
-                // mark.visible = false
                 mark.dispose()
             })
-            //const tagger = this.components.get(OBF.Marker)
             tagger.dispose();
 
 
@@ -116,7 +137,7 @@ export class ModelTagger extends OBC.Component {
     }
 
 
-    private setTags = () => {
+    setTags = () => {
         switch (this._tagVisibilityMode) {
             case TagVisibilityMode.TagVisible:
                 this.createTagsFromModelVisibility();
@@ -166,6 +187,23 @@ export class ModelTagger extends OBC.Component {
         }
     }
 
+    private filterElements(buildingElements: BuildingElement[]) {
+
+        const hiddenTypes: string[] = [];
+
+        if (!this._configuration?.showFasteners) hiddenTypes.push(IFCMECHANICALFASTENER)
+        if (!this._configuration?.showInstallations) hiddenTypes.push(IFCFLOW)
+
+        let filteredElements = buildingElements.filter(el => !hiddenTypes.find(partialType => el.type.includes(partialType)))
+
+        // also remove by product code in case of installations
+        if (!this._configuration?.showInstallations) {
+            console.log("filtering TE elements")
+            filteredElements = filteredElements.filter(el => !GetPropertyByName(el, knownProperties.ProductCode)?.value.includes("TE"))
+        }
+        return filteredElements;
+    }
+
     /**
      * when model is loaded search for the center of all geometry and store it in a Map with expressIDs.
      * dispose of current tags and set tags for each buildingElement
@@ -177,7 +215,7 @@ export class ModelTagger extends OBC.Component {
         this._markers.forEach(m => m.dispose())
 
         //filterout tag types
-        const filteredElements = buildingElements.filter(el => !this._typesNotVisible.includes(el.type))
+        const filteredElements = this.filterElements(buildingElements);
 
         const markers = this.createMarkers(filteredElements);
         const tags = this.createTags(filteredElements);
@@ -187,6 +225,7 @@ export class ModelTagger extends OBC.Component {
         const cache = this.components.get(ModelCache);
         const classifier = this.components.get(OBC.Classifier);
         classifier.byEntity(cache.models()[0])
+        console.log("classifed types", classifier.list.entities)
 
         // getElementByFragmentIdMap
         // get all building elements based on this list by either making idmap or expressIDS
@@ -219,8 +258,6 @@ export class ModelTagger extends OBC.Component {
             }
 
         })
-
-
     }
 
 
@@ -243,31 +280,28 @@ export class ModelTagger extends OBC.Component {
         const groupedByType = new Map<string, Number[]>();
 
 
-        // set up material list
+        this.setupColors(true);
+    }
+
+    setupColors(useExisting: boolean) {
+        const cache = this.components.get(ModelCache).BuildingElements
+        if (!cache) return;
+        if (!useExisting) {
+            this._materialColor = new Map();
+        }
+
+
+
         cache.forEach((buildingElement) => {
             const material = GetPropertyByName(buildingElement, knownProperties.Material)?.value ?? "";
             // console.log("_material", material)
             if (!this._materialColor.has(material)) {
                 this._materialColor.set(material, this.generateRandomHexColor())
             }
-
-            // get type
-            if (!groupedByType.has(buildingElement.type)) {
-                groupedByType.set(buildingElement.type, [])
-                // console.log('type found', buildingElement.type)
-            }
-
-            groupedByType.get(buildingElement.type)?.push(buildingElement.expressID)
         });
-
-        this._groupByType = groupedByType;
-        // console.log("_types", this._groupByType)
-
-        // console.log("_materials", this._materialColor)
-
-
-
     }
+
+
 
     /**
      * key = express id, value = new OBC.Mark

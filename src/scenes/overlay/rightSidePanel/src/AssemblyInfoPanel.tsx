@@ -290,7 +290,7 @@ const columns: Column[] = [
     align: "right",
     maxWidth: 20,
   },
-  { id: "name", label: "Name", minWidth: 100, maxWidth: 120 },
+  { id: "name", label: "Name", minWidth: 70, maxWidth: 100 },
   { id: "code", label: "Product\u00a0Code", minWidth: 125, maxWidth: 100 },
 ];
 
