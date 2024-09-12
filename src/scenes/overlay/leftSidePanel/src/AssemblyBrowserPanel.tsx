@@ -140,7 +140,21 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
               //isEnabled={nodeVisibility?.get(childData.id) === VisibilityState.Visible}
               //setEnabled={(args, enabled) => setVisibility(args, enabled)}
               visibleOnDoubleClick={visibleOnDoubleClick}
-            />
+            >
+              {[...childData.children.values()].find(child => child.type !== "BuildingElement") && Array.from(childData.children.values()).map((childChildData) => (
+                <TreeTableRow
+                key={childChildData.id}
+                name={childChildData.name}
+                treeID={treeName}
+                icon=""
+                variant="Flat"
+                node={childChildData}
+                //isEnabled={nodeVisibility?.get(childData.id) === VisibilityState.Visible}
+                //setEnabled={(args, enabled) => setVisibility(args, enabled)}
+                visibleOnDoubleClick={visibleOnDoubleClick}
+              />
+              ))}
+            </TreeTableRow>
           ))}
         </TreeTableRow>
       )),

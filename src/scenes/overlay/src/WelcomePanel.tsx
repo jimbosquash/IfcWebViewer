@@ -28,7 +28,7 @@ export const WelcomePanel = () => {
   const handleModelViewSet = (data: 'Assembly' | "Station") => {
     if(!loadedModel) return;
     const modelViewManager = components.get(ModelViewManager)
-    modelViewManager.defaultTreeStructure = data === "Assembly" ? [knownProperties.Assembly,knownProperties.BuildingStep] : [knownProperties.Station,knownProperties.Assembly,knownProperties.BuildingStep];
+    modelViewManager.defaultTreeStructure = data === "Assembly" ? [knownProperties.Assembly,knownProperties.BuildingStep] : [knownProperties.Station,knownProperties.Assembly];
     components.get(ModelCache).add(loadedModel, new Uint8Array())
     setEnableView(false)
   }
