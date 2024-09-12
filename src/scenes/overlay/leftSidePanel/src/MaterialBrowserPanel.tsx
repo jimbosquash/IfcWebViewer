@@ -3,37 +3,58 @@ import { Box, Button, ButtonGroup, colors, Tooltip } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { Tree, TreeNode, TreeUtils } from "../../../../utilities/Tree";
-import { BuildingElement } from "../../../../utilities/types";
+import { BuildingElement, knownProperties, VisibilityState } from "../../../../utilities/types";
 import { ModelCache } from "../../../../bim-components/modelCache";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import TreeTableRow from "../../../../components/TreeTableRow";
+import { ResetTvRounded } from "@mui/icons-material";
+import { setUpTreeFromProperties } from "../../../../utilities/BuildingElementUtilities";
 
-interface TreeOverviewProps {
-  name: string;
-  tree: Tree<BuildingElement> | undefined;
-}
+const treeID = "MaterialTree";
 
-export const MaterialBrowserPanel: React.FC<TreeOverviewProps> = ({ tree, name }) => {
+export const MaterialBrowserPanel: React.FC = () => {
   const [nodes, setNodes] = useState<TreeNode<BuildingElement>[]>();
-  const [nodeVisibility, setNodeVisibility] = useState<Map<string, boolean>>(); // key = node.id, value = visibility state
+  const [nodeVisibility, setNodeVisibility] = useState<Map<string, VisibilityState>>(); // key = node.id, value = visibility state
   const [visibleOnDoubleClick, setVisibleOnDoubleClick] = useState<boolean>(true);
   const components = useComponentsContext();
 
+  // useEffect(() => {
+
+  //   // now remove top tree as its project
+  //   const children = [...tree.root.children.values()];
+
+  //   if (!nodeVisibility) {
+  //     const map = new Map([...children].map((data) => [data.id, true]));
+  //     setNodeVisibility(map);
+  //   }
+
+  //   // console.log("children", children);
+
+  //   setNodes(children);
+  // }, [components]);
+
   useEffect(() => {
-    if (!tree) return;
-
     // now remove top tree as its project
-    const children = [...tree.root.children.values()];
+    const viewManager = components.get(ModelViewManager);
+    viewManager.onBuildingElementsChanged.add((data) => handleNewElements(data));
+    handleNewElements(components.get(ModelCache).BuildingElements)
 
-    if (!nodeVisibility) {
-      const map = new Map([...children].map((data) => [data.id, true]));
-      setNodeVisibility(map);
-    }
+    return () => {
+      viewManager.onBuildingElementsChanged.remove((data) => handleNewElements(data));
+    };
+  }, [components]);
 
-    // console.log("children", children);
+  function handleNewElements(elements: BuildingElement[]): void {
+    if (!elements) return;
+    const viewManager = components.get(ModelViewManager);
 
-    setNodes(children);
-  }, [tree]);
+    const tree = setUpTreeFromProperties(treeID, elements, [knownProperties.Material]);
+
+    const treeContainer = viewManager.addOrReplaceTree(tree.id, tree);
+
+    setNodeVisibility(treeContainer.visibilityMap);
+    setNodes([...tree.root.children.values()]);
+  }
 
   const setVisibility = (nodeID: string, enabled: boolean) => {
     console.log("node visibilty map:", nodeVisibility);
@@ -89,7 +110,7 @@ export const MaterialBrowserPanel: React.FC<TreeOverviewProps> = ({ tree, name }
       >
         {/* fixed panel section */}
 
-        <ButtonGroup style={{ marginTop: "18px", marginBottom: "10px", alignSelf: "center" }}>
+        {/* <ButtonGroup style={{ marginTop: "18px", marginBottom: "10px", alignSelf: "center" }}>
           <Tooltip
             title={
               visibleOnDoubleClick
@@ -112,7 +133,7 @@ export const MaterialBrowserPanel: React.FC<TreeOverviewProps> = ({ tree, name }
               <Icon style={{ color: colors.grey[600] }} icon="mdi:checkbox-multiple-blank-outline" />
             </Button>
           </Tooltip>
-        </ButtonGroup>
+        </ButtonGroup> */}
 
         {/* All children Rows */}
 
@@ -121,12 +142,11 @@ export const MaterialBrowserPanel: React.FC<TreeOverviewProps> = ({ tree, name }
             Array.from(nodes).map((data) => (
               <TreeTableRow
                 name={data.name}
+                treeID={treeID}
                 icon="game-icons:wood-beam"
                 node={data}
                 key={data.id}
                 variant="Flat"
-                isEnabled={nodeVisibility?.get(data.id) ?? false}
-                setEnabled={(args, enabled) => setVisibility(args, enabled)}
                 visibleOnDoubleClick={visibleOnDoubleClick}
               />
             ))}

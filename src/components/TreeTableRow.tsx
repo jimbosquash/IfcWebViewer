@@ -246,6 +246,17 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
           treeID,
           visibilityState === VisibilityState.Visible ? VisibilityState.Hidden : VisibilityState.Visible
         );
+
+        if(node){
+        const elements = TreeUtils.getChildrenNonNullData(node);
+        const cache = components.get(ModelCache);
+
+        elements.forEach((element) => {
+          const frag = cache.getFragmentByElement(element);
+          if (!frag) return;
+          frag.setVisibility(visibilityState === VisibilityState.Hidden, [element.expressID]);
+        });}
+
       },
       [treeID, visibilityState, setVisibilityState]
     );
@@ -271,7 +282,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
           onDoubleClick={handleDoubleClick}
           onClick={(e) => {
             handleToggleExpand(e)
-            modelViewManager.updateVisibility(treeID)
+            // modelViewManager.updateVisibility(treeID)
           }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
@@ -285,8 +296,6 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
             }}
             color={getColor("text")}
           />
-          {icon && <Icon icon={icon} style={{ flexShrink: 0, marginLeft: "5px" }} color={getColor("text")} />}
-
           <RowContent
             name={name}
             icon={icon}

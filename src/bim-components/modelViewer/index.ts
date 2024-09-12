@@ -570,7 +570,8 @@ export class ModelViewManager extends OBC.Component {
      * @returns 
      */
     public updateVisibility = (treeID: string) => {
-        if (!this._enabled || !this.components || !this._trees.has(treeID)) return;
+        if (!this._enabled || !this.components || !this._trees.has(treeID) || this.Tree?.id !== treeID) return;
+        console.log("Update visibility")
 
         const treeContainer = this._trees.get(treeID)
 

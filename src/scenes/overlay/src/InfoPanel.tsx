@@ -92,7 +92,6 @@ export const InfoPanel = () => {
       {infoPanelData && (
         <>
           <Typography
-          variant="h4"
             component="div"
             sx={{ ...subBoxStyle, 
               ...nonSelectableTextStyle,
