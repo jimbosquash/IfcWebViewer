@@ -179,7 +179,11 @@ export class ModelViewManager extends OBC.Component {
 
 
 
+    private _defaultTreeStructure = [knownProperties.Assembly, knownProperties.BuildingStep]
 
+    set defaultTreeStructure(propertyOrder: knownProperties[]) {
+        this._defaultTreeStructure = propertyOrder;
+    }
 
     /**
      * Sets up Tree strucutre based on building elements properties and ignores the ifc file structure
@@ -190,12 +194,10 @@ export class ModelViewManager extends OBC.Component {
             this.onTreeChanged.trigger(undefined);
             return;
         }
-        // const defaultTreeGrouping = ["Station", "BuildingStep"];
-        const defaultTreeGrouping = [knownProperties.Assembly, knownProperties.BuildingStep];
 
-        const tree = setUpTreeFromProperties(ModelViewManager.defaultyTreeName, buildingElements, defaultTreeGrouping);
+        const tree = setUpTreeFromProperties(ModelViewManager.defaultyTreeName, buildingElements, this._defaultTreeStructure);
 
-        console.log("tree created:", tree)
+        console.log("tree created:", this._defaultTreeStructure,tree)
         this.addOrReplaceTree(tree.id, tree)
         this.setTree(tree.id)
         this._selectedGroup = undefined;

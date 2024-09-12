@@ -85,6 +85,7 @@ export interface SelectionGroup {
     BuildingNumber = "Bouwnummer",
     ProductCode = "Productcode",
     Material = 'Materiaal',
+    Station = 'Station',
     Assembly = 'Assembly',
     BuildingStep = "BuildingStep",
   }

@@ -209,7 +209,8 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
               padding: isHovered ? "8px" : "10px",
               width: isHovered ? "95%" : "92%",
               borderRadius: "12px",
-              margin: "8px 0",
+              margin: "4px 0",
+              marginLeft:"8px",
               border: "0.8px solid #ccc",
             }
           : {

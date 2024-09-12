@@ -124,7 +124,7 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
           treeID={treeName}
           icon=""
           node={data}
-          variant="Flat"
+          variant="Floating"
           //isEnabled={nodeVisibility?.get(data.id) === VisibilityState.Visible}
           //setEnabled={(args, enabled) => setVisibility(args, enabled)}
           visibleOnDoubleClick={visibleOnDoubleClick}

@@ -9,7 +9,7 @@ import * as THREE from "three"
  * @param components 
  * @returns 
  */
-export const uploadFile = async (file: File, components: OBC.Components): Promise<FragmentsGroup | undefined> => {
+export const uploadFile = async (file: File, components: OBC.Components, addToCache: boolean): Promise<FragmentsGroup | undefined>  => {
     if(!components) return
     const ifcLoader = components.get(OBC.IfcLoader);
     const modelCache = components.get(ModelCache);
@@ -24,7 +24,8 @@ export const uploadFile = async (file: File, components: OBC.Components): Promis
     const model = await ifcLoader.load(data);
     model.name = file.name.replace(".ifc", "");
     setMeshFaceDoubleSided(model)
-    modelCache.add(model, data);
+    if(addToCache){
+    modelCache.add(model, data);}
     return model;
 };
 
@@ -78,7 +79,7 @@ const setMeshFaceDoubleSided = (model: FragmentsGroup): void => {
       if (fileOpener.files === null || fileOpener.files.length === 0) return;
       const file = fileOpener.files[0];
       fileOpener.remove();
-      uploadFile(file,components);
+      uploadFile(file,components,true);
     };
     fileOpener.click();
   };

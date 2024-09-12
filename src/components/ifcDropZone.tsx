@@ -1,5 +1,6 @@
 import React, { useState, useRef, DragEvent, ChangeEvent } from 'react';
 import { uploadFile } from '../utilities/IfcFileLoader';
+import { Icon } from "@iconify/react";
 
 interface IfcDropZoneProps {
   onFileUpload: (file: File) => void;
@@ -62,6 +63,7 @@ const IfcDropZone: React.FC<IfcDropZoneProps> = ({ onFileUpload }) => {
       onDrop={handleDrop}
       onClick={() => fileInputRef.current?.click()}
       style={{
+        // height:"100%",
         pointerEvents: "auto",
         border: `2px dashed ${isDragging ? 'blue' : 'gray'}`,
         borderRadius: '4px',
@@ -80,7 +82,10 @@ const IfcDropZone: React.FC<IfcDropZoneProps> = ({ onFileUpload }) => {
         style={{ display: 'none' }}
         multiple
       />
-      {isDragging ? 'Drop IFC files here' : 'Drag & Drop IFC files here or click to select'}
+ {/* <Icon
+              icon={isDragging ? "system-uicons:box" : "system-uicons:boxes"}
+            /> */}
+                  {isDragging ? 'Drop IFC files here' : 'Drag & Drop IFC files here or click to select'}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { Snackbar, Alert, useTheme, Box, Paper, Typography } from "@mui/material";
+import { Snackbar, Alert, useTheme, Box } from "@mui/material";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useComponentsContext } from "../../context/ComponentsContext";
 import ActionButtonPanel from "./actionButtonPanel/actionButtonPanel";
@@ -6,15 +6,10 @@ import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import { ModelViewManager } from "../../bim-components/modelViewer";
 import { InfoPanel } from "./src/InfoPanel";
-import { useTopBarContext } from "../../context/TopBarContext";
-import { TaskManager } from "../../bim-components/taskManager";
-import IfcDropZone from "../../components/ifcDropZone";
-import { uploadFile } from "../../utilities/IfcFileLoader";
 import LeftSideBox from "./leftSidePanel";
 import RightSidePanel from "./rightSidePanel";
-import ColorPaletteModal from "../../components/ColorPalleteModal";
 import CameraIconPanel from "./floatingIconPanel/CameraIconPanel";
-import { Icon } from "@iconify/react";
+import WelcomePanel from "./src/WelcomePanel";
 
 const Overlay = () => {
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -23,7 +18,6 @@ const Overlay = () => {
   const [hasModel, setHasModel] = useState<boolean>(false);
   const viewManager = useRef<ModelViewManager>();
   const theme = useTheme();
-  const { isPropertiesPanelVisible } = useTopBarContext();
   const [hasLoadedModel, setHasLoadedModel] = useState<boolean>(false);
   const [rightPanelWidth, setRightPanelWidth] = useState(0); // Default width
 
@@ -55,10 +49,7 @@ const Overlay = () => {
     setSnackbarOpen(true);
   };
 
-  const handleFileUpload = async (data: File) => {
-    console.log("Opening Ifc file please wait.");
-    await uploadFile(data, components);
-  };
+
 
   const handleRightPanelWidthChange = useCallback((newWidth: number) => {
     setRightPanelWidth(newWidth);
@@ -76,39 +67,7 @@ const Overlay = () => {
         pointerEvents: "none",
       }}
     >
-      {!hasModel && (
-        <Box
-          component="div"
-          sx={{
-            pointerEvents: "auto",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)", // semi-transparent grey
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999, // ensure it's on top of everything
-          }}
-        >
-          <Paper
-            elevation={3}
-            sx={{
-              padding: 4,
-              maxWidth: "90%",
-              width: 400,
-              textAlign: "center",
-            }}
-          >
-            <Typography variant="h5" gutterBottom>
-              IFC File Uploader
-            </Typography>
-            <IfcDropZone onFileUpload={handleFileUpload} />
-          </Paper>
-        </Box>
-      )}
+      <WelcomePanel/>
 
       <InfoPanel />
 
