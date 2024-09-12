@@ -41,7 +41,7 @@ export async function setPlanView(components: OBC.Components) {
   if (!cache.world?.meshes || cache.world.meshes.size === 0)
     return;
 
-    await zoomToVisible(components,0.35)
+    await zoomToVisible(components,0.45)
   // zoom(components, cache.world.meshes, cache.world.camera, false, false)
 };
 

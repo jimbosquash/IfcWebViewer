@@ -1,4 +1,3 @@
-import { Box } from "@mui/material";
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -15,14 +14,16 @@ interface TabPanelProps {
         hidden={value !== index}
         id={`simple-tabpanel-${index}`}
         aria-labelledby={`simple-tab-${index}`}
-        style={{ height: "92%", width: "100%" }}
-        {...other}
+        style={{
+          height: '84vh',
+          width: '100%',
+          display: value === index ? 'flex' : 'none',
+          flexDirection: 'column',
+          overflow:'hidden',
+          overflowX:"hidden"
+        }}        {...other}
       >
-        {value === index && (
-          <Box component={"div"} sx={{ p: 0, height: "100%", width:'100%', overflow: "clip", flexGrow: 1 }}>
-            {children}
-          </Box>
-        )}
+        {value === index && children}
       </div>
     );
   }

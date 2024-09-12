@@ -9,6 +9,7 @@ import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelCache } from "../../../bim-components/modelCache";
 import ProjectOverviewPanel from "./src/ProjectOverViewPanel";
 import TaskBrowserPanel from "./src/TaskBrowserPanel";
+import SettingsPanel from "./src/settingsPanel";
 
 const minWidth = 220;
 
@@ -180,6 +181,7 @@ export const LeftSideBox: React.FC = () => {
                 <>
                   <Typography variant="h6">Settings Content</Typography>
                   <BimSettings />
+                  <SettingsPanel/>
                 </>,
                 "settings"
               )

@@ -111,61 +111,49 @@ const ElementInfoPanel = () => {
 
   return (
     <>
-      <Grid
-        container
-        direction="column"
-        justifyContent="flex-start"
-        alignItems="stretch"
-        spacing={1}
-        sx={{ 
+      <Box
+        component="div"
+        flexDirection="column"
+        sx={{
+          display: "flex",
           height: "100%",
-         width: "100%",
+          width: "100%",
         }}
       >
-        <Grid item xs={1} sx={{ height: "auto", width: "100%", p: 0 }}>
-          <Box
-            component="div"
-            sx={{
-              p: 2,
-              display: "flex", // Flex container
-              flexDirection: "row", // Horizontal layout within this box
-              alignItems: "center", // Center align items vertically
-              width: "100%",
-            }}
-          >
-            <Box height="60px" alignContent="center" component="div" sx={{ mr: 2 }}>
-              <Icon color={colors.grey[400]} icon="system-uicons:box" />
-            </Box>
-            <Grid container direction="column">
-              <Typography variant="h6">
-                {!selected ? "Selected element" : findProperty(selected, knownProperties.ProductCode)?.value}
-              </Typography>
-              <Typography variant="body2">{!selected ? "Selected element" : selected.name}</Typography>
-            </Grid>
+        <Box
+          component="div"
+          sx={{
+            p: 2,
+            display: "flex", // Flex container
+            flexDirection: "row", // Horizontal layout within this box
+            alignItems: "center", // Center align items vertically
+            width: "100%",
+          }}
+        >
+          <Box component="div" sx={{ mr: 2 }}>
+            <Icon color={colors.grey[400]} icon="system-uicons:box" />
           </Box>
-        </Grid>
+          <Grid container direction="column">
+            <Typography variant="h6">
+              {!selected ? "Selected element" : findProperty(selected, knownProperties.ProductCode)?.value}
+            </Typography>
+            <Typography variant="body2">{!selected ? "Selected element" : selected.name}</Typography>
+          </Grid>
+        </Box>
 
-        <Grid item xs={5} sx={{ height: "calc(100vh - 200px)" }}>
-          <Box
-            component="div"
-            sx={{
-              flexGrow: 1,
-              display: "flex",
-                  flexDirection: "column",
-              overflowY: "auto",
-              overflowX: "hidden",
-              width: "100%",
-              paddingBottom: "50px",
-
-              // height: "20%",
-              // overflow: "auto", // Enable scrolling when content exceeds height
-              // p: 0,
-            }}
-          >
-            <BasicDataTable onSelectChanged={onSelectChanged} columns={columns} data={rows} />
-          </Box>
-        </Grid>
-      </Grid>
+        <BasicDataTable
+          sx={{
+            flexGrow: 1,
+            overflowX: "hidden",
+            height: "100%",
+            margin: "0px",
+            width: "100%",
+          }}
+          onSelectChanged={onSelectChanged}
+          columns={columns}
+          data={rows}
+        />
+      </Box>
     </>
   );
 };
@@ -174,13 +162,13 @@ interface dataTableProps {
   data: any[];
   columns: Column[];
   onSelectChanged: (selectedIds: readonly number[]) => void;
+  sx?: React.CSSProperties;
 }
 
-const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChanged }) => {
+const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChanged, sx }) => {
   const memoizedColumns = useMemo(() => columns, [columns]);
   const memoizedData = useMemo(() => data, [data]);
   const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const [selected, setSelected] = useState<readonly number[]>([]);
 
   useEffect(() => {
@@ -210,7 +198,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
   const isSelected = useCallback((key: number) => selected.indexOf(key) !== -1, [selected]);
 
   return (
-    <TableContainer component={Paper}>
+    <TableContainer component={Paper} sx={{ ...sx}}>
       <Table stickyHeader sx={{ width: "100%" }} size={"small"} aria-label="simple table">
         <TableHead>
           <TableRow>
@@ -226,17 +214,16 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
           </TableRow>
         </TableHead>
         <TableBody>
-          {memoizedData &&
-            memoizedData.map((row) => {
-              return (
-                <MemoizedTableRow
-                  key={row.key} // Unique key for each row
-                  row={row}
-                  isItemSelected={isSelected(row.key)}
-                  handleClick={handleClick}
-                />
-              );
-            })}
+          {memoizedData.map((row) => {
+            return (
+              <MemoizedTableRow
+                key={row.key} // Unique key for each row
+                row={row}
+                isItemSelected={isSelected(row.key)}
+                handleClick={handleClick}
+              />
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>
