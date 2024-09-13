@@ -164,11 +164,12 @@ const CameraIconPanel: React.FC = () => {
     <Box
       component="div"
       sx={{
-        position: "absolute",
+        position: "relative",
         right: 20,
+        // left: 20,
         top: "50%",
         transform: "translateY(-50%)",
-        transition: "right 0.1s ease",
+        // transition: "left 0.1s ease",
         display: "flex",
         flexDirection: "column",
       }}

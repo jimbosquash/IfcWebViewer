@@ -49,6 +49,7 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
       for (let entry of entries) {
         if (entry.target === panelRef.current) {
           onWidthChange(entry.contentRect.width);
+          // onWidthChange(panelWidth);
         }
       }
     });
