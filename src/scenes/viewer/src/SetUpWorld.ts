@@ -42,7 +42,7 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     world.scene.three.add(light);
     BUI.Manager.init();
     CUI.Manager.init();
-    const viewCube = document.createElement("bim-view-cube");
+    // const viewCube = document.createElement("bim-view-cube");
     // const controls = world.camera.controls;
     // const options = {
     //   container: containerRef, 
@@ -75,17 +75,17 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     //   // viewportGizmo.render();
     // });
 
-    viewCube.frontText = "Front";
-    viewCube.topText = "Top";
-    viewCube.backText = "Back";
-    viewCube.leftText = "Left";
-    viewCube.rightText = "Right";
-    viewCube.size = 120;
-    viewCube.camera = world.camera.three;
-    // TODO: when camera changes, between ortho and pers then change the view cubes cam too
-    containerRef.append(viewCube);
+    // viewCube.frontText = "Front";
+    // viewCube.topText = "Top";
+    // viewCube.backText = "Back";
+    // viewCube.leftText = "Left";
+    // viewCube.rightText = "Right";
+    // viewCube.size = 120;
+    // viewCube.camera = world.camera.three;
+    // // TODO: when camera changes, between ortho and pers then change the view cubes cam too
+    // containerRef.append(viewCube);
 
-    world.camera.controls.addEventListener("update", () => viewCube.updateOrientation());
+    // world.camera.controls.addEventListener("update", () => viewCube.updateOrientation());
     // world.camera.controls.addEventListener("update", () => viewportGizmo.update());
 
     const worldGrid = components.get(OBC.Grids).create(world)
