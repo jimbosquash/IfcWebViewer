@@ -1,13 +1,11 @@
-import { Icon } from "@iconify/react";
-import { Box, Button, ButtonGroup, colors, Tooltip } from "@mui/material";
+import { Box } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { Tree, TreeNode, TreeUtils } from "../../../../utilities/Tree";
+import { TreeNode } from "../../../../utilities/Tree";
 import { BuildingElement, knownProperties, VisibilityState } from "../../../../utilities/types";
 import { ModelCache } from "../../../../bim-components/modelCache";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import TreeTableRow from "../../../../components/TreeTableRow";
-import { ResetTvRounded } from "@mui/icons-material";
 import { setUpTreeFromProperties } from "../../../../utilities/BuildingElementUtilities";
 
 const treeID = "MaterialTree";
@@ -37,7 +35,10 @@ export const MaterialBrowserPanel: React.FC = () => {
     // now remove top tree as its project
     const viewManager = components.get(ModelViewManager);
     viewManager.onBuildingElementsChanged.add((data) => handleNewElements(data));
-    handleNewElements(components.get(ModelCache).BuildingElements)
+    const elements = components.get(ModelCache).BuildingElements
+    if(elements) {
+      handleNewElements(elements)
+    }
 
     return () => {
       viewManager.onBuildingElementsChanged.remove((data) => handleNewElements(data));
@@ -56,46 +57,46 @@ export const MaterialBrowserPanel: React.FC = () => {
     setNodes([...tree.root.children.values()]);
   }
 
-  const setVisibility = (nodeID: string, enabled: boolean) => {
-    console.log("node visibilty map:", nodeVisibility);
-    if (!nodeID || nodeVisibility?.get(nodeID) === undefined) {
-      console.log("node visibilty toggle failed no node id:", nodeID);
-      return;
-    }
+  // const setVisibility = (nodeID: string, enabled: boolean) => {
+  //   console.log("node visibilty map:", nodeVisibility);
+  //   if (!nodeID || nodeVisibility?.get(nodeID) === undefined) {
+  //     console.log("node visibilty toggle failed no node id:", nodeID);
+  //     return;
+  //   }
 
-    const newVisMap = new Map(nodeVisibility);
-    newVisMap.set(nodeID, enabled);
-    setNodeVisibility(newVisMap);
+  //   const newVisMap = new Map(nodeVisibility);
+  //   newVisMap.set(nodeID, enabled);
+  //   setNodeVisibility(newVisMap);
 
-    // now set up viewer hidden list
+  //   // now set up viewer hidden list
 
-    const viewManager = components.get(ModelViewManager);
-    const cache = components.get(ModelCache);
+  //   const viewManager = components.get(ModelViewManager);
+  //   const cache = components.get(ModelCache);
 
-    const node = nodes?.find((n) => n.id === nodeID);
-    if (!node) return;
-    const elements = TreeUtils.getChildrenNonNullData(node);
+  //   const node = nodes?.find((n) => n.id === nodeID);
+  //   if (!node) return;
+  //   const elements = TreeUtils.getChildrenNonNullData(node);
 
-    // add or remove item from hidden list
+  //   // add or remove item from hidden list
 
-    elements.forEach((e) => {
-      const exluded = viewManager.ExludedElements.has(e);
+  //   elements.forEach((e) => {
+  //     const exluded = viewManager.ExludedElements.has(e);
 
-      if (exluded && enabled) {
-        viewManager.ExludedElements.delete(e);
-      } else if (!exluded && !enabled) {
-        viewManager.ExludedElements.add(e);
-      }
-    });
+  //     if (exluded && enabled) {
+  //       viewManager.ExludedElements.delete(e);
+  //     } else if (!exluded && !enabled) {
+  //       viewManager.ExludedElements.add(e);
+  //     }
+  //   });
 
-    // then show or hide items in 3d space
+  //   // then show or hide items in 3d space
 
-    elements.forEach((element) => {
-      const frag = cache.getFragmentByElement(element);
-      if (!frag) return;
-      frag.setVisibility(enabled, [element.expressID]);
-    });
-  };
+  //   elements.forEach((element) => {
+  //     const frag = cache.getFragmentByElement(element);
+  //     if (!frag) return;
+  //     frag.setVisibility(enabled, [element.expressID]);
+  //   });
+  // };
 
   return (
     <>

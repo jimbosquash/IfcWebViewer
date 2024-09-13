@@ -130,20 +130,20 @@ export class ModelViewManager extends OBC.Component {
     //     console.log("ModelViewManager: selected group changed:", selectionGroup.id)
     //     this.onSelectedGroupChanged.trigger(this._selectedGroup)
 
-        
-        
+
+
     // // Add any additional logic needed when setting the selection group
     // }
-/**
-     * It is assumed that the selected group has an ID that matches the currently active tree. If this group comes from a tree you ar 
-     * not sure is the active tree, first set that tree then select group.
-     */
+    /**
+         * It is assumed that the selected group has an ID that matches the currently active tree. If this group comes from a tree you ar 
+         * not sure is the active tree, first set that tree then select group.
+         */
     setSelectionGroup(selectionGroup: SelectionGroup | undefined, updateModelVisibility: boolean) {
         if (!selectionGroup) return;
         this._selectedGroup = selectionGroup;
         console.log("ModelViewManager: selected group changed:", selectionGroup.id)
         this.onSelectedGroupChanged.trigger(this._selectedGroup)
-        if(updateModelVisibility && this.Tree?.id){
+        if (updateModelVisibility && this.Tree?.id) {
             this.updateBasedOnVisibilityMode(undefined, undefined, this.Tree?.id);
         }
     }
@@ -197,7 +197,7 @@ export class ModelViewManager extends OBC.Component {
 
         const tree = setUpTreeFromProperties(ModelViewManager.defaultyTreeName, buildingElements, this._defaultTreeStructure);
 
-        console.log("tree created:", this._defaultTreeStructure,tree)
+        console.log("tree created:", this._defaultTreeStructure, tree)
         this.addOrReplaceTree(tree.id, tree)
         this.setTree(tree.id)
         this._selectedGroup = undefined;
@@ -253,13 +253,13 @@ export class ModelViewManager extends OBC.Component {
      * Group Visibility : key = group Name, value = visibility state. will be used to determine the visibility of geometry 
      * when triggering updateVisibility;
      */
-    set GroupVisibility(value: Map<string, VisibilityState>| undefined) {
+    set GroupVisibility(value: Map<string, VisibilityState> | undefined) {
         // console.log("ModelViewManager: group vis being set", value);
         if (this._tree?.visibilityMap && value !== undefined) {
             const tree = this._trees.get(this._tree.id)
-            if(!tree) return;
+            if (!tree) return;
             tree.visibilityMap = value;
-            this.onGroupVisibilitySet.trigger({treeID: tree.id,visibilityMap: tree.visibilityMap});
+            this.onGroupVisibilitySet.trigger({ treeID: tree.id, visibilityMap: tree.visibilityMap });
             this.updateVisibility(tree.id);
         }
     }
@@ -342,7 +342,25 @@ export class ModelViewManager extends OBC.Component {
             case VisibilityMode.Isolate:
                 // every other node except its parent and its self are hidden
                 sameNodeTypes.forEach(treeNode => {
-                    this.setVisibility(treeNode.id, tree.tree.id, treeNode.id === group?.id ? VisibilityState.Visible : VisibilityState.Hidden, false)
+                    const visibilityState = treeNode.id === group?.id ? VisibilityState.Visible : VisibilityState.Hidden;
+
+                    if(visibilityState === VisibilityState.Visible) {
+                        console.log("Isolation view updating", treeNode)
+                        this.setVisibility(treeNode.id, tree.tree.id,VisibilityState.Visible, false)
+                        treeNode.children.forEach(child => {
+                            if(!child.isLeaf) 
+                            {
+                                console.log("Isolation child", child)
+
+                                this.setVisibility(child.id, tree.tree.id,VisibilityState.Visible, false)
+                            } else {
+                                console.log('not isolating child', child)
+                            }
+                        })
+
+                    } else {
+                        this.setVisibility(treeNode.id, tree.tree.id,VisibilityState.Hidden, false)
+                    }
                 });
                 break;
             case VisibilityMode.selectGroup:
@@ -406,8 +424,19 @@ export class ModelViewManager extends OBC.Component {
         // console.log('all hidden nodes found:', hiddenNodes)
 
         // make each node, their parent and children are visible
+        console.log('visible nodes of tree',visibleNodes)
         visibleNodes.forEach(treeNode => {
+            
             this.setVisibility(treeNode.id, tree.id, VisibilityState.Visible, false)
+
+            // now set all their children visible
+            treeNode.children.forEach(child => {
+                if (!child.isLeaf) {
+                    this.setVisibility(child.id, tree.id, VisibilityState.Visible, false)
+                }
+            })
+
+
             if (treeNode.parent)
                 this.setVisibility(treeNode.parent.id, tree.id, VisibilityState.Visible, false)
 
@@ -608,7 +637,12 @@ export class ModelViewManager extends OBC.Component {
         return this.getBuildingElements(this._tree?.tree.root.id, this._tree?.tree);
     }
 
-    // search element tree and group building elements by visibility state of their highest parent node 
+    /**
+     * Search element tree and group building elements by visibility state of their highest parent node 
+     * @param tree 
+     * @param visibilityMap 
+     * @returns 
+     */
     private groupElementsByVisibilityState(tree: Tree<BuildingElement>, visibilityMap: Map<string, VisibilityState>): Map<VisibilityState, BuildingElement[]> | undefined {
 
         if (!tree || !visibilityMap) return undefined;
