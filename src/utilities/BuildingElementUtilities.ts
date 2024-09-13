@@ -323,6 +323,7 @@ export const setUpTreeFromProperties = (id: string, elements: BuildingElement[],
   return tree;
 }
 
+
 function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[]][] {
   const entries = Array.from(groupedElements.entries());
 
@@ -339,11 +340,23 @@ function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[
     }
   });
 
-  // Sort only the numeric entries
+  // Sort numeric entries using a custom comparison function
   numericEntries.sort((a, b) => {
-    const aPrefix = parseFloat(a[0].split('_')[0]);
-    const bPrefix = parseFloat(b[0].split('_')[0]);
-    return aPrefix - bPrefix;
+    const aPrefix = a[0].split('_')[0];
+    const bPrefix = b[0].split('_')[0];
+    
+    // Split the prefix into integer and decimal parts
+    const [aInt, aDec = '0'] = aPrefix.split('.');
+    const [bInt, bDec = '0'] = bPrefix.split('.');
+    
+    // Compare integer parts first
+    const intComparison = parseInt(aInt) - parseInt(bInt);
+    if (intComparison !== 0) {
+      return intComparison;
+    }
+    
+    // If integer parts are equal, compare decimal parts
+    return parseInt(aDec) - parseInt(bDec);
   });
 
   // Combine sorted numeric entries with unsorted non-numeric entries
