@@ -8,6 +8,9 @@ import { ModelCache } from "../modelCache";
 import { ModelViewManager } from "../modelViewer";
 import { Tag } from "./src/Tag";
 import { getAveragePoint } from "../../utilities/threeUtils";
+import { Line, Vector3 } from "three";
+import * as THREE from "three";
+import { ThreeElements } from "@react-three/fiber";
 
 // key = name of element. first array = an array of matching names with arrays of tags grouped by distance
 interface GroupedElements {
@@ -81,6 +84,8 @@ export class ModelTagger extends OBC.Component {
      */
     private _tags: Map<string, Tag> = new Map();
 
+    private _lines: Line[] = [];
+
 
     constructor(components: OBC.Components) {
         super(components)
@@ -135,6 +140,8 @@ export class ModelTagger extends OBC.Component {
             this._markers.forEach(mark => {
                 mark.dispose()
             })
+
+            this.removeLines()
 
             this._markers = [];
         }
@@ -234,6 +241,7 @@ export class ModelTagger extends OBC.Component {
         if (!this._enabled) return;
         this._markers.forEach(m => m.dispose())
         this._markers = [];
+        this.removeLines();
 
         //filterout tag types
         const filteredElements = this.filterElements(buildingElements);
@@ -247,6 +255,7 @@ export class ModelTagger extends OBC.Component {
             if (mergedTags) {
                 // make them into a markers and add to _markers
                 const mergedMarkers = this.getNewTagForClusters(mergedTags);
+
                 mergedMarkers.forEach(mark => markers.push(mark)
                 )
             }
@@ -258,21 +267,93 @@ export class ModelTagger extends OBC.Component {
         this._markers = markers;
     }
 
-    getNewTagForClusters(tagClusters: Map<string, Tag[][]>) {
+    getLines(mergeTagPosition: Vector3, tagPositions: Vector3[]) {
+        const material = new THREE.LineBasicMaterial({ color: "white" });
+
+        tagPositions.forEach(pos => {
+            const geometry = new THREE.BufferGeometry().setFromPoints([
+                mergeTagPosition,
+                pos,
+            ]);
+            const line = new THREE.Line(geometry, material);
+            this._lines.push(line);
+            this._world?.scene.three.add(line);
+        })
+    }
+
+    getTagLines(mergeTag: Tag, children: Tag[]) {
+        if (mergeTag.position === undefined || !children) return;
+
+        const material = new THREE.LineBasicMaterial({ color: mergeTag.color });
+
+        const cPos = children.map(element => element.position).filter((pos): pos is Vector3 => pos !== undefined)
+
+        cPos.forEach(pos => {
+            if (mergeTag.position === undefined)
+                return;
+            const geometry = new THREE.BufferGeometry().setFromPoints([
+                mergeTag.position,
+                pos,
+            ]);
+            const line = new THREE.Line(geometry, material);
+            this._lines.push(line);
+            this._world?.scene.three.add(line);
+        })
+    }
+
+    removeLines() {
+        const scene = this._world?.scene.three;
+        if (!scene) return;
+
+        this._lines.forEach(line => {
+            scene.remove(line)
+            if (line.geometry) line.geometry.dispose();
+            // if (line.material) line.material.dispose();
+        })
+
+        this._lines.length = 0; // Clear the array
+    }
+
+    getNewTagForClusters(tagClustersByName: Map<string, Tag[][]>) {
         const markers: Mark[] = [];
         // make them into a markert
-        tagClusters.forEach((groupedElements) => {
-            //get a color by the name
-            //for each group make a center and a tag
-            groupedElements.forEach(group => {
-                const pt = getAveragePoint(group.map(element => element.position))
+        tagClustersByName.forEach((tagClusters) => {
 
-                const text = `${group.length} x ${group[0].text}`;
-                if (this._world?.uuid && pt) {
-                    const mark = this.createMark(this._world, text, group[0].color, "material-symbols:tools-power-drill-outline");
-                    mark.three.position.copy(pt);
-                    mark.three.visible = true;
-                    markers.push(mark);
+            //generate new Tag 
+
+            //for each group make a new merged tag with new center
+            tagClusters.forEach((tagCluster, index) => {
+                const pt = getAveragePoint(tagCluster.map(element => element.position))
+                if (!pt) {
+                    tagCluster.forEach(e => {
+                        const m = this.createMarkFromTag(e);
+                        if (m) markers.push(m)
+                    })
+                } else {
+                    const text = `${tagCluster.length} x ${tagCluster[0].text}`;
+                    const newCenter = new Vector3(pt.x, pt.y + 0.5, pt.z);
+                    const mergeTag = new Tag(
+                        `MergeTag-${index}`,
+                        text,
+                        newCenter,
+                        tagCluster[0].color,
+                        tagCluster[0].type)
+                    const mark = this.createMarkFromTag(mergeTag,"material-symbols:tools-power-drill-outline")
+                    if (mark) {
+                        markers.push(mark)
+
+                        // this.getTagLines(mergeTag, tagCluster)
+                        //this.getLines(newCenter, tagCluster.map(element => element.position).filter((pos): pos is Vector3 => pos !== undefined))
+                    }
+
+                    tagCluster.forEach(t => {
+                        const copyT = new Tag(t.globalID,'',t.position,t.color,t.type)
+                        const m = this.createMarkFromTag(copyT);
+                        if (m)
+                            markers.push(m);
+
+                    })
+
                 }
             })
         })
@@ -329,15 +410,34 @@ export class ModelTagger extends OBC.Component {
         tagsByName.forEach((elementTags, name) => {
             groupedElements[name] = [];
 
+            let nameColor = this._materialColor.get(name)
+            // create color
+            if(!nameColor) {
+                this._materialColor.set(name, this.generateRandomHexColor())
+                nameColor = this._materialColor.get(name);
+            }
+
             for (const tag of elementTags) {
+                if(nameColor){
+                    tag.color = nameColor;}
                 let added = false;
+                // find if this tag exists in any group and if so then continue
                 for (const group of groupedElements[name]) {
-                    for (const groupedTag of group) {
-
-                        if (!groupedTag.position) continue;
-
-                        const dist = tag.position?.distanceTo(groupedTag?.position)
-
+                    if(group.find(gTag => gTag.globalID === tag.globalID)){
+                        added = true;
+                        console.log('found tag already in cluster',tag,group)
+                        continue;
+                    }
+                }
+                if(added) {
+                    continue;
+                }
+                // now add it if not
+                for (const group of groupedElements[name]) {
+                    
+                    for (const clusteredTag of group) {
+                        if (!clusteredTag.position) continue;
+                        const dist = tag.position?.distanceTo(clusteredTag?.position)
                         // console.log('distance',dist)
                         if (dist && dist <= this._mergeDistance) {
                             group.push(tag);
@@ -345,6 +445,8 @@ export class ModelTagger extends OBC.Component {
                             break;
                         }
                     }
+                    if(added)
+                        break;
                 }
                 if (!added) {
                     groupedElements[name].push([tag]);
@@ -366,7 +468,7 @@ export class ModelTagger extends OBC.Component {
         }, new Map<string, Tag[]>);
     }
 
-    private _mergeDistance = 0.300; // 1 = 1 meter
+    private _mergeDistance = 0.450; // 1 = 1 meter
 
 
     /**
@@ -436,8 +538,11 @@ export class ModelTagger extends OBC.Component {
             return acc;
         }, new Map<string, BuildingElement[]>)
 
+        const fragments = this.components.get(OBC.FragmentsManager);
+        // const modelIdMap = fragments.getModelIdMap(selection);
         elementsByModel.forEach((elements, modelID) => {
-            const model = models.find(m => m.uuid === modelID);
+            const model = fragments.groups.get(modelID);
+
             if (!model) {
                 console.log("failed to creat tags as no model found for", modelID, elements)
                 return;
@@ -470,15 +575,23 @@ export class ModelTagger extends OBC.Component {
         }
 
         this.getTags(elements).forEach((tag) => {
-            if (this._world && tag.position) {
-                const mark = this.createMark(this._world, tag.text, tag.color, undefined);
-                mark.three.position.copy(tag.position);
-                mark.three.visible = true;
-                markers.push(mark);
+            const mark = this.createMarkFromTag(tag)
+            if (mark) {
+                markers.push(mark)
             }
+
         })
 
         return markers;
+    }
+
+    createMarkFromTag(tag: Tag, icon?: string) {
+        if (this._world && tag.position) {
+            const mark = this.createMark(this._world, tag.text, tag.color, icon);
+            mark.three.position.copy(new Vector3(tag.position.x, tag.position.y, tag.position.z))
+            mark.three.visible = true;
+            return mark;
+        }
     }
 
     /**
@@ -510,7 +623,7 @@ export class ModelTagger extends OBC.Component {
     private createMark = (world: OBC.World, text: string | null, color: string | undefined, icon: string | undefined) => {
         const label = document.createElement("bim-label")
         label.textContent = text;
-        if(icon)
+        if (icon)
             label.icon = icon;
         // if (!icon) {
         //     // label.icon = "material-symbols:comment"

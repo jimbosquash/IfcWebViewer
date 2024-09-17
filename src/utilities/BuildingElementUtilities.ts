@@ -289,42 +289,6 @@ export function distanceToCenter(a: BuildingElement, b: BuildingElement, model: 
   return aCenter?.distanceTo(bCenter);
 }
 
-// /**
-//  * Create a tree structure by using the input node order to group building elements by their property.
-//  * we assume that grouping is done by property values and that building elements have the properties 
-//  * in node order.
-//  */
-// export const setUpTreeFromProperties = (id: string, elements: BuildingElement[], nodeOrder: string[] | knownProperties[] = ["Station", "BuildingStep"]) => {
-
-//   const tree = new Tree<BuildingElement>(id, "Project", "Project");
-//   const root = tree.getNode("Project")
-
-//   const createSubTree = (parentNode: TreeNode<BuildingElement>, currentElements: BuildingElement[], currentLevel: number) => {
-//     if (currentLevel >= nodeOrder.length) {
-//       // We've reached the leaf level, add elements as leaf nodes
-//       currentElements.forEach((element, index) => {
-//         tree.addNode(parentNode.id, `${parentNode.id}_${index}`, element.name, "BuildingElement", element, true);
-//       });
-//       return;
-//     }
-
-//     const currentNodeType = nodeOrder[currentLevel];
-//     //console.log("Grouping elements by prop", currentElements,currentNodeType)
-//     const groupedElements = groupElementsByPropertyName(currentElements, currentNodeType);
-
-//     groupedElements.forEach((groupElements, groupValue) => {
-//       const nodeId = `${parentNode.id}_${currentNodeType}_${groupValue}`;
-//       tree.addNode(parentNode.id, nodeId, groupValue, currentNodeType);
-//       // console.log('create subTree',tree.getNode(nodeId),groupElements )
-//       createSubTree(tree.getNode(nodeId)!, groupElements, currentLevel + 1);
-//     });
-//   };
-
-//   if (root)
-//     createSubTree(root, elements, 0)
-//   //console.log('tree created', id,elements,tree)
-//   return tree;
-// }
 
 /**
  * Create a tree structure by using the input node order to group building elements by their property.
@@ -403,8 +367,6 @@ function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[
   // Combine sorted numeric entries with unsorted non-numeric entries
   return [...numericEntries, ...nonNumericEntries];
 }
-
-
 
 
 export const groupElementsByPropertyName = (elements: BuildingElement[], property: string): Map<string, BuildingElement[]> => {
