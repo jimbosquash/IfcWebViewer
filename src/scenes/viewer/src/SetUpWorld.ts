@@ -3,10 +3,8 @@ import * as OBF from "@thatopen/components-front"
 import * as THREE from 'three';
 import * as BUI from "@thatopen/ui";
 import * as CUI from "@thatopen/ui-obc";
-import { ViewportGizmo } from "three-viewport-gizmo";
 
 export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement | null | undefined, name: string): OBC.SimpleWorld<OBC.SimpleScene, OBC.OrthoPerspectiveCamera, OBF.PostproductionRenderer> | undefined {
-  // return undefined;  
   if (components && containerRef) {
     console.log("world creating", containerRef)
     const worlds = components.get(OBC.Worlds)
@@ -19,21 +17,6 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
 
     world.renderer = new OBF.PostproductionRenderer(components, containerRef)
     const { postproduction } = world.renderer;
-    // if(world.renderer.three instanceof THREE.WebGLRenderer)
-    // {
-    //   world.renderer.three.setAnimationLoop(animation);
-    // }
-
-    // function animation() {
-    //   //renderer.render(scene, camera);
-    //   if(!viewportGizmo.visible) 
-    //   return;
-    //   viewportGizmo.render();
-    //     console.log("animation")
-  
-  
-    //   // animateControlsCallBack?.();
-    // }
 
     world.camera = new OBC.OrthoPerspectiveCamera(components)
     world.camera.projection.set('Orthographic');
@@ -43,38 +26,7 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     BUI.Manager.init();
     CUI.Manager.init();
     // const viewCube = document.createElement("bim-view-cube");
-    // const controls = world.camera.controls;
-    // const options = {
-    //   container: containerRef, 
-    //   size:145,  
-    //   placement: "top-center"
-    // };
-    // const viewportGizmo = new ViewportGizmo(world.camera.three, world.renderer.three, options);
-
-    // listeners
-    // viewportGizmo.addEventListener("start", () => {
-    //   // Disable controls on change start
-    //   controls.enabled = false;
-    // });
-
-    // viewportGizmo.addEventListener("end", () => {
-    //   // Enable controls on change end
-    //   controls.enabled = true;
-    // });
-
-    // viewportGizmo.addEventListener("change", () => {
-    //   // Set the camera new position
-    //   controls.setPosition(...world.camera.three.position.toArray());
-    // });
-
-    // controls.addEventListener("update", () => {
-    //   // Update the the gizmo on controls update
-    //   console.log("controls changing",viewportGizmo)
-    //   // controls.getTarget(viewportGizmo.target);
-    //   viewportGizmo.update();
-    //   // viewportGizmo.render();
-    // });
-
+    
     // viewCube.frontText = "Front";
     // viewCube.topText = "Top";
     // viewCube.backText = "Back";
@@ -86,7 +38,6 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     // containerRef.append(viewCube);
 
     // world.camera.controls.addEventListener("update", () => viewCube.updateOrientation());
-    // world.camera.controls.addEventListener("update", () => viewportGizmo.update());
 
     const worldGrid = components.get(OBC.Grids).create(world)
     worldGrid.fade= true;

@@ -1,6 +1,8 @@
+import { objectShallowCompare } from "@mui/x-data-grid/hooks/utils/useGridSelector";
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
-import { Fragment, FragmentIdMap } from "@thatopen/fragments";
+import { Fragment, FragmentIdMap, FragmentsGroup } from "@thatopen/fragments";
+import { groupByModelID } from "../../utilities/BuildingElementUtilities";
 import { GetBuildingElements } from "../../utilities/IfcUtilities";
 import { BuildingElement } from "../../utilities/types";
 import { ModelViewManager } from "../modelViewer";
@@ -38,7 +40,7 @@ export class ModelCache extends OBC.Component {
      * Key = BuildingElement GlobalID, value = Fragment.
      * this is helpful to get to the geometry quickly for things like visibilty checking
      */
-    private _fragmentsBybuildingElementIDs: Map<string,FRAGS.Fragment> = new Map();
+    private _fragmentsBybuildingElementIDs: Map<string, FRAGS.Fragment> = new Map();
 
     models = (): FRAGS.FragmentsGroup[] => {
         return Array.from(this._models.values())
@@ -70,13 +72,30 @@ export class ModelCache extends OBC.Component {
 
 
     getFragmentByElement(element: BuildingElement): Fragment | undefined {
-        if(!element) return;
+        if (!element) return;
 
         const fragment = this._fragmentsBybuildingElementIDs.get(element.GlobalID)
-        if(!fragment) {
+        if (!fragment) {
             console.log('model cache: faile dto get fragment from building elements globalID', element.GlobalID)
         }
         return fragment;
+    }
+
+    /**
+ * Group by Model ID for easy handeling
+ * @returns key = ModuleID, value = Building Elements 
+ */
+    GroupByModel(buildingElements: BuildingElement[]): Map<FragmentsGroup, BuildingElement[]> {
+        const modelMap: Map<FragmentsGroup, BuildingElement[]> = new Map();
+        groupByModelID(buildingElements).forEach((elements, modelID) => {
+            const model = this.models().find(m => m.uuid === modelID);
+            if (!model) {
+                console.log('Failed to find model', modelID)
+                return;
+            }
+            modelMap.set(model,elements)
+        })
+        return modelMap;
     }
 
 
@@ -89,11 +108,11 @@ export class ModelCache extends OBC.Component {
     getElementsByExpressId(expressIDs: Set<number>, modelID: string): BuildingElement[] {
         if (!expressIDs || !this._buildingElements) return [];
 
-        const elements : BuildingElement[] = [];
+        const elements: BuildingElement[] = [];
 
         expressIDs.forEach(id => {
-            const element = this.getElementByExpressId(id,modelID)
-            if(element) elements.push(element)
+            const element = this.getElementByExpressId(id, modelID)
+            if (element) elements.push(element)
 
         })
         return elements;
@@ -112,12 +131,12 @@ export class ModelCache extends OBC.Component {
 
         const elements = new Set<BuildingElement>();
         //get all the ids and get all 
-        Object.entries(fragmentIdMap).forEach((entry) => { 
+        Object.entries(fragmentIdMap).forEach((entry) => {
             const fragID = entry[0];
             const expressIDs = entry[1];
             expressIDs.forEach(id => {
                 const foundElement = this._buildingElements?.find(e => e.expressID === id && e.FragmentID === fragID);
-                if(foundElement)
+                if (foundElement)
                     elements.add(foundElement)
             });
         })
@@ -161,9 +180,9 @@ export class ModelCache extends OBC.Component {
 
             newElements.forEach(e => {
                 const frag = model.items.find(f => f.id === e.FragmentID)
-                if(!frag) return;
+                if (!frag) return;
 
-                this._fragmentsBybuildingElementIDs.set(e.GlobalID,frag);
+                this._fragmentsBybuildingElementIDs.set(e.GlobalID, frag);
             })
 
             // console.log('ModelCache: building elements changed', this._buildingElements)

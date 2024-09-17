@@ -3,8 +3,10 @@ import { SelectionGroup, BuildingElement, KnowGroupType, knownProperties } from 
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
 import { ModelCache } from "../bim-components/modelCache";
-import { GetFragmentIdMaps } from "./IfcUtilities";
+import { GetCenterPoint, GetFragmentIdMaps } from "./IfcUtilities";
 import { ModelViewManager } from "../bim-components/modelViewer";
+import { FragmentsGroup } from "@thatopen/fragments";
+import { Components } from "@thatopen/components";
 
 
 /**
@@ -63,6 +65,30 @@ function getFirstGroup(tree: Tree<BuildingElement>) {
 
 
   return { groupType: firstGroup.type, id: firstGroup.id, groupName: firstGroup.name, elements: el };
+}
+
+/**
+ * Group by Model ID for easy handeling
+ * @returns key = ModuleID, value = Building Elements 
+ */
+export function groupByModelID(buildingElements : BuildingElement[]) :  Map<string, BuildingElement[]> {
+  return buildingElements.reduce((acc, element) => {
+    if (!acc.get(element.modelID)) {
+        acc.set(element.modelID, [])
+    }
+    acc.get(element.modelID)?.push(element)
+    return acc;
+}, new Map<string, BuildingElement[]>);
+}
+
+export function mapByName(buildingElements: BuildingElement[]) {
+  return buildingElements.reduce((acc, element) => {
+      if (!acc.has(element.name)) {
+          acc.set(element.name, [])
+      }
+      acc.get(element.name)?.push(element)
+      return acc;
+  }, new Map<string, BuildingElement[]>);
 }
 
 
@@ -248,6 +274,21 @@ export const isolate = async (elements: BuildingElement[], components: OBC.Compo
   await Promise.all(highlightPromises);
 }
 
+/**
+ * Get the distance between the center point of two building elements
+ * @param a 
+ * @param b 
+ * @param model 
+ * @param components 
+ * @returns 
+ */
+export function distanceToCenter(a: BuildingElement, b: BuildingElement, model: FragmentsGroup,components : Components) {
+  const aCenter = GetCenterPoint(a, model, components);
+  const bCenter = GetCenterPoint(b, model, components);
+  if(!bCenter) return;
+  return aCenter?.distanceTo(bCenter);
+}
+
 // /**
 //  * Create a tree structure by using the input node order to group building elements by their property.
 //  * we assume that grouping is done by property values and that building elements have the properties 
@@ -362,6 +403,8 @@ function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[
   // Combine sorted numeric entries with unsorted non-numeric entries
   return [...numericEntries, ...nonNumericEntries];
 }
+
+
 
 
 export const groupElementsByPropertyName = (elements: BuildingElement[], property: string): Map<string, BuildingElement[]> => {

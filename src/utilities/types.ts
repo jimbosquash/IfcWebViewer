@@ -54,6 +54,9 @@ export interface SelectionGroup {
      * the number of the line in the .ifc file
      */
     expressID: number; 
+    /**
+     * The guid of an element from the .ifc file. It is more unique than the expressID
+     */
     GlobalID: string;
     /**
      * The Id of the fragment which holds the reference to the InstanceMesh of this object

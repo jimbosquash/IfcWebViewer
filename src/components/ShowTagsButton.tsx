@@ -49,15 +49,15 @@ export const ShowTagsButton: REACT.FC<DynamicButtonProp> = ({ variant }) => {
     tagger.world = world;
     tagger.enabled = enabled;
 
-    tagger.onTagAdded.add((tag) => {
-      if (!tag.position || !world) return;
+    // tagger.onTagAdded.add((tag) => {
+    //   if (!tag.position || !world) return;
 
-      const tagBubble = createTagBubble(tag);
+    //   const tagBubble = createTagBubble(tag);
 
       
-      const commentMark = new OBF.Mark(world, tagBubble);
-      commentMark.three.position.copy(tag.position);
-    });
+    //   const commentMark = new OBF.Mark(world, tagBubble);
+    //   commentMark.three.position.copy(tag.position);
+    // });
   }, [world]);
 
   const createTagBubble = (comment: Tag) => {

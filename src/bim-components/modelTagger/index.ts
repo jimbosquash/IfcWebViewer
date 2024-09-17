@@ -1,15 +1,19 @@
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
-import * as FRAGS from "@thatopen/fragments";
 import { Mark } from "@thatopen/components-front";
-import * as THREE from "three";
 import { GetPropertyByName } from "../../utilities/BuildingElementUtilities";
-import { GetAllVisibleExpressIDs, GetCenterPoint, getExpressIDsByModel, getFragments, GetVisibleExpressIDs, GetVisibleFragmentIdMaps as getVisibleFragmentIdMaps } from "../../utilities/IfcUtilities";
+import { GetAllVisibleExpressIDs, GetCenterPoint, GetVisibleExpressIDs } from "../../utilities/IfcUtilities";
 import { BuildingElement, knownProperties } from "../../utilities/types";
 import { ModelCache } from "../modelCache";
 import { ModelViewManager } from "../modelViewer";
 import { Tag } from "./src/Tag";
-import { IfcCategories, IfcElements } from "@thatopen/components";
+import { getAveragePoint } from "../../utilities/threeUtils";
+
+// key = name of element. first array = an array of matching names with arrays of tags grouped by distance
+interface GroupedElements {
+    [key: string]: Tag[][];
+}
+
 
 export enum TagVisibilityMode {
     TagSelectionGroup = "TagSelectionGroup",
@@ -19,6 +23,7 @@ export enum TagVisibilityMode {
 interface TaggerConfiguration {
     showFasteners: boolean,
     showInstallations: boolean,
+    mergeFasteners: boolean,
 }
 
 const IFCMECHANICALFASTENER: string = "IFCMECHANICALFASTENER";
@@ -32,20 +37,19 @@ const IFCFLOW: string = "IFCFLOW";
 export class ModelTagger extends OBC.Component {
 
     static uuid = "d2802b2c-1a26-4ec6-ba2a-79e20a6b65be" as const;
-    readonly list: Tag[] = []
     readonly onTagAdded = new OBC.Event<Tag>()
 
     private _enabled = false
+
     private _world: OBC.World | null = null
     private _previewElement: OBF.Mark | null = null
     private _visible: boolean = false;
     private _materialColor: Map<string, string> = new Map();
-    private _groupByType: Map<string, Number[]> = new Map();
-    private _typesNotVisible: string[] = [IFCMECHANICALFASTENER]
     private _tagVisibilityMode: TagVisibilityMode = TagVisibilityMode.TagSelectionGroup;
     private _configuration?: TaggerConfiguration = {
         showFasteners: false,
         showInstallations: false,
+        mergeFasteners: true
     }
 
     readonly onConfigurationSet = new OBC.Event<TaggerConfiguration>()
@@ -68,9 +72,14 @@ export class ModelTagger extends OBC.Component {
     }
 
     /**
-     * key = expressID, value = mark
+     * key = buildingElement.GlobalID, value = mark
      */
-    private _markers: Map<number, Mark> = new Map<number, Mark>();
+    private _markers: Mark[] = [];
+
+    /**
+     * key = buildingElement.GlobalID, value = tag
+     */
+    private _tags: Map<string, Tag> = new Map();
 
 
     constructor(components: OBC.Components) {
@@ -101,8 +110,6 @@ export class ModelTagger extends OBC.Component {
         console.log('tagger setting', this._enabled)
         const viewManager = this.components.get(ModelViewManager);
         const cache = this.components.get(ModelCache);
-        const tagger = this.components.get(OBF.Marker)
-        tagger.threshold = 10;
 
         // todo: remove to other area
         if (!value && this._previewElement) {
@@ -110,26 +117,28 @@ export class ModelTagger extends OBC.Component {
         }
 
         // add or remove listeners to change visibility and marker set
-        if (!value) {
-            viewManager.onVisibilityUpdated.remove(() => this.setTags())
-            cache.onBuildingElementsChanged.remove(() => this.setTags())
-            this._markers.forEach(mark => {
-                mark.dispose()
-            })
-            tagger.dispose();
-
-
-            this._markers = new Map();
-        }
         if (value) {
             viewManager.onVisibilityUpdated.add(() => this.setTags())
             cache.onBuildingElementsChanged.add(() => this.setTags())
+            cache.onBuildingElementsChanged.add(() => this.setup())
             // set up tags 
-            this.setup()
+            if (this._materialColor.size === 0 || this._tags.size === 0) {
+                this.setup()
+            }
             this.setTags()
-
-            // this.setVisibility();
         }
+        if (!value) {
+            viewManager.onVisibilityUpdated.remove(() => this.setTags())
+            cache.onBuildingElementsChanged.remove(() => this.setTags())
+            cache.onBuildingElementsChanged.remove(() => this.setup())
+
+            this._markers.forEach(mark => {
+                mark.dispose()
+            })
+
+            this._markers = [];
+        }
+
     }
 
     get enabled() {
@@ -137,6 +146,10 @@ export class ModelTagger extends OBC.Component {
     }
 
 
+    /**
+     * tag building elements based on the tag Visibility Mode.
+     * @returns 
+     */
     setTags = () => {
         switch (this._tagVisibilityMode) {
             case TagVisibilityMode.TagVisible:
@@ -146,16 +159,14 @@ export class ModelTagger extends OBC.Component {
                 const modelViewManager = this.components.get(ModelViewManager);
                 const selectedElements = modelViewManager.SelectedGroup?.elements
                 if (!selectedElements) return; // or first make every thing disabled
-                console.log('setting tags', selectedElements)
+                //console.log('setting tags', selectedElements)
                 this.createTagsFromBuildingElements(selectedElements);
         }
     }
 
 
-
-
     /**
-     * search three js model and find what is visible and set visibility based on that
+     * Tag only Visible building elements by searching the model visibility state.
      */
     private createTagsFromModelVisibility = () => {
         const cache = this.components.get(ModelCache);
@@ -166,28 +177,34 @@ export class ModelTagger extends OBC.Component {
             allVisibleIDs.forEach((expressIDs, modelID) => {
                 allVisibleElements.push(...cache.getElementsByExpressId(expressIDs, modelID))
             })
-            this.updateTags(allVisibleElements);
+            this.updateMarkers(allVisibleElements);
         }
     }
 
     /**
-     * Create search three js model and find what is visible and set visibility based on that
+     * Tag only Visible building elements from args by searching the model visibility state.
      */
     private createTagsFromBuildingElements = (buildingElements: BuildingElement[]) => {
-        const cache = this.components.get(ModelCache);
-        if (cache.BuildingElements) {
+        if (buildingElements) {
             const VisibleIDsByModel = GetVisibleExpressIDs(buildingElements, this.components)
             console.log('create tags from building elements', VisibleIDsByModel)
 
+            const cache = this.components.get(ModelCache);
             const visibleElements: BuildingElement[] = [];
             VisibleIDsByModel.forEach((expressIDs, modelID) => {
                 visibleElements.push(...cache.getElementsByExpressId(expressIDs, modelID))
             })
-            this.updateTags(visibleElements);
+            this.updateMarkers(visibleElements);
         }
     }
 
-    private filterElements(buildingElements: BuildingElement[]) {
+    /**
+     * Filter out building elements based on the hiddenTypes collection. if hvac elements hidden then in addition search fro 
+     * product codes with 'TE' and filter
+     * @param buildingElements 
+     * @returns 
+     */
+    private filterElements(buildingElements: BuildingElement[]): { filteredElements: BuildingElement[], filteredOutElements: BuildingElement[] } {
 
         const hiddenTypes: string[] = [];
 
@@ -195,79 +212,162 @@ export class ModelTagger extends OBC.Component {
         if (!this._configuration?.showInstallations) hiddenTypes.push(IFCFLOW)
 
         let filteredElements = buildingElements.filter(el => !hiddenTypes.find(partialType => el.type.includes(partialType)))
+        let filteredOutElements = buildingElements.filter(el => hiddenTypes.find(partialType => el.type.includes(partialType)))
+
 
         // also remove by product code in case of installations
         if (!this._configuration?.showInstallations) {
-            console.log("filtering TE elements")
+            // console.log("filtering TE elements")
             filteredElements = filteredElements.filter(el => !GetPropertyByName(el, knownProperties.ProductCode)?.value.includes("TE"))
+            filteredOutElements = filteredElements.filter(el => GetPropertyByName(el, knownProperties.ProductCode)?.value.includes("TE"))
         }
-        return filteredElements;
+        return { filteredElements, filteredOutElements };
     }
 
+
     /**
-     * when model is loaded search for the center of all geometry and store it in a Map with expressIDs.
-     * dispose of current tags and set tags for each buildingElement
+     * dispose of current markers and create new markers for each buildingElement.
+     * Also handle filtering and merging if settings enabled.
      * @param buildingElements 
-     * @returns 
      */
-    private updateTags(buildingElements: BuildingElement[]) {
+    private updateMarkers(buildingElements: BuildingElement[]) {
         if (!this._enabled) return;
         this._markers.forEach(m => m.dispose())
+        this._markers = [];
 
         //filterout tag types
         const filteredElements = this.filterElements(buildingElements);
+        const markers = this.createMarkers(filteredElements.filteredElements);
 
-        const markers = this.createMarkers(filteredElements);
-        const tags = this.createTags(filteredElements);
+        if (this.Configuration?.mergeFasteners) {
+            console.log('merging markers: start')
+            const mergedTags = this.getMergedTagsByModel(buildingElements)
+            console.log('merging tags', mergedTags)
 
-        const tagger = this.components.get(OBF.Marker)
-        const world = this.components.get(ModelCache).world;
-        const cache = this.components.get(ModelCache);
-        const classifier = this.components.get(OBC.Classifier);
-        classifier.byEntity(cache.models()[0])
-        console.log("classifed types", classifier.list.entities)
-
-        // getElementByFragmentIdMap
-        // get all building elements based on this list by either making idmap or expressIDS
-        tagger.dispose();
-
-        if (!world) return;
-        tags.forEach((tag, element) => {
-            const key = tagger.create(world, tag.text, tag.position ?? new THREE.Vector3, false)
-            if (key) {
-                // get marker from id
-                const mark = markers.get(element.expressID)
-                if (mark) {
-                    const markerByWorld = tagger.list.get(world.uuid)
-                    if (!markerByWorld || !markerByWorld.has(key)) return;
-
-                    const existingMarker = markerByWorld.get(key)
-                    const oldMarker = existingMarker?.label;
-                    if (!existingMarker) return;
-                    markerByWorld.set(key, {
-                        merged: existingMarker.merged,
-                        label: mark,
-                        key: key,
-                        static: existingMarker.static,
-                        type: existingMarker.type
-                    })
-
-                    oldMarker?.dispose();
-                }
-
+            if (mergedTags) {
+                // make them into a markers and add to _markers
+                const mergedMarkers = this.getNewTagForClusters(mergedTags);
+                mergedMarkers.forEach(mark => markers.push(mark)
+                )
             }
+            console.log('merging markers: end')
 
+
+        }
+
+        this._markers = markers;
+    }
+
+    getNewTagForClusters(tagClusters: Map<string, Tag[][]>) {
+        const markers: Mark[] = [];
+        // make them into a markert
+        tagClusters.forEach((groupedElements) => {
+            //get a color by the name
+            //for each group make a center and a tag
+            groupedElements.forEach(group => {
+                const pt = getAveragePoint(group.map(element => element.position))
+
+                const text = `${group.length} x ${group[0].text}`;
+                if (this._world?.uuid && pt) {
+                    const mark = this.createMark(this._world, text, group[0].color, "material-symbols:tools-power-drill-outline");
+                    mark.three.position.copy(pt);
+                    mark.three.visible = true;
+                    markers.push(mark);
+                }
+            })
         })
+        return markers;
     }
 
 
-    addTag(text: string, position?: THREE.Vector3) {
-        const comment = new Tag(text)
-        comment.position = position
-        this.list.push(comment)
-        this.onTagAdded.trigger(comment);
-        return comment;
+    /**
+     * Assuming that 
+     * @param buildingElements 
+     * @returns 
+     */
+    getMergedTagsByModel(buildingElements: BuildingElement[]) {
+        if (!buildingElements) return;
+        let allGroupedTags: Map<string, Tag[][]> = new Map();
+
+        // Step 0: Group elements by Model
+        this.components.get(ModelCache).GroupByModel(buildingElements).forEach((elements) => {
+
+            const tags = elements.map(e => this._tags.get(e.GlobalID)).filter((tag): tag is Tag => tag !== undefined);
+            const mergedTags = this.mergeTagsByText(tags)
+            if (mergedTags) {
+                Object.entries(mergedTags).forEach(([matchingName, groupOfTagClusters]) => {
+                    // console.log('merge group name', value, groupOfGroups)
+                    if (!allGroupedTags.has(matchingName))
+                        allGroupedTags.set(matchingName, []);
+
+                    // now create the new tag representing the merge
+                    // now add to group of all tag clusters incase there were multiple models
+                    groupOfTagClusters.forEach(group => allGroupedTags.get(matchingName)?.push(group))
+                })
+            }
+        })
+
+        console.log('tags merged by name complete', allGroupedTags)
+
+        return allGroupedTags;
+
     }
+
+
+    mergeTagsByText(tags: Tag[]) {
+
+        const tagsByName = this.mapByName(tags.filter(tag => tag.type === IFCMECHANICALFASTENER));
+        if (!tagsByName) {
+            console.log('fasteners not found by name')
+            return;
+        }
+
+        // Step 2: Group elements by distance within each name group
+        const groupedElements: GroupedElements = {};
+
+        // Step 3: search the existing groups elements distance to each new element in the same name and add to the group and break
+        tagsByName.forEach((elementTags, name) => {
+            groupedElements[name] = [];
+
+            for (const tag of elementTags) {
+                let added = false;
+                for (const group of groupedElements[name]) {
+                    for (const groupedTag of group) {
+
+                        if (!groupedTag.position) continue;
+
+                        const dist = tag.position?.distanceTo(groupedTag?.position)
+
+                        // console.log('distance',dist)
+                        if (dist && dist <= this._mergeDistance) {
+                            group.push(tag);
+                            added = true;
+                            break;
+                        }
+                    }
+                }
+                if (!added) {
+                    groupedElements[name].push([tag]);
+                }
+                //console.log("group search", groupedElements[name])
+            }
+        })
+        return groupedElements;
+    }
+
+
+    mapByName(tags: Tag[]) {
+        return tags.reduce((acc, element) => {
+            if (!acc.has(element.text)) {
+                acc.set(element.text, [])
+            }
+            acc.get(element.text)?.push(element)
+            return acc;
+        }, new Map<string, Tag[]>);
+    }
+
+    private _mergeDistance = 0.300; // 1 = 1 meter
+
 
     /**
      * generate cache of material and colors as well as grouping by type for quick look up
@@ -276,11 +376,21 @@ export class ModelTagger extends OBC.Component {
     setup() {
         const cache = this.components.get(ModelCache).BuildingElements
         if (!cache) return;
-
-        const groupedByType = new Map<string, Number[]>();
-
-
         this.setupColors(true);
+        this.setupTags(cache)
+    }
+
+    /**
+     * Create all tags with positions to be able to quickly get and create markers on update
+     */
+    setupTags(buildingElements: BuildingElement[]) {
+        if (this._tags) {
+            this._tags.forEach(t => t.dispose())
+            this._tags = new Map();
+        }
+
+        const tags = this.createTags(buildingElements);
+        this._tags = tags;
     }
 
     setupColors(useExisting: boolean) {
@@ -304,83 +414,116 @@ export class ModelTagger extends OBC.Component {
 
 
     /**
-     * key = express id, value = new OBC.Mark
-     * @param elements 
-     * @returns 
+     * Get a tag using the building elements, name, and center point based on its bounding box. Color based on its material.
+     * @param buildingElements 
+     * @returns key = buildingElement.GlobalID , value = Tag
      */
-    createTags = (elements: BuildingElement[]): Map<BuildingElement, Tag> => {
-        const cache = this.components.get(ModelCache)
-        if (this._world === null) {
+    createTags = (buildingElements: BuildingElement[]): Map<string, Tag> => {
+        const models = this.components.get(ModelCache).models();
+        if (this._world === null || !models) {
             console.log("Create tag failed due to no world set")
             return new Map()
         }
-        const centers = this.GetCenterPoints(cache.models(), elements, this.components);
 
-        return centers;
-    }
+        const tags = new Map<string, Tag>();
 
-    GetCenterPoints(models: FRAGS.FragmentsGroup[], buildingElements: BuildingElement[], components: OBC.Components): Map<BuildingElement, Tag> {
 
-        const tags = new Map<BuildingElement, Tag>();
+        const elementsByModel = buildingElements.reduce((acc, element) => {
+            if (!acc.has(element.modelID)) {
+                acc.set(element.modelID, [])
+            }
+            acc.get(element.modelID)?.push(element)
+            return acc;
+        }, new Map<string, BuildingElement[]>)
 
-        buildingElements.forEach((buildingElement) => {
-            const model = models.find(m => m.uuid === buildingElement.modelID);
+        elementsByModel.forEach((elements, modelID) => {
+            const model = models.find(m => m.uuid === modelID);
             if (!model) {
-                console.log('Get Center failed: no model found', buildingElement.modelID)
+                console.log("failed to creat tags as no model found for", modelID, elements)
                 return;
             }
-            const center = GetCenterPoint(buildingElement, model, components);
-            if (!center) {
-                console.log('Get Center failed: no center point found', buildingElement)
-                return;
-            }
-            const material = GetPropertyByName(buildingElement, knownProperties.Material)?.value ?? "";
-            tags.set(buildingElement, new Tag(buildingElement.name, center, this._materialColor.get(material)));
+
+            elements.forEach(element => {
+                const pt = GetCenterPoint(element, model, this.components)
+                if (!pt) {
+                    console.log('Get Center failed: no center point found', element)
+                    return;
+                }
+
+                const material = GetPropertyByName(element, knownProperties.Material)?.value ?? "";
+                tags.set(element.GlobalID, new Tag(element.GlobalID, element.name, pt, this._materialColor.get(material), element.type));
+            })
         })
         return tags;
     }
 
     /**
-     * key = express id, value = new OBC.Mark
+     * 
      * @param elements 
-     * @returns 
+     * @returns key = buildingElement.GlobalID, value = new OBC.Mark
      */
-    createMarkers = (elements: BuildingElement[]): Map<number, Mark> => {
-        const cache = this.components.get(ModelCache)
-        // const marker = this.components.get(OBF.Marker)
-        const allMarks = new Map<number, Mark>();
-        if (this._world === null) {
+    createMarkers = (elements: BuildingElement[]): Mark[] => {
+        const markers: Mark[] = [];
+        if (this._world === null || !elements) {
             console.log("Create tag failed due to no world set")
-            return new Map()
+            return []
         }
-        const centers = this.createTags(elements)
 
-        centers.forEach((tag, element) => {
-
-            // console.log('createmarker')
-            if (this._world?.uuid && tag.position) {
-                const mark = this.createNewMark(this._world, tag.text, tag.color);
+        this.getTags(elements).forEach((tag) => {
+            if (this._world && tag.position) {
+                const mark = this.createMark(this._world, tag.text, tag.color, undefined);
                 mark.three.position.copy(tag.position);
                 mark.three.visible = true;
-                // console.log('createmarker', mark)
-                allMarks.set(element.expressID, mark);
+                markers.push(mark);
             }
         })
 
-        return allMarks;
+        return markers;
     }
 
-    private createNewMark = (world: OBC.World, label: string | null, color: string | undefined) => {
-        const icon = document.createElement("bim-label")
-        icon.textContent = label;
-        //icon.icon = "material-symbols:comment"
-        // icon.style.backgroundColor = "var(--bim-ui_bg-base)"
-        icon.style.backgroundColor = color ?? "var(--bim-ui_bg-base)";
-        icon.style.color = "white";
-        icon.style.padding = "0.5rem"
-        icon.style.borderRadius = "0.5rem"
-        const preview = new OBF.Mark(world, icon)
+    /**
+     * 
+     * @param elements 
+     * @returns key = buildingElement.GlobalID, Value = Tag
+     */
+    getTags(elements: BuildingElement[]) {
+        const tags: Map<string, Tag> = new Map();
+
+        const tagsToCreate: BuildingElement[] = [];
+        elements.forEach(element => {
+            const tag = this._tags.get(element.GlobalID)
+            if (!tag) {
+                // building it
+                tagsToCreate.push(element)
+            } else {
+                tags.set(element.GlobalID, tag)
+            }
+        })
+        if (tagsToCreate.length > 0) {
+            const newTags = this.createTags(tagsToCreate);
+            newTags.forEach((tag, id) => tags.set(id, tag))
+        }
+
+        return tags;
+    }
+
+    private createMark = (world: OBC.World, text: string | null, color: string | undefined, icon: string | undefined) => {
+        const label = document.createElement("bim-label")
+        label.textContent = text;
+        if(icon)
+            label.icon = icon;
+        // if (!icon) {
+        //     // label.icon = "material-symbols:comment"
+        //     label.icon = "ph:warning-bold"
+        // }
+        label.style.backgroundColor = color ?? "var(--bim-ui_bg-base)";
+        label.style.color = "white";
+        label.style.padding = "0.5rem"
+        label.style.borderRadius = "0.5rem"
+        const preview = new OBF.Mark(world, label)
         preview.visible = false
+        // console.log('marker', label)
+
         return preview;
     }
 

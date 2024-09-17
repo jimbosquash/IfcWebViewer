@@ -189,6 +189,7 @@ const SettingsPanel: React.FC = () => {
         onClick={() => {
           components.get(ModelTagger).setupColors(false);
           if (components.get(ModelTagger).enabled) {
+            components.get(ModelTagger).setup();
             components.get(ModelTagger).setTags();
           }
         }}
