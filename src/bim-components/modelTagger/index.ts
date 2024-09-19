@@ -10,7 +10,7 @@ import { Tag } from "./src/Tag";
 import { getAveragePoint } from "../../utilities/threeUtils";
 import { Line, Vector3 } from "three";
 import * as THREE from "three";
-import { ThreeElements } from "@react-three/fiber";
+import { IFCFLOW } from "../hvacViewer";
 
 // key = name of element. first array = an array of matching names with arrays of tags grouped by distance
 interface GroupedElements {
@@ -31,7 +31,6 @@ interface TaggerConfiguration {
 
 const IFCMECHANICALFASTENER: string = "IFCMECHANICALFASTENER";
 // const IFCFLOWCONTROLLER: string = "IFCFLOWCONTROLLER";
-const IFCFLOW: string = "IFCFLOW";
 
 /**
  * Responsible for generating and display marks or tags which float over a 3d element in the view port. Make

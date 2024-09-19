@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Box, BoxProps, Typography } from "@mui/material";
 import { Icon } from "@iconify/react";
-import IconPanel, { IconButtonConfig } from "./src/IconPanel";
+import IconPanel from "./src/IconPanel";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import {
   setCameraNavigation,
@@ -12,6 +12,7 @@ import {
 } from "../../../utilities/CameraUtilities";
 import * as OBC from "@thatopen/components";
 import { ModelCache } from "../../../bim-components/modelCache";
+import { IconButtonConfig } from "../../../components/floatingIconButton";
 
 const CameraIconPanel: React.FC<BoxProps> = ({...props}) => {
   const components = useComponentsContext();
