@@ -12,15 +12,9 @@ import CameraIconPanel from "./floatingIconPanel/CameraIconPanel";
 import WelcomePanel from "./src/WelcomePanel";
 
 const Overlay = () => {
-  const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
-  const [fileName, setFileName] = useState<string>("");
   const components = useComponentsContext();
   const [hasModel, setHasModel] = useState<boolean>(false);
   const viewManager = useRef<ModelViewManager>();
-  const theme = useTheme();
-  const [hasLoadedModel, setHasLoadedModel] = useState<boolean>(false);
-  const [rightPanelWidth, setRightPanelWidth] = useState(0); // Default width
-
 
   useEffect(() => {
     if (!components) return;
@@ -36,29 +30,16 @@ const Overlay = () => {
     };
   }, [components]);
 
-  const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
 
   const handleLoadedModel = (data: FRAGS.FragmentsGroup | null) => {
     setHasModel(true);
     console.log("overlay handel opening", hasModel);
-    setSnackbarOpen(true);
   };
 
 
-
-  const handleRightPanelWidthChange = useCallback((newWidth: number) => {
-    setRightPanelWidth(newWidth);
-    console.log('rightpanel size change',newWidth)
-  }, []);
-
   return (
     <div
-    className="Overlay"
+      className="Overlay"
       style={{
         position: "absolute",
         top: 0,
@@ -68,40 +49,20 @@ const Overlay = () => {
         pointerEvents: "none",
       }}
     >
-      <WelcomePanel/>
-
       <InfoPanel />
 
       <ActionButtonPanel />
-
-      {/* Position CameraIconPanel relative to RightSidePanel */}
-      {hasModel && <Box
-        component="div"
-        sx={{
-          position: "absolute",
-          top: 0,
-          right: `${rightPanelWidth + 50}px`,
-          height: "100%",
-          transition: "right 0.2s ease-in-out",
-          pointerEvents: "auto",
-        }}
-      >
-        <CameraIconPanel />
-      </Box>}
-{/* 
-      <LeftSideBox />
-      <RightSidePanel onWidthChange={handleRightPanelWidthChange} /> */}
-{/* 
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={2000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: "100%", zIndex: "1200" }}>
-          {fileName} loaded successfully!
-        </Alert>
-      </Snackbar> */}
+      <CameraIconPanel
+          sx={{
+            position: "absolute",
+            top: "25%",
+            // transform: "translateY(-50%)",
+            right: 20,
+            height: "100%",
+            transition: "right 0.2s ease-in-out",
+            pointerEvents: "auto",
+          }}
+        />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, BoxProps, Typography } from "@mui/material";
 import { Icon } from "@iconify/react";
 import IconPanel, { IconButtonConfig } from "./src/IconPanel";
 import { useComponentsContext } from "../../../context/ComponentsContext";
@@ -13,11 +13,11 @@ import {
 import * as OBC from "@thatopen/components";
 import { ModelCache } from "../../../bim-components/modelCache";
 
-const CameraIconPanel: React.FC = () => {
+const CameraIconPanel: React.FC<BoxProps> = ({...props}) => {
   const components = useComponentsContext();
   const [projectionMode, setProjectionMode] = useState<OBC.CameraProjection>();
   const [navMode, setNavMode] = useState<OBC.NavModeID>();
-  const [isCameraUnlocked, setCameraLock] = useState<boolean>();
+  const [isCameraUnlocked, setCameraLock] = useState<boolean>(true);
 
   useEffect(() => {
     //get starting properties
@@ -164,12 +164,7 @@ const CameraIconPanel: React.FC = () => {
     <Box
       component="div"
       sx={{
-        position: "relative",
-        right: 20,
-        // left: 20,
-        top: "50%",
-        transform: "translateY(-50%)",
-        // transition: "left 0.1s ease",
+        ...props.sx,
         display: "flex",
         flexDirection: "column",
       }}

@@ -1,16 +1,31 @@
 import { Snackbar, Alert, Box } from "@mui/material";
+import { FragmentsManager } from "@thatopen/components";
 import { FragmentsGroup } from "@thatopen/fragments";
-import { useCallback, useState } from "react";
+import { useEffect, useState } from "react";
+import { ModelCache } from "../../bim-components/modelCache";
+import { useComponentsContext } from "../../context/ComponentsContext";
 import LeftSidePanel from "../overlay/leftSidePanel";
-import RightSidePanel, { sidebarWidth } from "../overlay/rightSidePanel";
+import RightSidePanel from "../overlay/rightSidePanel";
+import WelcomePanel from "../overlay/src/WelcomePanel";
 import { Scene } from "./src/scene";
 
 export const Viewer = () => {
-  const [rightPanelWidth, setRightPanelWidth] = useState(52); // Default width
-  const [leftPanelWidth, setLeftPanelWidth] = useState<number>(52); // Default width
+  const components = useComponentsContext();
+
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [hasModel, setHasModel] = useState<boolean>(false);
   const [fileName, setFileName] = useState<string>("");
+
+  useEffect(() => {
+    // listen for new models
+    if (!components) return;
+    const cache = components.get(ModelCache);
+    cache.onModelAdded.add((data) => handleLoadedModel(data));
+
+    return () => {
+      cache.onModelAdded.remove((data) => handleLoadedModel(data));
+    };
+  }, [components]);
 
   const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === "clickaway") {
@@ -19,19 +34,11 @@ export const Viewer = () => {
     setSnackbarOpen(false);
   };
 
-  const handleLoadedModel = (data: FragmentsGroup | null) => {
+  const handleLoadedModel = (data: FragmentsGroup) => {
     setHasModel(true);
-    console.log("overlay handel opening", hasModel);
+    console.log("viewer handel opening", data);
+    setFileName(data?.name);
     setSnackbarOpen(true);
-  };
-
-  const handleRightPanelWidthChange = useCallback((newWidth: number) => {
-    setRightPanelWidth(newWidth);
-    console.log("rightpanel size change", newWidth);
-  }, []);
-
-  const handleLeftPanelWidthChange = (newWidth: number) => {
-    setLeftPanelWidth(newWidth);
   };
 
   return (
@@ -43,16 +50,18 @@ export const Viewer = () => {
         height: "100%",
         display: "flex",
         flexDirection: "row",
-        justifyContent:'space-between',
+        justifyContent: "space-between",
         overflow: "hidden",
       }}
     >
+      <WelcomePanel />
+
       <LeftSidePanel />
 
-      <Box component="div" sx={{ flexGrow: 1, overflow:'hidden'}}>
+      <Box component="div" sx={{ flexGrow: 1, overflow: "hidden" }}>
         <Scene />
       </Box>
-      
+
       <RightSidePanel />
       <Snackbar
         open={snackbarOpen}
