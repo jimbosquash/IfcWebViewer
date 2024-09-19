@@ -1,15 +1,11 @@
-import { Snackbar, Alert, useTheme, Box } from "@mui/material";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useComponentsContext } from "../../context/ComponentsContext";
 import ActionButtonPanel from "./actionButtonPanel/actionButtonPanel";
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import { ModelViewManager } from "../../bim-components/modelViewer";
 import { InfoPanel } from "./src/InfoPanel";
-import LeftSidePanel from "./leftSidePanel";
-import RightSidePanel from "./rightSidePanel";
 import CameraIconPanel from "./floatingIconPanel/CameraIconPanel";
-import WelcomePanel from "./src/WelcomePanel";
 
 const Overlay = () => {
   const components = useComponentsContext();

@@ -43,13 +43,9 @@ export const InfoPanel = () => {
   };
 
   const infoBoxStyle: React.CSSProperties = {
-    top: "20px",
-    left: "50%",
-    transform: "translateX(-50%)",
     flexDirection: "row",
     maxWidth: "550px",
     overflow: "hidden",
-    right: "auto",
     display: "flex",
     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
     borderRadius: "10px",
@@ -57,24 +53,27 @@ export const InfoPanel = () => {
     color: colors.primary[200],
     padding: "10px",
     zIndex: 100,
-    position: "absolute", // change to relative when ready
     alignItems: "left",
     width: "auto",
-    transformOrigin: "left center",
     whiteSpace: "nowrap",
   };
 
   const infoZoneStyle: React.CSSProperties = {
-    top: "20px",
+    top: 10,
+    left: "50%",
+    transform: "translateX(-50%)",
     flexDirection: "row",
-    width: "80%",
-    height: "100%",
+    flexWrap:'nowrap',
+    justifyContent: 'flex-end',
+    display:'flex',
+    transformOrigin: "left center",
+    // flexGrow: 1,
+    height: "100px",
     overflow: "hidden",
-    display: "flex",
     padding: "10px",
-    position:'relative',
+    position:'absolute',
     zIndex: 100,
-    alignItems: "Center",
+    pointerEvents: "auto"
   };
 
 
@@ -90,14 +89,50 @@ export const InfoPanel = () => {
       {" "}
       {isVisible && (
         <Box 
-        sx={{infoZoneStyle}}
+        sx={{
+          top: 15,
+          // left: "25%",
+          width: "50%",
+          transform: "translateX(75%)",
+          flexDirection: "row",
+          flexWrap:'nowrap',
+          justifyContent: 'flex-start',
+          display:'flex',
+          transformOrigin: "left center",
+          // flexGrow: 1,
+          height: "100px",
+          overflow: "hidden",
+          padding: "10px",
+          position:'absolute',
+          zIndex: 100,
+          gap:2,
+          pointerEvents: "auto"
+        }}
         component="div"
         className="floatingTopInfoZone" 
         >
         <Box component="div" 
         className="InfoPanel" 
-        style={{ pointerEvents: "auto" }} 
-        sx={infoBoxStyle}>
+        sx={{
+          flexDirection: "row",
+          maxWidth: "550px",
+          height:"60%",
+          overflow: "hidden",
+          display: "flex",
+          justifyItems:'center',
+          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+          borderRadius: "10px",
+          backgroundColor: colors.grey[1000],
+          color: colors.primary[200],
+          padding: "10px",
+          zIndex: 100,
+          alignItems: "left",
+          minWidth:'300px',
+          width: "auto",
+          whiteSpace: "nowrap",
+          pointerEvents: "auto"
+
+        }}>
           {infoPanelData && (
             <>
               <Typography
@@ -105,7 +140,6 @@ export const InfoPanel = () => {
                 sx={{
                   ...nonSelectableTextStyle,
                   whiteSpace: "nowrap",
-                  // width: '100%',
                   minWidth: "100px",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -132,10 +166,12 @@ export const InfoPanel = () => {
             </>
           )}
         </Box>
-        {/* <Box component='div' 
-        style={{backgroundColor:"blue", height:"40px", width:"40px", position:'relative'}}>
-
-        </Box> */}
+        <Box component='div' 
+        style={{backgroundColor:"blue", flexShrink:'1', height:"40px", width:"40px", position:'relative'}}>
+        </Box>
+        <Box component='div' 
+        style={{backgroundColor:"green", flexShrink:'1', height:"40px", width:"40px", position:'relative'}}>
+        </Box>
         </Box>
       )}
     </>
