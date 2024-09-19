@@ -311,6 +311,14 @@ export class ModelViewManager extends OBC.Component {
         await Promise.all(highlightPromises);
     }
 
+    /**
+     * Run updateVisibility assuming that thee treeID is the current tree if not undefined
+     */
+    update() {
+        if(this._tree)
+            this.updateVisibility(this._tree?.id);
+    }
+
 
     /**
      * sets the view of the 3d elements based on the input viewmode and selection group. Note it clears the existing view tree
@@ -445,53 +453,6 @@ export class ModelViewManager extends OBC.Component {
 
         return true;
     }
-
-    // private showPreviousTreeNodes = (tree: Tree<BuildingElement>, nodeID: string): boolean => {
-    //     const visibleNodes: TreeNode<BuildingElement>[] = [];
-    //     const hiddenNodes: TreeNode<BuildingElement>[] = [];
-    //     // every parent node and children before this parents node are hidden
-
-    //     const node = this._tree?.getNode(nodeID);
-    //     if (!node || !node.parent) return false; // its the root or cant be found
-
-    //     //let parents: TreeNode<BuildingElement>[] = [];
-
-    //     //if(node.parent) parents.push(node.parent)
-    //     //if(node.parent?.parent) parents.push(node.parent.parent)
-    //     // make parent visible 
-
-    //     const parents: TreeNode<BuildingElement>[] = [];
-    //     let currentNode = node;
-    //     while (currentNode.parent) {
-    //         parents.unshift(currentNode.parent); // Add parent to the beginning of the array
-    //         currentNode = currentNode.parent;
-    //     }
-
-    //     parents.forEach(parent => {
-    //         const children = [...parent.children.values()].filter(child => !parents.includes(child));
-    //         children.forEach(child => )
-
-    //     });
-
-    //     // Step 2: Traverse from highest parent to reference node
-    //     for (let i = 0; i < parents.length; i++) {
-    //         const parent = parents[i];
-    //         const childToKeepVisible = i === parents.length - 1 ? node : parents[i + 1];
-
-    //         // Hide all children except for the sub-parent or reference node
-    //         for (const child of parent.children) {
-    //             if (child !== childToKeepVisible) {
-    //                 hiddenNodes.push(child)
-    //             }
-    //         }
-    //     }
-    // }
-
-
-
-
-
-
 
 
     isolate(group: SelectionGroup, treeID: string) {

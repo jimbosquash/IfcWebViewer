@@ -1,5 +1,5 @@
 import { Icon } from "@iconify/react";
-import { Box, Typography, useTheme } from "@mui/material";
+import { Box, SpeedDial, SpeedDialAction, Typography, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import { HVACViewer } from "../../../bim-components/hvacViewer";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
@@ -7,6 +7,9 @@ import FloatingIconButton from "../../../components/floatingIconButton";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import { tokens } from "../../../theme";
 import { BuildingElement, GroupingType, SelectionGroup } from "../../../utilities/types";
+import { isolate, select } from "../../../utilities/BuildingElementUtilities";
+import { zoom, zoomAllorSelected } from "../../../utilities/CameraUtilities";
+
 
 interface InfoPanelProps {
   moduleName: string;
@@ -22,7 +25,7 @@ export const InfoPanel = () => {
   const [isVisible, setVsibility] = useState<boolean>(false);
   const [showToolTip, setShowToolTip] = useState<boolean>(false);
   const [showHVACWarning, setShowHVACWarning] = useState<boolean>(false);
-  const [showTip, setShowTip] = useState(false)
+  const [showTip, setShowTip] = useState(false);
   useEffect(() => {
     if (!components) return;
 
@@ -41,8 +44,8 @@ export const InfoPanel = () => {
 
   const handleHvacFound = (data: BuildingElement[]) => {
     setShowHVACWarning(data.length > 0);
-    setShowTip(data.length > 0)
-    console.log("havac found",data.length)
+    setShowTip(data.length > 0);
+    console.log("havac found", data.length);
   };
 
   const handleSelectedGroup = (data: SelectionGroup) => {
@@ -60,6 +63,24 @@ export const InfoPanel = () => {
     // get that group data
   };
 
+  let hvacIsolated = false;
+
+  const selectHVAC = async () => {
+    const hvacViewer = components.get(HVACViewer);
+    if(hvacViewer.foundElements.length <= 0) return;
+    await select(hvacViewer.foundElements,components,true);
+    if(!hvacIsolated){
+      await isolate(hvacViewer.foundElements,components)
+
+      zoomAllorSelected(components,true,true)
+
+    } else {
+      //show all
+      components.get(ModelViewManager).update();
+    }
+    hvacIsolated = !hvacIsolated
+
+  }
 
   const infoZoneStyle: React.CSSProperties = {
     top: 10,
@@ -116,83 +137,90 @@ export const InfoPanel = () => {
           <Box
             component="div"
             className="InfoPanel"
-            border={'thick'}
-            borderColor={"blue"}
             sx={{
               flexDirection: "row",
               maxWidth: "550px",
               height: "60%",
               overflow: "hidden",
               display: "flex",
-              justifyItems: "center",
               boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
               borderRadius: "20px",
-              backgroundColor: showTip ? colors.blueAccent[500] : colors.grey[1000],
-              color:  showTip ? colors.grey[1000] : colors.primary[200],
-              padding: "10px",
+              backgroundColor: colors.grey[1000],
+              color: colors.primary[200],
+              padding: "15px",
               zIndex: 100,
-              alignItems: "left",
+              alignItems: "center",
               minWidth: "300px",
-              width: "auto",
               whiteSpace: "nowrap",
               pointerEvents: "auto",
+              border: showTip ? `4px solid #0288d1`: "",
             }}
           >
-            {infoPanelData && (
-              <>
-                <Typography
-                  component="div"
-                  sx={{
-                    ...nonSelectableTextStyle,
-                    whiteSpace: "nowrap",
-                    minWidth: "100px",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                  onClick={() => setShowToolTip(!showToolTip)}
-                >
-                  {infoPanelData.groupType}
-                </Typography>
-                <Typography
-                  component="div"
-                  variant="h5"
-                  sx={{
-                    ...nonSelectableTextStyle,
-                    flexGrow: 1,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                  onClick={() => setShowToolTip(!showToolTip)}
-                >
-                  {infoPanelData.groupName}
-                </Typography>
-                {/* Add more items here as needed */}
-              </>
-            )}
+            <Typography
+              component="div"
+              variant="h5"
+              sx={{
+                ...nonSelectableTextStyle,
+                whiteSpace: "nowrap",
+                minWidth: "120px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+              onClick={() => setShowToolTip(!showToolTip)}
+            >
+              {infoPanelData?.groupType}
+            </Typography>
+            <Typography
+              component="div"
+              variant="h5"
+              sx={{
+                ...nonSelectableTextStyle,
+                flexGrow: 1,
+                minWidth: "100px",
+                maxWidth: "300px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+              onClick={() => setShowToolTip(!showToolTip)}
+            >
+              {infoPanelData?.groupName}
+            </Typography>
           </Box>
-          {
-            showHVACWarning && (
-              <FloatingIconButton
-                icon={<Icon icon="mdi:pipe-disconnected" />}
-                ariaLabel={"HvacWarningIconButton"}
-                disabled={false}
-                color={"info"}
 
-                tooltip="TIP: HVAC elements found in this group!"
-                onClick={function (): void {
-                  console.log("Hvac details");
-                }}
-              />
-            )
-          }
+          {showHVACWarning && (
+            <FloatingIconButton
+              icon={<Icon icon="mdi:pipe-disconnected" />}
+              ariaLabel={"HvacWarningIconButton"}
+              disabled={false}
+              color={"info"}
+              tooltip="TIP: HVAC elements found in this group!"
+              onClick={() => {selectHVAC()}}
+            />
+          )}
 
 
-          {/* <Box component='div' 
-        style={{backgroundColor:"green", flexShrink:'1', height:"40px", width:"40px", position:'relative'}}>
-        </Box> */}
         </Box>
       )}
     </>
   );
 };
+
+
+// {showHVACWarning && (
+//   <SpeedDial
+//   direction={'down'}
+// ariaLabel="SpeedDial basic example"
+// // sx={{ position: 'absolute', bottom: 16, right: 16 }}
+// icon={<Icon icon="mdi:pipe-disconnected" />}
+// >
+// {/* {actions.map((action) => ( */}
+// <SpeedDialAction
+// key={'select'}
+// icon={<Icon icon="mdi:pipe-disconnected" />}
+// tooltipTitle={"Select All HVAC"}
+// />
+// {/* ))} */}
+// </SpeedDial>
+
+// )}

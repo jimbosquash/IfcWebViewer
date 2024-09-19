@@ -227,7 +227,7 @@ export const select = async (elements: BuildingElement[], components: OBC.Compon
     const expressIds = elements.flatMap(e => e.expressID);
     const elementTypeIds = model.getFragmentMap(expressIds);
     // console.log("high light these elements",elementTypeIds)
-    await highlighter.highlightByID("select", elementTypeIds, false, false);
+    await highlighter.highlightByID("select", elementTypeIds,clearPrevious, false);
     hider.set(true, elementTypeIds)
   });
 

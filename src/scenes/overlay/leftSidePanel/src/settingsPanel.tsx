@@ -190,7 +190,7 @@ const SettingsPanel: React.FC = () => {
           components.get(ModelTagger).setupColors(false);
           if (components.get(ModelTagger).enabled) {
             components.get(ModelTagger).setup();
-            components.get(ModelTagger).setTags();
+            components.get(ModelTagger).setMarkerProps();
           }
         }}
       />

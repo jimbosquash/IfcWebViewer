@@ -2,11 +2,11 @@ import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
 import { Mark } from "@thatopen/components-front";
 import { GetPropertyByName } from "../../utilities/BuildingElementUtilities";
-import { GetAllVisibleExpressIDs, GetCenterPoint, GetVisibleExpressIDs } from "../../utilities/IfcUtilities";
+import { GetAllVisibleExpressIDs, GetVisibleExpressIDs } from "../../utilities/IfcUtilities";
 import { BuildingElement, knownProperties } from "../../utilities/types";
 import { ModelCache } from "../modelCache";
 import { ModelViewManager } from "../modelViewer";
-import { Tag } from "./src/Tag";
+import { markProperties } from "./src/Tag";
 import { getAveragePoint } from "../../utilities/threeUtils";
 import { Line, Vector3 } from "three";
 import * as THREE from "three";
@@ -14,7 +14,7 @@ import { IFCFLOW } from "../hvacViewer";
 
 // key = name of element. first array = an array of matching names with arrays of tags grouped by distance
 interface GroupedElements {
-    [key: string]: Tag[][];
+    [key: string]: markProperties[][];
 }
 
 
@@ -39,14 +39,14 @@ const IFCMECHANICALFASTENER: string = "IFCMECHANICALFASTENER";
 export class ModelTagger extends OBC.Component {
 
     static uuid = "d2802b2c-1a26-4ec6-ba2a-79e20a6b65be" as const;
-    readonly onTagAdded = new OBC.Event<Tag>()
+    readonly onTagAdded = new OBC.Event<markProperties>()
 
     private _enabled = false
 
     private _world: OBC.World | null = null
     private _previewElement: OBF.Mark | null = null
     private _visible: boolean = false;
-    private _materialColor: Map<string, string> = new Map();
+    private _colorMap: Map<string, string> = new Map(); // key = name or any string, value = color as hex
     private _tagVisibilityMode: TagVisibilityMode = TagVisibilityMode.TagSelectionGroup;
     private _configuration?: TaggerConfiguration = {
         showFasteners: false,
@@ -67,7 +67,7 @@ export class ModelTagger extends OBC.Component {
         console.log('tagger configurations set', this._configuration)
 
         if (this.enabled) {
-            this.setTags()
+            this.setMarkerProps()
         }
 
         this.onConfigurationSet.trigger(value);
@@ -81,7 +81,7 @@ export class ModelTagger extends OBC.Component {
     /**
      * key = buildingElement.GlobalID, value = tag
      */
-    private _tags: Map<string, Tag> = new Map();
+    private _markerProps: Map<string, markProperties> = new Map();
 
     private _lines: Line[] = [];
 
@@ -105,6 +105,9 @@ export class ModelTagger extends OBC.Component {
     get visible() { return this._visible }
 
 
+    get colorMap() { return this._colorMap}
+
+
     /**
      * start listening to model visibility changed and set up markers.
      * dispose of markers when disabled created newly when enabled
@@ -122,18 +125,18 @@ export class ModelTagger extends OBC.Component {
 
         // add or remove listeners to change visibility and marker set
         if (value) {
-            viewManager.onVisibilityUpdated.add(() => this.setTags())
-            cache.onBuildingElementsChanged.add(() => this.setTags())
+            viewManager.onVisibilityUpdated.add(() => this.setMarkerProps())
+            cache.onBuildingElementsChanged.add(() => this.setMarkerProps())
             cache.onBuildingElementsChanged.add(() => this.setup())
             // set up tags 
-            if (this._materialColor.size === 0 || this._tags.size === 0) {
+            if (this._colorMap.size === 0 || this._markerProps.size === 0) {
                 this.setup()
             }
-            this.setTags()
+            this.setMarkerProps()
         }
         if (!value) {
-            viewManager.onVisibilityUpdated.remove(() => this.setTags())
-            cache.onBuildingElementsChanged.remove(() => this.setTags())
+            viewManager.onVisibilityUpdated.remove(() => this.setMarkerProps())
+            cache.onBuildingElementsChanged.remove(() => this.setMarkerProps())
             cache.onBuildingElementsChanged.remove(() => this.setup())
 
             this._markers.forEach(mark => {
@@ -156,17 +159,17 @@ export class ModelTagger extends OBC.Component {
      * tag building elements based on the tag Visibility Mode.
      * @returns 
      */
-    setTags = () => {
+    setMarkerProps = () => {
         switch (this._tagVisibilityMode) {
             case TagVisibilityMode.TagVisible:
-                this.createTagsFromModelVisibility();
+                this.createMarkerPropsFromModelVisibility();
                 return;
             case TagVisibilityMode.TagSelectionGroup:
                 const modelViewManager = this.components.get(ModelViewManager);
                 const selectedElements = modelViewManager.SelectedGroup?.elements
                 if (!selectedElements) return; // or first make every thing disabled
                 //console.log('setting tags', selectedElements)
-                this.createTagsFromBuildingElements(selectedElements);
+                this.createMarkerPropsFromBuildingElements(selectedElements);
         }
     }
 
@@ -174,7 +177,7 @@ export class ModelTagger extends OBC.Component {
     /**
      * Tag only Visible building elements by searching the model visibility state.
      */
-    private createTagsFromModelVisibility = () => {
+    private createMarkerPropsFromModelVisibility = () => {
         const cache = this.components.get(ModelCache);
         if (cache.BuildingElements) {
             // console.log('creating new markers', cache.BuildingElements)
@@ -190,7 +193,7 @@ export class ModelTagger extends OBC.Component {
     /**
      * Tag only Visible building elements from args by searching the model visibility state.
      */
-    private createTagsFromBuildingElements = (buildingElements: BuildingElement[]) => {
+    private createMarkerPropsFromBuildingElements = (buildingElements: BuildingElement[]) => {
         if (buildingElements) {
             const VisibleIDsByModel = GetVisibleExpressIDs(buildingElements, this.components)
             console.log('create tags from building elements', VisibleIDsByModel)
@@ -248,12 +251,12 @@ export class ModelTagger extends OBC.Component {
 
         if (this.Configuration?.mergeFasteners) {
             console.log('merging markers: start')
-            const mergedTags = this.getMergedTagsByModel(buildingElements)
+            const mergedTags = this.getMergedMarkerPropsByModel(buildingElements)
             console.log('merging tags', mergedTags)
 
             if (mergedTags) {
                 // make them into a markers and add to _markers
-                const mergedMarkers = this.getNewTagForClusters(mergedTags);
+                const mergedMarkers = this.getNewMarkerPropsForClusters(mergedTags);
 
                 mergedMarkers.forEach(mark => markers.push(mark)
                 )
@@ -280,7 +283,7 @@ export class ModelTagger extends OBC.Component {
         })
     }
 
-    getTagLines(mergeTag: Tag, children: Tag[]) {
+    getMarkerLines(mergeTag: markProperties, children: markProperties[]) {
         if (mergeTag.position === undefined || !children) return;
 
         const material = new THREE.LineBasicMaterial({ color: mergeTag.color });
@@ -313,7 +316,7 @@ export class ModelTagger extends OBC.Component {
         this._lines.length = 0; // Clear the array
     }
 
-    getNewTagForClusters(tagClustersByName: Map<string, Tag[][]>) {
+    getNewMarkerPropsForClusters(tagClustersByName: Map<string, markProperties[][]>) {
         const markers: Mark[] = [];
         // make them into a markert
         tagClustersByName.forEach((tagClusters) => {
@@ -325,27 +328,27 @@ export class ModelTagger extends OBC.Component {
                 const pt = getAveragePoint(tagCluster.map(element => element.position))
                 if (!pt) {
                     tagCluster.forEach(e => {
-                        const m = this.createMarkFromTag(e);
+                        const m = this.createMarkFromProps(e);
                         if (m) markers.push(m)
                     })
                 } else {
                     const text = `${tagCluster.length} x ${tagCluster[0].text}`;
                     const newCenter = new Vector3(pt.x, pt.y + 0.5, pt.z);
-                    const mergeTag = new Tag(
+                    const mergeTag = new markProperties(
                         `MergeTag-${index}`,
                         text,
                         newCenter,
                         tagCluster[0].color,
                         tagCluster[0].type)
-                    const mark = this.createMarkFromTag(mergeTag,"material-symbols:tools-power-drill-outline")
+                    const mark = this.createMarkFromProps(mergeTag,"material-symbols:tools-power-drill-outline")
                     if (mark) {
                         markers.push(mark)
-                        this.getTagLines(mergeTag, tagCluster)
+                        this.getMarkerLines(mergeTag, tagCluster)
                     }
 
                     tagCluster.forEach(t => {
-                        const copyT = new Tag(t.globalID,'',t.position,t.color,t.type)
-                        const m = this.createMarkFromTag(copyT);
+                        const copyT = new markProperties(t.globalID,'',t.position,t.color,t.type)
+                        const m = this.createMarkFromProps(copyT);
                         if (m)
                             markers.push(m);
 
@@ -363,15 +366,15 @@ export class ModelTagger extends OBC.Component {
      * @param buildingElements 
      * @returns 
      */
-    getMergedTagsByModel(buildingElements: BuildingElement[]) {
+    getMergedMarkerPropsByModel(buildingElements: BuildingElement[]) {
         if (!buildingElements) return;
-        let allGroupedTags: Map<string, Tag[][]> = new Map();
+        let allGroupedTags: Map<string, markProperties[][]> = new Map();
 
         // Step 0: Group elements by Model
         this.components.get(ModelCache).GroupByModel(buildingElements).forEach((elements) => {
 
-            const tags = elements.map(e => this._tags.get(e.GlobalID)).filter((tag): tag is Tag => tag !== undefined);
-            const mergedTags = this.mergeTagsByText(tags)
+            const tags = elements.map(e => this._markerProps.get(e.GlobalID)).filter((tag): tag is markProperties => tag !== undefined);
+            const mergedTags = this.mergeMarkerPropsByText(tags)
             if (mergedTags) {
                 Object.entries(mergedTags).forEach(([matchingName, groupOfTagClusters]) => {
                     // console.log('merge group name', value, groupOfGroups)
@@ -392,7 +395,7 @@ export class ModelTagger extends OBC.Component {
     }
 
 
-    mergeTagsByText(tags: Tag[]) {
+    mergeMarkerPropsByText(tags: markProperties[]) {
 
         const tagsByName = this.mapByName(tags.filter(tag => tag.type === IFCMECHANICALFASTENER));
         if (!tagsByName) {
@@ -407,11 +410,11 @@ export class ModelTagger extends OBC.Component {
         tagsByName.forEach((elementTags, name) => {
             groupedElements[name] = [];
 
-            let nameColor = this._materialColor.get(name)
+            let nameColor = this._colorMap.get(name)
             // create color
             if(!nameColor) {
-                this._materialColor.set(name, this.generateRandomHexColor())
-                nameColor = this._materialColor.get(name);
+                this._colorMap.set(name, this.generateRandomHexColor())
+                nameColor = this._colorMap.get(name);
             }
 
             for (const tag of elementTags) {
@@ -455,14 +458,14 @@ export class ModelTagger extends OBC.Component {
     }
 
 
-    mapByName(tags: Tag[]) {
-        return tags.reduce((acc, element) => {
+    mapByName(markProps: markProperties[]) {
+        return markProps.reduce((acc, element) => {
             if (!acc.has(element.text)) {
                 acc.set(element.text, [])
             }
             acc.get(element.text)?.push(element)
             return acc;
-        }, new Map<string, Tag[]>);
+        }, new Map<string, markProperties[]>);
     }
 
     private _mergeDistance = 0.450; // 1 = 1 meter
@@ -476,27 +479,27 @@ export class ModelTagger extends OBC.Component {
         const cache = this.components.get(ModelCache).BuildingElements
         if (!cache) return;
         this.setupColors(true);
-        this.setupTags(cache)
+        this.setupMarkerProps(cache)
     }
 
     /**
      * Create all tags with positions to be able to quickly get and create markers on update
      */
-    setupTags(buildingElements: BuildingElement[]) {
-        if (this._tags) {
-            this._tags.forEach(t => t.dispose())
-            this._tags = new Map();
+    setupMarkerProps(buildingElements: BuildingElement[]) {
+        if (this._markerProps) {
+            this._markerProps.forEach(t => t.dispose())
+            this._markerProps = new Map();
         }
 
-        const tags = this.createTags(buildingElements);
-        this._tags = tags;
+        const tags = markProperties.create(this.components,buildingElements);
+        this._markerProps = tags;
     }
 
     setupColors(useExisting: boolean) {
         const cache = this.components.get(ModelCache).BuildingElements
         if (!cache) return;
         if (!useExisting) {
-            this._materialColor = new Map();
+            this._colorMap = new Map();
         }
 
 
@@ -504,60 +507,12 @@ export class ModelTagger extends OBC.Component {
         cache.forEach((buildingElement) => {
             const material = GetPropertyByName(buildingElement, knownProperties.Material)?.value ?? "";
             // console.log("_material", material)
-            if (!this._materialColor.has(material)) {
-                this._materialColor.set(material, this.generateRandomHexColor())
+            if (!this._colorMap.has(material)) {
+                this._colorMap.set(material, this.generateRandomHexColor())
             }
         });
     }
 
-
-
-    /**
-     * Get a tag using the building elements, name, and center point based on its bounding box. Color based on its material.
-     * @param buildingElements 
-     * @returns key = buildingElement.GlobalID , value = Tag
-     */
-    createTags = (buildingElements: BuildingElement[]): Map<string, Tag> => {
-        const models = this.components.get(ModelCache).models();
-        if (this._world === null || !models) {
-            console.log("Create tag failed due to no world set")
-            return new Map()
-        }
-
-        const tags = new Map<string, Tag>();
-
-
-        const elementsByModel = buildingElements.reduce((acc, element) => {
-            if (!acc.has(element.modelID)) {
-                acc.set(element.modelID, [])
-            }
-            acc.get(element.modelID)?.push(element)
-            return acc;
-        }, new Map<string, BuildingElement[]>)
-
-        const fragments = this.components.get(OBC.FragmentsManager);
-        // const modelIdMap = fragments.getModelIdMap(selection);
-        elementsByModel.forEach((elements, modelID) => {
-            const model = fragments.groups.get(modelID);
-
-            if (!model) {
-                console.log("failed to creat tags as no model found for", modelID, elements)
-                return;
-            }
-
-            elements.forEach(element => {
-                const pt = GetCenterPoint(element, model, this.components)
-                if (!pt) {
-                    console.log('Get Center failed: no center point found', element)
-                    return;
-                }
-
-                const material = GetPropertyByName(element, knownProperties.Material)?.value ?? "";
-                tags.set(element.GlobalID, new Tag(element.GlobalID, element.name, pt, this._materialColor.get(material), element.type));
-            })
-        })
-        return tags;
-    }
 
     /**
      * 
@@ -571,8 +526,8 @@ export class ModelTagger extends OBC.Component {
             return []
         }
 
-        this.getTags(elements).forEach((tag) => {
-            const mark = this.createMarkFromTag(tag)
+        this.getMarkProps(elements).forEach((tag) => {
+            const mark = this.createMarkFromProps(tag)
             if (mark) {
                 markers.push(mark)
             }
@@ -582,7 +537,7 @@ export class ModelTagger extends OBC.Component {
         return markers;
     }
 
-    createMarkFromTag(tag: Tag, icon?: string) {
+    createMarkFromProps(tag: markProperties, icon?: string) {
         if (this._world && tag.position) {
             const mark = this.createMark(this._world, tag.text, tag.color, icon);
             mark.three.position.copy(new Vector3(tag.position.x, tag.position.y, tag.position.z))
@@ -596,12 +551,12 @@ export class ModelTagger extends OBC.Component {
      * @param elements 
      * @returns key = buildingElement.GlobalID, Value = Tag
      */
-    getTags(elements: BuildingElement[]) {
-        const tags: Map<string, Tag> = new Map();
+    getMarkProps(elements: BuildingElement[]) {
+        const tags: Map<string, markProperties> = new Map();
 
         const tagsToCreate: BuildingElement[] = [];
         elements.forEach(element => {
-            const tag = this._tags.get(element.GlobalID)
+            const tag = this._markerProps.get(element.GlobalID)
             if (!tag) {
                 // building it
                 tagsToCreate.push(element)
@@ -610,7 +565,7 @@ export class ModelTagger extends OBC.Component {
             }
         })
         if (tagsToCreate.length > 0) {
-            const newTags = this.createTags(tagsToCreate);
+            const newTags = markProperties.create(this.components,tagsToCreate);
             newTags.forEach((tag, id) => tags.set(id, tag))
         }
 

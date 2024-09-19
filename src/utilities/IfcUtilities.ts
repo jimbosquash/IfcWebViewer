@@ -6,7 +6,7 @@ import { FragmentIdMap } from "@thatopen/fragments";
 import * as WEBIFC from "web-ifc";
 import { ModelCache } from "../bim-components/modelCache";
 import { BasicProperty, BuildingElement } from "./types";
-import { Tag } from "../bim-components/modelTagger/src/Tag";
+import { markProperties } from "../bim-components/modelTagger/src/Tag";
 import { IfcElements } from "@thatopen/components";
 
 // allows you to pass these idmaps into helpful functions with @thatopen
