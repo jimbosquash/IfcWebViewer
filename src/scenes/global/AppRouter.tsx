@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./Layout";
-import { ThreeScene } from "../viewer/threeScene";
 import TopDisplay from "../global/TopDisplay";
 import TopBarContextProvider from "../../context/TopBarContext";
+import { Viewer } from "../viewer";
 
 export const AppRouter = () => {
   return (
@@ -14,7 +14,7 @@ export const AppRouter = () => {
           <Routes>
             {/* <Route path='/' element={<LandingPage/>} /> */}
             <Route path="/*" element={<Layout />}>
-              <Route path="" element={<ThreeScene />} />
+              <Route path="" element={<Viewer />} />
             </Route>
           </Routes>
         </main>

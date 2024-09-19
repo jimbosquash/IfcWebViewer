@@ -9,7 +9,6 @@ import TreeTableRow from "../../../../components/TreeTableRow";
 import React from "react";
 
 const treeName = ModelViewManager.defaultyTreeName;
-const treeStructure = [knownProperties.Assembly, knownProperties.BuildingStep];
 
 export const AssemblyBrowserPanel: React.FC = React.memo(() => {
   const [nodes, setNodes] = useState<TreeNode<BuildingElement>[]>();

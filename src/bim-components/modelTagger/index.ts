@@ -341,9 +341,7 @@ export class ModelTagger extends OBC.Component {
                     const mark = this.createMarkFromTag(mergeTag,"material-symbols:tools-power-drill-outline")
                     if (mark) {
                         markers.push(mark)
-
-                        // this.getTagLines(mergeTag, tagCluster)
-                        //this.getLines(newCenter, tagCluster.map(element => element.position).filter((pos): pos is Vector3 => pos !== undefined))
+                        this.getTagLines(mergeTag, tagCluster)
                     }
 
                     tagCluster.forEach(t => {

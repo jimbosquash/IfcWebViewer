@@ -36,10 +36,8 @@ export const InfoPanel = () => {
       groupName: data.groupName,
     };
     setPanelData(infoPanelData);
-    if(data.groupName)
-      setVsibility(true)
-    else
-      setVsibility(false)
+    if (data.groupName) setVsibility(true);
+    else setVsibility(false);
 
     // get that group data
   };
@@ -51,92 +49,95 @@ export const InfoPanel = () => {
     flexDirection: "row",
     maxWidth: "550px",
     overflow: "hidden",
-    right:'auto',
+    right: "auto",
     display: "flex",
     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
     borderRadius: "10px",
     backgroundColor: colors.grey[1000],
-    color:colors.primary[200],
+    color: colors.primary[200],
     padding: "10px",
     zIndex: 100,
-    position: 'absolute',
-    alignItems: 'left',
-    width: 'auto',
+    position: "absolute", // change to relative when ready
+    alignItems: "left",
+    width: "auto",
     transformOrigin: "left center",
-    whiteSpace: 'nowrap',
+    whiteSpace: "nowrap",
   };
 
-  
-
-  const subBoxStyle: React.CSSProperties = {
-    // flex: 1,
-    // padding: "6px",
-    // textAlign: "center",
+  const infoZoneStyle: React.CSSProperties = {
+    top: "20px",
+    flexDirection: "row",
+    width: "80%",
+    height: "100%",
+    overflow: "hidden",
+    display: "flex",
+    padding: "10px",
+    position:'relative',
+    zIndex: 100,
+    alignItems: "Center",
   };
+
 
   const nonSelectableTextStyle = {
-    userSelect: 'none',
-    WebkitUserSelect: 'none', // For Safari
-    MozUserSelect: 'none', // For Firefox
-    msUserSelect: 'none', // For Internet Explorer/Edge
+    userSelect: "none",
+    WebkitUserSelect: "none", // For Safari
+    MozUserSelect: "none", // For Firefox
+    msUserSelect: "none", // For Internet Explorer/Edge
   };
-  
+
   return (
-    <> {isVisible && 
-      <Box component="div"
-      style={{pointerEvents: "auto" }}
-      
-      sx={infoBoxStyle} 
-      
-      >
-      {infoPanelData && (
-        <>
-          <Typography
-            component="div"
-            sx={{ ...subBoxStyle, 
-              ...nonSelectableTextStyle,
-              whiteSpace: 'nowrap',
-              // width: '100%',
-              minWidth: '100px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis', }}
-            onClick={() => setShowToolTip(!showToolTip)}
-          >
-            {infoPanelData.groupType}
-          </Typography>
-          <Typography
-            component="div"
-            variant="h5"
-            sx={{ ...subBoxStyle, 
-              ...nonSelectableTextStyle,
-              flexGrow: 1,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis', }}
-            onClick={() => setShowToolTip(!showToolTip)}
-          >
-            {infoPanelData.groupName}
-          </Typography>
-          {/* Add more items here as needed */}
-        </>
-      )}
-      {/* {showToolTip && (
-        <Box component="div"  sx={{
-          position: 'absolute',
-          top: '100%',
-          left: 0,
-          backgroundColor: 'white',
-          padding: '10px',
-          borderRadius: '4px',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-        }}>
-          <Typography>Tooltip Item 1</Typography>
-          <Typography>Tooltip Item 2</Typography>
-          <Typography>Tooltip Item 3</Typography>
+    <>
+      {" "}
+      {isVisible && (
+        <Box 
+        sx={{infoZoneStyle}}
+        component="div"
+        className="floatingTopInfoZone" 
+        >
+        <Box component="div" 
+        className="InfoPanel" 
+        style={{ pointerEvents: "auto" }} 
+        sx={infoBoxStyle}>
+          {infoPanelData && (
+            <>
+              <Typography
+                component="div"
+                sx={{
+                  ...nonSelectableTextStyle,
+                  whiteSpace: "nowrap",
+                  // width: '100%',
+                  minWidth: "100px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+                onClick={() => setShowToolTip(!showToolTip)}
+              >
+                {infoPanelData.groupType}
+              </Typography>
+              <Typography
+                component="div"
+                variant="h5"
+                sx={{
+                  ...nonSelectableTextStyle,
+                  flexGrow: 1,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+                onClick={() => setShowToolTip(!showToolTip)}
+              >
+                {infoPanelData.groupName}
+              </Typography>
+              {/* Add more items here as needed */}
+            </>
+          )}
         </Box>
-      )} */}
-    </Box>}</>
-    
+        {/* <Box component='div' 
+        style={{backgroundColor:"blue", height:"40px", width:"40px", position:'relative'}}>
+
+        </Box> */}
+        </Box>
+      )}
+    </>
   );
 };
-

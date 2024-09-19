@@ -6,7 +6,7 @@ import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import { ModelViewManager } from "../../bim-components/modelViewer";
 import { InfoPanel } from "./src/InfoPanel";
-import LeftSideBox from "./leftSidePanel";
+import LeftSidePanel from "./leftSidePanel";
 import RightSidePanel from "./rightSidePanel";
 import CameraIconPanel from "./floatingIconPanel/CameraIconPanel";
 import WelcomePanel from "./src/WelcomePanel";
@@ -58,6 +58,7 @@ const Overlay = () => {
 
   return (
     <div
+    className="Overlay"
       style={{
         position: "absolute",
         top: 0,
@@ -87,10 +88,10 @@ const Overlay = () => {
       >
         <CameraIconPanel />
       </Box>}
-
+{/* 
       <LeftSideBox />
-      <RightSidePanel onWidthChange={handleRightPanelWidthChange} />
-
+      <RightSidePanel onWidthChange={handleRightPanelWidthChange} /> */}
+{/* 
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={2000}
@@ -100,7 +101,7 @@ const Overlay = () => {
         <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: "100%", zIndex: "1200" }}>
           {fileName} loaded successfully!
         </Alert>
-      </Snackbar>
+      </Snackbar> */}
     </div>
   );
 };

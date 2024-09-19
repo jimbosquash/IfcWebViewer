@@ -184,12 +184,12 @@ export class ModelViewManager extends OBC.Component {
     set defaultTreeStructure(propertyOrder: knownProperties[]) {
         this._defaultTreeStructure = propertyOrder;
     }
+    
 
     /**
      * Sets up Tree strucutre based on building elements properties and ignores the ifc file structure
-     * 
      */
-    setUpDefaultTree = (buildingElements: BuildingElement[] | undefined, groupVisibility?: Map<string, VisibilityState>): void => {
+    setUpDefaultTree = (buildingElements: BuildingElement[] | undefined): void => {
         if (!buildingElements) {
             this.onTreeChanged.trigger(undefined);
             return;

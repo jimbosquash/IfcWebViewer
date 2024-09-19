@@ -1,12 +1,12 @@
-import "../../styles.css";
+import "../../../styles.css";
 import { useEffect, useRef } from "react";
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
-import { useComponentsContext } from "../../context/ComponentsContext";
-import { SetUpWorld } from "./src/SetUpWorld";
-import Overlay from "../overlay";
-import { ModelCache } from "../../bim-components/modelCache";
-import { HighlightExtension } from "../../bim-components/highlightExtension";
+import { useComponentsContext } from "../../../context/ComponentsContext";
+import { SetUpWorld } from "./SetUpWorld";
+import Overlay from "../../overlay";
+import { ModelCache } from "../../../bim-components/modelCache";
+import { HighlightExtension } from "../../../bim-components/highlightExtension";
 import Stats from "stats.js";
 
 /**
@@ -14,7 +14,7 @@ import Stats from "stats.js";
  * well as world createn. any Bim components that are UI dependend should also have their set up here
  * @returns
  */
-export const ThreeScene = () => {
+export const Scene = () => {
   const mountRef = useRef<HTMLDivElement>(null);
   const components = useComponentsContext();
 
@@ -132,11 +132,11 @@ export const ThreeScene = () => {
   return (
     <>
       <div
-        className="threeDivContainer"
+        className="scene"
         ref={mountRef}
         style={{
           position: "relative",
-          display: "flex",
+          // display: "flex",
           width: "100%",
           height: "100%",
           overflow: "hidden", // This prevents child elements from overflowing
