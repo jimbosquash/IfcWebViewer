@@ -25,19 +25,6 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     world.scene.three.add(light);
     BUI.Manager.init();
     CUI.Manager.init();
-    // const viewCube = document.createElement("bim-view-cube");
-    
-    // viewCube.frontText = "Front";
-    // viewCube.topText = "Top";
-    // viewCube.backText = "Back";
-    // viewCube.leftText = "Left";
-    // viewCube.rightText = "Right";
-    // viewCube.size = 120;
-    // viewCube.camera = world.camera.three;
-    // // TODO: when camera changes, between ortho and pers then change the view cubes cam too
-    // containerRef.append(viewCube);
-
-    // world.camera.controls.addEventListener("update", () => viewCube.updateOrientation());
 
     const worldGrid = components.get(OBC.Grids).create(world)
     worldGrid.fade= true;
@@ -59,34 +46,7 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
     if (selectColor) {
       highlighter.add("ActiveGroupSelection", selectColor);
       console.log("high light colors", highlighter.colors);
-
     }
-
-    // const resizeObserver = new ResizeObserver(entries => {
-    //   for (let entry of entries) {
-    //     const { width, height } = entry.contentRect;
-    //     console.log('Size changed:', width, height);
-    //   }
-    //   world.renderer?.resize();
-    //   world.camera.updateAspect();
-    //   console.log('resize')
-    // });
-
-    // const resizeWorld = () => {
-    //   world.renderer?.resize();
-    //   world.camera.updateAspect();
-    //   console.log('resize')
-    // };
-    // resizeObserver.observe(containerRef);
-
-    // containerRef.addEventListener("resize", resizeWorld);
-    // console.log("resize event added", containerRef)
-
-
-    // tring to user helper from three examples (look for einteractive example)
-    // const helper = new ViewHelper(world.camera.three, world.renderer.three.domElement);
-    // world.scene.three.add(helper);
-
 
     return world;
   }
