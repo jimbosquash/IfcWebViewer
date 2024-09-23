@@ -3,10 +3,11 @@ import * as OBF from "@thatopen/components-front"
 import * as THREE from 'three'
 import { setUpTreeFromProperties } from "../../utilities/BuildingElementUtilities";
 import { GetFragmentsFromExpressIds } from "../../utilities/IfcUtilities";
-import { BuildingElement, KnowGroupType, knownProperties, SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
-import { Tree, TreeNode, TreeUtils } from "../../utilities/Tree";
+import { BuildingElement, knownProperties, SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
+import { Tree, TreeNode } from "../../utilities/Tree";
 import { _roots } from "@react-three/fiber";
 import { ModelCache } from "../modelCache";
+import { TreeUtils } from "../../utilities/treeUtils";
 
 interface TreeContainer {
     id: string; // name of tree

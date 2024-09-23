@@ -1,4 +1,4 @@
-import { Tree, TreeNode, TreeUtils } from "./Tree";
+import { Tree, TreeNode } from "./Tree";
 import { SelectionGroup, BuildingElement, KnowGroupType, knownProperties } from "./types";
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
@@ -7,6 +7,7 @@ import { GetCenterPoint, GetFragmentIdMaps } from "./IfcUtilities";
 import { ModelViewManager } from "../bim-components/modelViewer";
 import { FragmentsGroup } from "@thatopen/fragments";
 import { Components } from "@thatopen/components";
+import { TreeUtils } from "./treeUtils";
 
 
 /**
@@ -287,6 +288,10 @@ export function distanceToCenter(a: BuildingElement, b: BuildingElement, model: 
   const bCenter = GetCenterPoint(b, model, components);
   if(!bCenter) return;
   return aCenter?.distanceTo(bCenter);
+}
+
+export const setUpContainedByTree = ( elements: BuildingElement[]) => {
+
 }
 
 

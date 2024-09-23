@@ -2,54 +2,12 @@ export interface TreeNode<T> {
     id: string; // uniuqe id for node map
     name: string // name to support container nodes eg "station WS01"
     type: string;  // New property
-    data: T | null;
+    data: T | null; //
     children: Map<string, TreeNode<T>>;
     parent?: TreeNode<T>;
     isLeaf: boolean;
 }
 
-
-export class TreeUtils {
-
-    static getChildren = <T>(node: TreeNode<T>, condition: (child: TreeNode<T>) => boolean) => {
-        // search a treenodes children for a condition 
-        const result: TreeNode<T>[] = [];
-
-        const searchChildren = (currentNode: TreeNode<T>) => {
-            currentNode.children.forEach((child) => {
-                if (condition(child)) {
-                    result.push(child);
-                }
-                // Recursively search grandchildren
-                searchChildren(child);
-            });
-        };
-
-        searchChildren(node);
-        return result;
-    }  
-
-    // remove nulls
-    static getChildrenNonNullData = <T>(node: TreeNode<T>) => {
-        // search a treenodes children for a condition 
-        const result: TreeNode<T>[] = [];
-
-        const searchChildren = (currentNode: TreeNode<T>) => {
-            currentNode.children.forEach((child) => {
-                    result.push(child);
-                // Recursively search grandchildren
-                searchChildren(child);
-            });
-        };
-
-        searchChildren(node);
-        const d = result.map(n => n.data)
-        .filter((data): data is NonNullable<typeof data> => data != null)
-        .flat();
-
-        return d;
-    }  
-}
 
 
 export class Tree<T> {
@@ -60,8 +18,13 @@ export class Tree<T> {
     get id() {return this._id}
 
     get root(): TreeNode<T> { return this._root }
-    // get nodeMap
-    // get root
+
+    /**
+     * 
+     * @param id 
+     * @param rootId use root id to create a single root node for tree. typically project 
+     * @param rootType the ifc type that the root is, typically project
+     */
     constructor(id: string, rootId: string, rootType: string) {
         this._root = this.createNode(rootId, rootId, rootType, null, false);
         this._id = id;
