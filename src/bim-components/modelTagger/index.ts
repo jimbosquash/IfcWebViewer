@@ -49,9 +49,9 @@ export class ModelTagger extends OBC.Component {
     private _colorMap: Map<string, string> = new Map(); // key = name or any string, value = color as hex
     private _tagVisibilityMode: TagVisibilityMode = TagVisibilityMode.TagSelectionGroup;
     private _configuration?: TaggerConfiguration = {
-        showFasteners: false,
+        showFasteners: true,
         showInstallations: false,
-        mergeFasteners: true
+        mergeFasteners: false
     }
 
     readonly onConfigurationSet = new OBC.Event<TaggerConfiguration>()
@@ -217,7 +217,8 @@ export class ModelTagger extends OBC.Component {
 
         const hiddenTypes: string[] = [];
 
-        if (!this._configuration?.showFasteners) hiddenTypes.push(IFCMECHANICALFASTENER)
+        //if (!this._configuration?.showFasteners) hiddenTypes.push(IFCMECHANICALFASTENER)
+        hiddenTypes.push(IFCMECHANICALFASTENER)
         if (!this._configuration?.showInstallations) hiddenTypes.push(IFCFLOW)
 
         let filteredElements = buildingElements.filter(el => !hiddenTypes.find(partialType => el.type.includes(partialType)))
@@ -249,7 +250,15 @@ export class ModelTagger extends OBC.Component {
         const filteredElements = this.filterElements(buildingElements);
         const markers = this.createMarkers(filteredElements.filteredElements);
 
-        if (this.Configuration?.mergeFasteners) {
+
+        if(this.Configuration?.showFasteners && !this.Configuration?.mergeFasteners) {
+            //set them up for just icon
+            let fasteners = buildingElements.filter(el =>  el.type.includes(IFCMECHANICALFASTENER))
+            const iconMarkers = this.createIconMarkers(fasteners,"material-symbols:tools-power-drill-outline");
+            iconMarkers.forEach(mark => markers.push(mark))
+        }
+
+        if (this.Configuration?.showFasteners && this.Configuration?.mergeFasteners) {
             console.log('merging markers: start')
             const mergedTags = this.getMergedMarkerPropsByModel(buildingElements)
             console.log('merging tags', mergedTags)
@@ -316,6 +325,10 @@ export class ModelTagger extends OBC.Component {
         this._lines.length = 0; // Clear the array
     }
 
+    createFastenerMarks() {
+
+    }
+
     getNewMarkerPropsForClusters(tagClustersByName: Map<string, markProperties[][]>) {
         const markers: Mark[] = [];
         // make them into a markert
@@ -328,7 +341,7 @@ export class ModelTagger extends OBC.Component {
                 const pt = getAveragePoint(tagCluster.map(element => element.position))
                 if (!pt) {
                     tagCluster.forEach(e => {
-                        const m = this.createMarkFromProps(e);
+                        const m = this.createMarkFromProps(e.text,e.color,e.position);
                         if (m) markers.push(m)
                     })
                 } else {
@@ -340,15 +353,14 @@ export class ModelTagger extends OBC.Component {
                         newCenter,
                         tagCluster[0].color,
                         tagCluster[0].type)
-                    const mark = this.createMarkFromProps(mergeTag,"material-symbols:tools-power-drill-outline")
+                    const mark = this.createMarkFromProps(mergeTag.text,mergeTag.color,mergeTag.position,"material-symbols:tools-power-drill-outline")
                     if (mark) {
                         markers.push(mark)
-                        this.getMarkerLines(mergeTag, tagCluster)
+                        //this.getMarkerLines(mergeTag, tagCluster)
                     }
 
                     tagCluster.forEach(t => {
-                        const copyT = new markProperties(t.globalID,'',t.position,t.color,t.type)
-                        const m = this.createMarkFromProps(copyT);
+                        const m = this.createMarkFromProps('',t.color,t.position);
                         if (m)
                             markers.push(m);
 
@@ -527,7 +539,7 @@ export class ModelTagger extends OBC.Component {
         }
 
         this.getMarkProps(elements).forEach((tag) => {
-            const mark = this.createMarkFromProps(tag)
+            const mark = this.createMarkFromProps(tag.text,tag.color,tag.position)
             if (mark) {
                 markers.push(mark)
             }
@@ -537,10 +549,36 @@ export class ModelTagger extends OBC.Component {
         return markers;
     }
 
-    createMarkFromProps(tag: markProperties, icon?: string) {
-        if (this._world && tag.position) {
-            const mark = this.createMark(this._world, tag.text, tag.color, icon);
-            mark.three.position.copy(new Vector3(tag.position.x, tag.position.y, tag.position.z))
+    
+    /**
+     * 
+     * @param elements 
+     * @returns key = buildingElement.GlobalID, value = new OBC.Mark
+     */
+     createIconMarkers = (elements: BuildingElement[], icon: string): Mark[] => {
+        const markers: Mark[] = [];
+        if (this._world === null || !elements) {
+            console.log("Create tag failed due to no world set")
+            return []
+        }
+
+        this.getMarkProps(elements).forEach((tag) => {
+            const mark = this.createMarkFromProps('',tag.color,tag.position,icon)
+            if (mark) {
+                markers.push(mark)
+            }
+
+        })
+
+        return markers;
+    }
+
+    
+
+    createMarkFromProps(text: string, color?: string, position?: Vector3,icon?: string) {
+        if (this._world && position) {
+            const mark = this.createMark(this._world, text, color, icon);
+            mark.three.position.copy(new Vector3(position.x, position.y, position.z))
             mark.three.visible = true;
             return mark;
         }

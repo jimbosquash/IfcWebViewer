@@ -90,6 +90,7 @@ const SettingsPanel: React.FC = () => {
   const components = useComponentsContext();
   const [zoomOnSelection, setZoomOnSelection] = useState<boolean>(true);
   const [showFasteners, setShowFasteners] = useState<boolean>(true);
+  const [mergeFasteners, setMergeFasteners] = useState<boolean>(true);
   const [showInstallations, setShowInstallations] = useState<boolean>(false);
   const [enableGrid, setEnableGrid] = useState<boolean>(false);
 
@@ -124,6 +125,16 @@ const SettingsPanel: React.FC = () => {
     const config = tagger.Configuration;
     if (config) {
       config.showFasteners = checked;
+      tagger.Configuration = config;
+    }
+  };
+
+  const handleMergeFastenersToggle = (checked: boolean) => {
+    setMergeFasteners(checked);
+    const tagger = components.get(ModelTagger);
+    const config = tagger.Configuration;
+    if (config) {
+      config.mergeFasteners = checked;
       tagger.Configuration = config;
     }
   };
@@ -176,6 +187,11 @@ const SettingsPanel: React.FC = () => {
         label={showFasteners ? "Show Fasteners" : "Hide Fasteners"}
         value={showFasteners}
         onChange={(e) => handleShowFastenersToggle(e)}
+      />
+      <ToggleSetting
+        label={mergeFasteners ? "UnMerge Fasteners" : "Merge Fasteners"}
+        value={mergeFasteners}
+        onChange={(e) => handleMergeFastenersToggle(e)}
       />
 
       <ToggleSetting

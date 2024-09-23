@@ -190,7 +190,7 @@ export const RightSidePanel: React.FC = () => {
               width: "10px",
               height: "100%",
               cursor: "ew-resize",
-              backgroundColor: "lightgrey",
+              // backgroundColor: "lightgrey",
               flexShrink: 1,
             }}
             onMouseDown={handleMouseDown}
