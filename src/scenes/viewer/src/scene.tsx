@@ -96,6 +96,20 @@ export const Scene = () => {
     if (newWorld) {
       if (modelCache) modelCache.world = newWorld;
       components.init();
+
+      
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        const { width, height } = entry.contentRect;
+        console.log('Size changed:', width, height);
+      }
+      newWorld.renderer?.resize();
+      newWorld.camera.updateAspect();
+      console.log('resize')
+    });
+    if(mountRef.current)
+      resizeObserver.observe(mountRef.current);
+
     }
     return newWorld;
   };

@@ -62,11 +62,26 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
 
     }
 
-    const resizeWorld = () => {
-      world.renderer?.resize();
-      world.camera.updateAspect();
-    };
-    containerRef.addEventListener("resize", resizeWorld);
+    // const resizeObserver = new ResizeObserver(entries => {
+    //   for (let entry of entries) {
+    //     const { width, height } = entry.contentRect;
+    //     console.log('Size changed:', width, height);
+    //   }
+    //   world.renderer?.resize();
+    //   world.camera.updateAspect();
+    //   console.log('resize')
+    // });
+
+    // const resizeWorld = () => {
+    //   world.renderer?.resize();
+    //   world.camera.updateAspect();
+    //   console.log('resize')
+    // };
+    // resizeObserver.observe(containerRef);
+
+    // containerRef.addEventListener("resize", resizeWorld);
+    // console.log("resize event added", containerRef)
+
 
     // tring to user helper from three examples (look for einteractive example)
     // const helper = new ViewHelper(world.camera.three, world.renderer.three.domElement);
