@@ -79,6 +79,32 @@ export interface IfcElement{
     properties: BasicProperty[]
   }
 
+  // Type guard function for IfcElement
+function isIfcElement(data: any): data is IfcElement {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    typeof data.expressID === 'number' &&
+    typeof data.GlobalID === 'string' &&
+    typeof data.type === 'string' &&
+    typeof data.name === 'string'
+  );
+}
+
+// Type guard function for BuildingElement
+export function isBuildingElement(data: any): data is BuildingElement {
+  return (
+    data !== null &&
+    typeof data === 'object' &&
+    typeof data.expressID === 'number' &&
+    typeof data.GlobalID === 'string' &&
+    typeof data.type === 'string' &&
+    typeof data.name === 'string' &&
+    typeof data.FragmentID === 'string' &&
+    typeof data.modelID === 'string'
+  );
+}
+
   export interface BasicProperty {
     name: string, 
     value: string, 

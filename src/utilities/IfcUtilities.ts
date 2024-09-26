@@ -447,8 +447,7 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
 }
 
 
-// Usage
-async function buildTree(newElements: IfcElement[], model: any, indexer: any) {
+export async function buildTree(newElements: IfcElement[], model: any, indexer: any) {
     const relationTypes = ["Decomposes", "ContainedInStructure"];
     const tree = new Tree<IfcElement>('elementTree', 'Project', 'project');
 

@@ -3,7 +3,7 @@ import * as OBF from "@thatopen/components-front"
 import * as THREE from 'three'
 import { setUpTreeFromProperties } from "../../utilities/BuildingElementUtilities";
 import { GetFragmentsFromExpressIds } from "../../utilities/IfcUtilities";
-import { BuildingElement, knownProperties, SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
+import { BuildingElement, IfcElement, isBuildingElement, knownProperties, SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
 import { Tree, TreeNode } from "../../utilities/Tree";
 import { _roots } from "@react-three/fiber";
 import { ModelCache } from "../modelCache";
@@ -11,7 +11,7 @@ import { TreeUtils } from "../../utilities/treeUtils";
 
 interface TreeContainer {
     id: string; // name of tree
-    tree: Tree<BuildingElement>;
+    tree: Tree<IfcElement>;
     visibilityMap: Map<string, VisibilityState>; // key = every node name, value = visibility mode
 }
 
@@ -52,7 +52,7 @@ export class ModelViewManager extends OBC.Component {
      * Add a new tree or replace an existing tree based on the name as a key in a map storing the view tree.
      * @returns 
      */
-    addOrReplaceTree(treeID: string, tree: Tree<BuildingElement>, visibilityMap: Map<string, VisibilityState> | undefined = undefined) {
+    addOrReplaceTree(treeID: string, tree: Tree<IfcElement>, visibilityMap: Map<string, VisibilityState> | undefined = undefined) {
         const treeContainer = {
             id: treeID,
             tree: tree,
@@ -64,7 +64,7 @@ export class ModelViewManager extends OBC.Component {
         return treeContainer;
     }
 
-    private createVisibilityMap(tree: Tree<BuildingElement>) {
+    private createVisibilityMap(tree: Tree<IfcElement>) {
         return tree.getNodes(node => node.type !== "BuildingElement").reduce((map, treeNode) => {
             map.set(treeNode.id, VisibilityState.Visible)
             return map;
@@ -107,7 +107,7 @@ export class ModelViewManager extends OBC.Component {
         this._additionalHiddenElements = elementsToExclude;
     }
 
-    readonly onTreeChanged = new OBC.Event<Tree<BuildingElement> | undefined>();
+    readonly onTreeChanged = new OBC.Event<Tree<IfcElement> | undefined>();
     readonly onBuildingElementsChanged = new OBC.Event<BuildingElement[]>();
     readonly onGroupVisibilitySet = new OBC.Event<{ treeID: string, visibilityMap: Map<string, VisibilityState> }>();
     readonly onSelectedGroupChanged = new OBC.Event<SelectionGroup>();
@@ -149,7 +149,7 @@ export class ModelViewManager extends OBC.Component {
         }
     }
 
-    get Tree(): Tree<BuildingElement> | undefined {
+    get Tree(): Tree<IfcElement> | undefined {
         return this._tree?.tree;
     }
 
@@ -167,14 +167,21 @@ export class ModelViewManager extends OBC.Component {
      * @param groupId name of selection group to search tree
      * @returns undefined or a flat collection of children building elements.
      */
-    getBuildingElements = (groupId: string, tree: Tree<BuildingElement>): BuildingElement[] | undefined => {
+    getBuildingElements = (groupId: string, tree: Tree<IfcElement>): BuildingElement[] | undefined => {
         if (!groupId || !tree) return;
 
         const groupNode = tree.getNode(groupId);
 
         if (!groupNode) return;
 
-        return TreeUtils.getChildrenNonNullData(groupNode)
+
+        const bElements: BuildingElement[] = []
+
+        TreeUtils.getChildrenNonNullData(groupNode).forEach(child => {
+            if(isBuildingElement(child)) bElements.push(child)
+        })
+
+        return bElements;
     }
 
 
@@ -288,12 +295,15 @@ export class ModelViewManager extends OBC.Component {
 
         const elementsByModelId = new Map<string, BuildingElement[]>();
         for (const tNode of buildingElements) {
-            const groupID = tNode.data?.modelID;
+            const element = tNode?.data;
+
+            if(!isBuildingElement(element)) continue;
+            const groupID = element.modelID;
             if (!groupID || !tNode.data) continue;
             if (!elementsByModelId.has(groupID)) {
                 elementsByModelId.set(groupID, []);
             }
-            elementsByModelId.get(groupID)!.push(tNode.data);
+            elementsByModelId.get(groupID)!.push(element);
         }
 
         await highlighter.clear('select');
@@ -401,10 +411,10 @@ export class ModelViewManager extends OBC.Component {
      * @param nodeID 
      * @returns 
      */
-    private showNeighborNodes = (tree: Tree<BuildingElement>, nodeID: string, showOnlyPrevious: boolean): boolean => {
+    private showNeighborNodes = (tree: Tree<IfcElement>, nodeID: string, showOnlyPrevious: boolean): boolean => {
         if (!tree) return false;
-        const visibleNodes: TreeNode<BuildingElement>[] = [];
-        const hiddenNodes: TreeNode<BuildingElement>[] = [];
+        const visibleNodes: TreeNode<IfcElement>[] = [];
+        const hiddenNodes: TreeNode<IfcElement>[] = [];
         // every parent node and children before this parents node are hidden
 
         const node = tree?.getNode(nodeID);
@@ -605,7 +615,7 @@ export class ModelViewManager extends OBC.Component {
      * @param visibilityMap 
      * @returns 
      */
-    private groupElementsByVisibilityState(tree: Tree<BuildingElement>, visibilityMap: Map<string, VisibilityState>): Map<VisibilityState, BuildingElement[]> | undefined {
+    private groupElementsByVisibilityState(tree: Tree<IfcElement>, visibilityMap: Map<string, VisibilityState>): Map<VisibilityState, BuildingElement[]> | undefined {
 
         if (!tree || !visibilityMap) return undefined;
 
@@ -620,7 +630,7 @@ export class ModelViewManager extends OBC.Component {
         // console.log('nodeVisibilityState', visibilityMap)
 
 
-        const traverseNode = (node: TreeNode<BuildingElement>, parentState: VisibilityState) => {
+        const traverseNode = (node: TreeNode<IfcElement>, parentState: VisibilityState) => {
 
             if (!tree || !visibilityMap) return undefined;
 
@@ -643,7 +653,10 @@ export class ModelViewManager extends OBC.Component {
             } else if (nodeVisibility === VisibilityState.Hidden) {
                 // if this container is hidden then everthing bellow it is also hidden
                 const allBuildingElements = TreeUtils.getChildrenNonNullData(node);
-                allBuildingElements.forEach(element => result.get(VisibilityState.Hidden)!.push(element));
+                allBuildingElements.forEach(element =>{ 
+                    if(isBuildingElement(element))
+                        result.get(VisibilityState.Hidden)!.push(element)}
+                    );
 
             } else {
                 // This is a container node, traverse its children

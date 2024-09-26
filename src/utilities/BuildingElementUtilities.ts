@@ -290,7 +290,7 @@ export function distanceToCenter(a: BuildingElement, b: BuildingElement, model: 
   return aCenter?.distanceTo(bCenter);
 }
 
-export const setUpContainedByTree = ( elements: BuildingElement[]) => {
+export const setupProjectTree = ( elements: BuildingElement[]) => {
 
 }
 
