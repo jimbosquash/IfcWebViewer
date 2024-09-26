@@ -25,38 +25,37 @@ export const Scene = () => {
 
   // create the world and start listening to loader
   useEffect(() => {
-    if (!mountRef.current) return;
-
-    if (mountRef?.current && components) {
-      console.log("view port, setting up");
-
-      const fragments = components?.get(OBC.FragmentsManager);
-      const highlightExtension = components.get(HighlightExtension);
-      const modelCache = components.get(ModelCache);
-      const worlds = components.get(OBC.Worlds);
-
-      fragments.onFragmentsLoaded.add((data) => loadModelIntoWorld(data));
-      modelCache.onWorldSet.add((data) => (highlightExtension.world = data));
-
-      highlightExtension.enabled = true;
-
-      if (modelCache.world && worlds.list.has(modelCache.world.uuid)) {
-      } else if (worlds.list.size === 0) {
-        createWorld(components);
-      }
-
-      if (modelCache.world) {
-        const stats = new Stats();
-        stats.showPanel(2);
-        document.body.append(stats.dom);
-        stats.dom.style.left = "0px";
-        stats.dom.style.zIndex = "unset";
-        modelCache.world.renderer?.onBeforeUpdate.add(() => stats.begin());
-        modelCache.world.renderer?.onAfterUpdate.add(() => stats.end());
-
-      }
-    } else if (components) {
+    if (!mountRef.current || !components) {
       console.log("failed to set up or resize world due to missing data", mountRef, components);
+      return;
+    }
+
+    console.log("view port, setting up");
+    
+
+    const fragments = components?.get(OBC.FragmentsManager);
+    const highlightExtension = components.get(HighlightExtension);
+    const modelCache = components.get(ModelCache);
+    const worlds = components.get(OBC.Worlds);
+
+    fragments.onFragmentsLoaded.add((data) => loadModelIntoWorld(data));
+    modelCache.onWorldSet.add((data) => (highlightExtension.world = data));
+
+    highlightExtension.enabled = true;
+
+    if (modelCache.world && worlds.list.has(modelCache.world.uuid)) {
+    } else if (worlds.list.size === 0) {
+      createWorld(components);
+    }
+
+    if (modelCache.world) {
+      const stats = new Stats();
+      stats.showPanel(2);
+      document.body.append(stats.dom);
+      stats.dom.style.left = "0px";
+      stats.dom.style.zIndex = "unset";
+      modelCache.world.renderer?.onBeforeUpdate.add(() => stats.begin());
+      modelCache.world.renderer?.onAfterUpdate.add(() => stats.end());
     }
 
     return () => {
@@ -83,19 +82,16 @@ export const Scene = () => {
       if (modelCache) modelCache.world = newWorld;
       components.init();
 
-      
-    const resizeObserver = new ResizeObserver(entries => {
-      for (let entry of entries) {
-        const { width, height } = entry.contentRect;
-        console.log('Size changed:', width, height);
-      }
-      newWorld.renderer?.resize();
-      newWorld.camera.updateAspect();
-      console.log('resize')
-    });
-    if(mountRef.current)
-      resizeObserver.observe(mountRef.current);
-
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (let entry of entries) {
+          const { width, height } = entry.contentRect;
+          console.log("Size changed:", width, height);
+        }
+        newWorld.renderer?.resize();
+        newWorld.camera.updateAspect();
+        console.log("resize");
+      });
+      if (mountRef.current) resizeObserver.observe(mountRef.current);
     }
     return newWorld;
   };

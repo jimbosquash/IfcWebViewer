@@ -66,6 +66,7 @@ export class ConfigManager<T extends Record<ConfigKey, ConfigValue>> extends Eve
     }
 
     get<K extends keyof T>(key: K): T[K] {
+        console.log('config manager get',key, this.schema)
         return this.config.get(key) ?? this.schema[key].defaultValue;
     }
 

@@ -15,6 +15,8 @@ import { useComponentsContext } from "../../../../context/ComponentsContext";
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
 import { ModelTagger } from "../../../../bim-components/modelTagger";
+import { ConfigManager } from "../../../../utilities/ConfigManager";
+import { ConfigurationManager } from "../../../../bim-components/configManager";
 
 // Define types for our setting components
 interface ToggleSettingProps {
@@ -87,12 +89,14 @@ const SettingsPanel: React.FC = () => {
   const [showFasteners, setShowFasteners] = useState<boolean>(true);
   const [mergeFasteners, setMergeFasteners] = useState<boolean>(true);
   const [showInstallations, setShowInstallations] = useState<boolean>(false);
-  const [enableGrid, setEnableGrid] = useState<boolean>(false);
+  const [showGrid, setShowGrid] = useState<boolean>(false);
 
   useEffect(() => {
     // get all settings that are state
     const highlighter = components.get(OBF.Highlighter);
     setZoomOnSelection(highlighter.zoomToSelection);
+    setShowGrid(components.get(ConfigurationManager).sceneConfig.get("showGrid"));
+
     const tagConfigs = components.get(ModelTagger).Configuration;
     setShowFasteners(tagConfigs.get("showFasteners"));
     setMergeFasteners(tagConfigs.get("mergeFasteners"));
@@ -102,34 +106,34 @@ const SettingsPanel: React.FC = () => {
     };
   }, [components]);
 
-
-
   const handleZoomToggle = (checked: boolean) => {
     setZoomOnSelection(checked);
-    const highlighter = components.get(OBF.Highlighter);
-    highlighter.zoomToSelection = checked;
+    components.get(ConfigurationManager).sceneConfig.set("zoomToSelection", checked);
+    components.get(OBF.Highlighter).zoomToSelection = checked;
   };
 
   const handleGridToggle = (checked: boolean) => {
-    setEnableGrid(checked);
+    setShowGrid(checked);
+    components.get(ConfigurationManager).sceneConfig.set("showGrid", checked);
     const grids = components.get(OBC.Grids).list;
-    grids.forEach(grid => {
-      grid.visible = checked})
+    grids.forEach((grid) => {
+      grid.visible = checked;
+    });
   };
 
   const handleShowFastenersToggle = (checked: boolean) => {
     setShowFasteners(checked);
-    components.get(ModelTagger).Configuration.set("showFasteners",checked)
+    components.get(ModelTagger).Configuration.set("showFasteners", checked);
   };
 
   const handleMergeFastenersToggle = (checked: boolean) => {
     setMergeFasteners(checked);
-    components.get(ModelTagger).Configuration.set("mergeFasteners",checked)
+    components.get(ModelTagger).Configuration.set("mergeFasteners", checked);
   };
 
   const handleShowInstallationsToggle = (checked: boolean) => {
     setShowInstallations(checked);
-    components.get(ModelTagger).Configuration.set("showInstallations",checked)
+    components.get(ModelTagger).Configuration.set("showInstallations", checked);
   };
 
   return (
@@ -155,8 +159,8 @@ const SettingsPanel: React.FC = () => {
       />
 
       <ToggleSetting
-        label={enableGrid ? "Show Grid" : "Hide Grid"}
-        value={enableGrid}
+        label={showGrid ? "Show Grid" : "Hide Grid"}
+        value={showGrid}
         onChange={(e) => handleGridToggle(e)}
       />
 
