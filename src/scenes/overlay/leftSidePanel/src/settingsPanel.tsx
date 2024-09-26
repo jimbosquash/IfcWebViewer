@@ -15,7 +15,6 @@ import { useComponentsContext } from "../../../../context/ComponentsContext";
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
 import { ModelTagger } from "../../../../bim-components/modelTagger";
-import { ConfigManager } from "../../../../utilities/ConfigManager";
 import { ConfigurationManager } from "../../../../bim-components/configManager";
 
 // Define types for our setting components

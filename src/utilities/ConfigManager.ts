@@ -19,6 +19,7 @@ export class ConfigManager<T extends Record<ConfigKey, ConfigValue>> extends Eve
         this.schema = schema;
         this.storageKey = storageKey;
         this.initializeConfig();
+        console.log('config man created',storageKey)
     }
 
     private initializeConfig(): void {
@@ -57,9 +58,10 @@ export class ConfigManager<T extends Record<ConfigKey, ConfigValue>> extends Eve
         if (this.validateValue(key, value)) {
             this.config.set(key, value);
             this.saveToLocalStorage();
-            this.dispatchEvent(new CustomEvent('configChanged', {
+            const res = this.dispatchEvent(new CustomEvent('configChanged', {
                 detail: { key, value, configName: this.storageKey }
             }));
+            console.log('event sent for setting val',res);
         } else {
             throw new Error(`Invalid value for key: ${String(key)}`);
         }
@@ -77,6 +79,8 @@ export class ConfigManager<T extends Record<ConfigKey, ConfigValue>> extends Eve
 
     private saveToLocalStorage(): void {
         const configObject = Object.fromEntries(this.config);
+        console.log('config manager save local',this.storageKey, configObject)
+
         localStorage.setItem(this.storageKey, JSON.stringify(configObject));
     }
 }

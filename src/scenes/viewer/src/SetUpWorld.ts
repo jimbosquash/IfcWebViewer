@@ -22,8 +22,9 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
   const { postproduction } = world.renderer;
 
   world.camera = new OBC.OrthoPerspectiveCamera(components)
-  
-  world.camera.projection.set('Orthographic');
+  components.get(ConfigurationManager).camConfig.get('projection')
+
+  world.camera.projection.set(components.get(ConfigurationManager).camConfig.get('projection'));
   world.camera.enabled = true;
   const light = new THREE.AmbientLight(0x424242, 30)
   world.scene.three.add(light);
@@ -46,7 +47,6 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
   const configManager = components.get(ConfigurationManager)
 
   worldGrid.visible = configManager.sceneConfig.get('showGrid');
-
 
   const highlighter = components.get(OBF.Highlighter)
   if (!highlighter.isSetup) { highlighter.setup({ world }) }

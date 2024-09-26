@@ -20,7 +20,7 @@ const IconPanel: React.FC<FloatingIconButtonsProps> = ({ buttons, containerSx })
     >
       {buttons.map((button, index) => (
         <FloatingIconButton
-        index={index}
+        key={index}
         tooltip={button.tooltip}
         ariaLabel={button.ariaLabel}
         disabled={button.disabled}
