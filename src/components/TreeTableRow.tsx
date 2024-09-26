@@ -7,7 +7,7 @@ import { nonSelectableTextStyle } from "../styles";
 import { tokens } from "../theme";
 import { GetFragmentIdMaps } from "../utilities/IfcUtilities";
 import { TreeNode } from "../utilities/Tree";
-import { BuildingElement, SelectionGroup, VisibilityState } from "../utilities/types";
+import { BuildingElement, IfcElement, isBuildingElement, SelectionGroup, VisibilityState } from "../utilities/types";
 import * as OBF from "@thatopen/components-front";
 import * as FRAGS from "@thatopen/fragments";
 import { ModelViewManager } from "../bim-components/modelViewer";
@@ -20,7 +20,7 @@ export interface TreeTableRowProps {
   name: string;
   icon: string;
   treeID: string;
-  node: TreeNode<BuildingElement> | undefined;
+  node: TreeNode<IfcElement> | undefined;
   visibleOnDoubleClick: boolean;
   children?: React.ReactNode;
   variant: "Floating" | "Flat";
@@ -38,6 +38,8 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
 
     const modelViewManager = useMemo(() => components?.get(ModelViewManager), [components]);
 
+
+
     const setSelected = () => {
       if (!node?.id) return;
       setIsSelected(true);
@@ -52,7 +54,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         id: node?.id,
         groupType: node.type,
         groupName: name,
-        elements: elements,
+        elements: elements.map(e => isBuildingElement(e)),
       };
       modelViewManager.setSelectionGroup(selectedGroup,true)
     };

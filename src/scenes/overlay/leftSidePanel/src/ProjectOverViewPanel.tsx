@@ -7,6 +7,7 @@ import { nonSelectableTextStyle } from "../../../../styles";
 import { tokens } from "../../../../theme";
 import AssemblyBrowserPanel from "./AssemblyBrowserPanel";
 import MaterialBrowserPanel from "./MaterialBrowserPanel";
+import ProjectTreeBrowser from "./ProjectTreeBrowser";
 
 
 export const ProjectOverviewPanel = () => {
@@ -172,7 +173,7 @@ export const ProjectOverviewPanel = () => {
                 }}
               >
                 {/* Children components go here */}
-                <MaterialBrowserPanel name="Material Tree" />
+                <ProjectTreeBrowser />
               </Box>
             </Box>
           </CustomTabPanel>

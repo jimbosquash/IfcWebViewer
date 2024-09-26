@@ -1,11 +1,30 @@
 import { TreeNode } from "./Tree";
 
-type InferTreeNodeType<T> = T extends TreeNode<infer U> ? U : never;
+// type InferTreeNodeType<T> = T extends TreeNode<infer U> ? U : never;
 
 
 export class TreeUtils {
 
     static getChildren = <T>(node: TreeNode<T>, condition: (child: TreeNode<T>) => boolean) => {
+        // search a treenodes children for a condition 
+        const result: TreeNode<T>[] = [];
+
+        const searchChildren = (currentNode: TreeNode<T>) => {
+            currentNode.children.forEach((child) => {
+                if (condition(child)) {
+                    result.push(child);
+                }
+                // Recursively search grandchildren
+                searchChildren(child);
+            });
+        };
+
+        searchChildren(node);
+        return result;
+    }  
+
+
+    static getChildrenDataOfType = <T>(node: TreeNode<T>, condition: (child: TreeNode<T>) => boolean) => {
         // search a treenodes children for a condition 
         const result: TreeNode<T>[] = [];
 

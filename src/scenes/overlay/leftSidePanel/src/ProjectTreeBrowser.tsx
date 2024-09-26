@@ -1,6 +1,7 @@
 import { Box } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
+import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
 
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
@@ -60,48 +61,7 @@ export const ProjectTreeBrowser: React.FC = () => {
         }}
       >
         {/* fixed panel section */}
-
-        {/* <ButtonGroup style={{ marginTop: "18px", marginBottom: "10px", alignSelf: "center" }}>
-          <Tooltip
-            title={
-              visibleOnDoubleClick
-                ? "Dont make visible hidden items on double click"
-                : "Make visible hidden items on double click"
-            }
-          >
-            <Button variant="contained" onClick={() => setVisibleOnDoubleClick(!visibleOnDoubleClick)}>
-              <Icon style={{ color: colors.grey[600] }} icon="ic:outline-layers-clear" />
-            </Button>
-          </Tooltip>
-
-          <Tooltip title={"Select All"}>
-            <Button variant="contained" onClick={() => setVisibleOnDoubleClick(!visibleOnDoubleClick)}>
-              <Icon style={{ color: colors.grey[600] }} icon="mdi:checkbox-multiple-marked-outline" />
-            </Button>
-          </Tooltip>
-          <Tooltip title={"Clear all selection"}>
-            <Button variant="contained" onClick={() => setVisibleOnDoubleClick(!visibleOnDoubleClick)}>
-              <Icon style={{ color: colors.grey[600] }} icon="mdi:checkbox-multiple-blank-outline" />
-            </Button>
-          </Tooltip>
-        </ButtonGroup> */}
-
-        {/* All children Rows */}
-
-        <Box component="div" m="0px" maxHeight="100%" overflow="hidden" width="100%">
-          {nodes &&
-            Array.from(nodes).map((data) => (
-              <TreeTableRow
-                name={data.name}
-                treeID={'tID'}
-                icon="game-icons:wood-beam"
-                node={data}
-                key={data.id}
-                variant="Flat"
-                visibleOnDoubleClick={visibleOnDoubleClick}
-              />
-            ))}
-        </Box>
+        {nodes && <RichTreeView items={nodes} getItemLabel={(item) => item.name} />}
       </div>
     </>
   );

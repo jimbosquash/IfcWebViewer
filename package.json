@@ -16,6 +16,7 @@
     "@mui/icons-material": "^5.15.18",
     "@mui/material": "^5.15.15",
     "@mui/x-data-grid": "^7.2.0",
+    "@mui/x-tree-view": "^7.18.0",
     "@nivo/bar": "^0.86.0",
     "@nivo/pie": "^0.86.0",
     "@react-three/drei": "^9.105.5",
