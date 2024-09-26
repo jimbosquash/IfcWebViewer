@@ -1,5 +1,4 @@
 import { Snackbar, Alert, Box } from "@mui/material";
-import { FragmentsManager } from "@thatopen/components";
 import { FragmentsGroup } from "@thatopen/fragments";
 import { useEffect, useState } from "react";
 import { ModelCache } from "../../bim-components/modelCache";
@@ -11,13 +10,10 @@ import { Scene } from "./src/scene";
 
 export const Viewer = () => {
   const components = useComponentsContext();
-
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
-  const [hasModel, setHasModel] = useState<boolean>(false);
   const [fileName, setFileName] = useState<string>("");
 
   useEffect(() => {
-    // listen for new models
     if (!components) return;
     const cache = components.get(ModelCache);
     cache.onModelAdded.add((data) => handleLoadedModel(data));
@@ -35,7 +31,6 @@ export const Viewer = () => {
   };
 
   const handleLoadedModel = (data: FragmentsGroup) => {
-    setHasModel(true);
     console.log("viewer handel opening", data);
     setFileName(data?.name);
     setSnackbarOpen(true);

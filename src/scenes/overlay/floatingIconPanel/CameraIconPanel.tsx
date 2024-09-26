@@ -14,7 +14,7 @@ import * as OBC from "@thatopen/components";
 import { ModelCache } from "../../../bim-components/modelCache";
 import { IconButtonConfig } from "../../../components/floatingIconButton";
 
-const CameraIconPanel: React.FC<BoxProps> = ({...props}) => {
+const FloatingCameraPanel: React.FC<BoxProps> = ({...props}) => {
   const components = useComponentsContext();
   const [projectionMode, setProjectionMode] = useState<OBC.CameraProjection>();
   const [navMode, setNavMode] = useState<OBC.NavModeID>();
@@ -176,4 +176,4 @@ const CameraIconPanel: React.FC<BoxProps> = ({...props}) => {
   );
 };
 
-export default CameraIconPanel;
+export default FloatingCameraPanel;

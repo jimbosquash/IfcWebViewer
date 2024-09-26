@@ -11,6 +11,7 @@ import { getAveragePoint } from "../../utilities/threeUtils";
 import { Line, Vector3 } from "three";
 import * as THREE from "three";
 import { IFCFLOW } from "../hvacViewer";
+import { ConfigManager, ConfigSchema } from "../../utilities/ConfigManager";
 
 // key = name of element. first array = an array of matching names with arrays of tags grouped by distance
 interface GroupedElements {
@@ -23,14 +24,24 @@ export enum TagVisibilityMode {
     TagVisible = "TagVisible"
 }
 
-interface TaggerConfiguration {
+export interface MarkerConfiguration {
     showFasteners: boolean,
     showInstallations: boolean,
     mergeFasteners: boolean,
 }
 
+const markerConfigSchema: ConfigSchema<MarkerConfiguration> = {
+    showFasteners: { defaultValue: true },
+    showInstallations: { defaultValue: true },
+    mergeFasteners: { defaultValue: false },
+    // zoomLevel: { 
+    //     defaultValue: 1, 
+    //     validate: (value) => value >= 0.1 && value <= 10 
+    // }
+};
+
+
 const IFCMECHANICALFASTENER: string = "IFCMECHANICALFASTENER";
-// const IFCFLOWCONTROLLER: string = "IFCFLOWCONTROLLER";
 
 /**
  * Responsible for generating and display marks or tags which float over a 3d element in the view port. Make
@@ -48,29 +59,14 @@ export class ModelTagger extends OBC.Component {
     private _visible: boolean = false;
     private _colorMap: Map<string, string> = new Map(); // key = name or any string, value = color as hex
     private _tagVisibilityMode: TagVisibilityMode = TagVisibilityMode.TagSelectionGroup;
-    private _configuration?: TaggerConfiguration = {
-        showFasteners: true,
-        showInstallations: false,
-        mergeFasteners: false
-    }
 
-    readonly onConfigurationSet = new OBC.Event<TaggerConfiguration>()
+    private _configManager = new ConfigManager<MarkerConfiguration>(markerConfigSchema, 'markerConfig');
+
+
+    readonly onConfigurationSet = new OBC.Event<MarkerConfiguration>()
 
     get Configuration() {
-        return this._configuration;
-    }
-
-    set Configuration(value: TaggerConfiguration | undefined) {
-        if (!value) return;
-        this._configuration = value;
-
-        console.log('tagger configurations set', this._configuration)
-
-        if (this.enabled) {
-            this.setMarkerProps()
-        }
-
-        this.onConfigurationSet.trigger(value);
+        return this._configManager;
     }
 
     /**
@@ -89,6 +85,17 @@ export class ModelTagger extends OBC.Component {
     constructor(components: OBC.Components) {
         super(components)
         components.add(ModelTagger.uuid, this)
+        this._configManager.addEventListener('configChanged', (event: Event) => { 
+            console.log('configChanged', event)
+            if(this.enabled)
+                this.setMarkerProps()
+
+        })
+
+        // markerConfigManager.addEventListener('configChanged', (event: Event) => {
+        //         const { key, value, configName } = (event as CustomEvent).detail;
+        //         console.log(`Config ${configName} changed: ${String(key)} = ${value}`);
+        //     });
     }
 
 
@@ -219,14 +226,14 @@ export class ModelTagger extends OBC.Component {
 
         //if (!this._configuration?.showFasteners) hiddenTypes.push(IFCMECHANICALFASTENER)
         hiddenTypes.push(IFCMECHANICALFASTENER)
-        if (!this._configuration?.showInstallations) hiddenTypes.push(IFCFLOW)
+        if (!this._configManager.get("showInstallations")) hiddenTypes.push(IFCFLOW)
 
         let filteredElements = buildingElements.filter(el => !hiddenTypes.find(partialType => el.type.includes(partialType)))
         let filteredOutElements = buildingElements.filter(el => hiddenTypes.find(partialType => el.type.includes(partialType)))
 
 
         // also remove by product code in case of installations
-        if (!this._configuration?.showInstallations) {
+        if (!this._configManager.get("showInstallations")) {
             // console.log("filtering TE elements")
             filteredElements = filteredElements.filter(el => !GetPropertyByName(el, knownProperties.ProductCode)?.value.includes("TE"))
             filteredOutElements = filteredElements.filter(el => GetPropertyByName(el, knownProperties.ProductCode)?.value.includes("TE"))
@@ -251,14 +258,14 @@ export class ModelTagger extends OBC.Component {
         const markers = this.createMarkers(filteredElements.filteredElements);
 
 
-        if(this.Configuration?.showFasteners && !this.Configuration?.mergeFasteners) {
+        if(this._configManager.get("showFasteners") && !this._configManager.get('mergeFasteners')) {
             //set them up for just icon
             let fasteners = buildingElements.filter(el =>  el.type.includes(IFCMECHANICALFASTENER))
             const iconMarkers = this.createIconMarkers(fasteners,"material-symbols:tools-power-drill-outline");
             iconMarkers.forEach(mark => markers.push(mark))
         }
 
-        if (this.Configuration?.showFasteners && this.Configuration?.mergeFasteners) {
+        if (this._configManager.get('showFasteners') && this._configManager.get('mergeFasteners')) {
             console.log('merging markers: start')
             const mergedTags = this.getMergedMarkerPropsByModel(buildingElements)
             console.log('merging tags', mergedTags)
@@ -634,4 +641,8 @@ export class ModelTagger extends OBC.Component {
     private generateRandomHexColor = (): string => {
         return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
     };
+
+    private dispose = () => {
+
+    } 
 }

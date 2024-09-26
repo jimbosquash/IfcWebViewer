@@ -46,23 +46,6 @@ export const Scene = () => {
       }
 
       if (modelCache.world) {
-        // set up culler
-        // const cullers = components.get(OBC.Cullers);
-        // const culler = cullers.create(modelCache?.world,{updateInterval: 50});
-        // culler.threshold = 30;
-        // culler.renderDebugFrame = true;
-        // const debugFrame = culler.renderer.domElement;
-        // document.body.appendChild(debugFrame);
-        // debugFrame.style.position = "fixed";
-        // debugFrame.style.left = "0";
-        // debugFrame.style.bottom = "0";
-        // debugFrame.style.visibility = "collapse";
-        // if (modelCache.world !== undefined) {
-        //   modelCache.world.camera.controls?.addEventListener("controlend", () => {
-        //     culler.needsUpdate = true;
-        //   });
-        // }
-
         const stats = new Stats();
         stats.showPanel(2);
         document.body.append(stats.dom);
@@ -89,6 +72,9 @@ export const Scene = () => {
     };
   }, [components]);
 
+  /**
+   * set up world (renderer and other settings) and add resize events
+   */
   const createWorld = (components: OBC.Components): OBC.World | undefined => {
     const modelCache = components.get(ModelCache);
 
@@ -124,18 +110,12 @@ export const Scene = () => {
 
     // also check if already in scene before being here
     if (modelCache?.world && components) {
-      //const cullers = components.get(OBC.Cullers);
-      //const culler = cullers.create(modelCache?.world);
-
       //add current model again
       for (const frag of data.items) {
         modelCache?.world.meshes.add(frag.mesh);
-        //culler.add(frag.mesh);
       }
 
       modelCache?.world.scene.three.add(data);
-      //culler.needsUpdate = true;
-
       setTimeout(async () => {
         const cam = modelCache?.world?.camera as OBC.OrthoPerspectiveCamera;
         if (modelCache?.world?.meshes) cam.fit(modelCache?.world?.meshes, 0.8);
@@ -150,10 +130,9 @@ export const Scene = () => {
         ref={mountRef}
         style={{
           position: "relative",
-          // display: "flex",
           width: "100%",
           height: "100%",
-          overflow: "hidden", // This prevents child elements from overflowing
+          overflow: "hidden",
         }}
       >
         <Overlay />

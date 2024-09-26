@@ -8,18 +8,13 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  FormControlLabel,
   SelectChangeEvent,
   Divider,
 } from "@mui/material";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
-import * as THREE from "three";
-import * as BUI from "@thatopen/ui";
-import * as CUI from "@thatopen/ui-obc";
 import { ModelTagger } from "../../../../bim-components/modelTagger";
-import { ModelCache } from "../../../../bim-components/modelCache";
 
 // Define types for our setting components
 interface ToggleSettingProps {
@@ -98,13 +93,16 @@ const SettingsPanel: React.FC = () => {
     // get all settings that are state
     const highlighter = components.get(OBF.Highlighter);
     setZoomOnSelection(highlighter.zoomToSelection);
-    const tagger = components.get(ModelTagger);
-    setShowFasteners(tagger.Configuration?.showFasteners ?? false);
-
+    const tagConfigs = components.get(ModelTagger).Configuration;
+    setShowFasteners(tagConfigs.get("showFasteners"));
+    setMergeFasteners(tagConfigs.get("mergeFasteners"));
+    setShowInstallations(tagConfigs.get("showInstallations"));
     return () => {
       // unhook any changes
     };
   }, [components]);
+
+
 
   const handleZoomToggle = (checked: boolean) => {
     setZoomOnSelection(checked);
@@ -121,32 +119,17 @@ const SettingsPanel: React.FC = () => {
 
   const handleShowFastenersToggle = (checked: boolean) => {
     setShowFasteners(checked);
-    const tagger = components.get(ModelTagger);
-    const config = tagger.Configuration;
-    if (config) {
-      config.showFasteners = checked;
-      tagger.Configuration = config;
-    }
+    components.get(ModelTagger).Configuration.set("showFasteners",checked)
   };
 
   const handleMergeFastenersToggle = (checked: boolean) => {
     setMergeFasteners(checked);
-    const tagger = components.get(ModelTagger);
-    const config = tagger.Configuration;
-    if (config) {
-      config.mergeFasteners = checked;
-      tagger.Configuration = config;
-    }
+    components.get(ModelTagger).Configuration.set("mergeFasteners",checked)
   };
 
   const handleShowInstallationsToggle = (checked: boolean) => {
     setShowInstallations(checked);
-    const tagger = components.get(ModelTagger);
-    const config = tagger.Configuration;
-    if (config) {
-      config.showInstallations = checked;
-      tagger.Configuration = config;
-    }
+    components.get(ModelTagger).Configuration.set("showInstallations",checked)
   };
 
   return (

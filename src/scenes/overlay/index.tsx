@@ -5,7 +5,7 @@ import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import { ModelViewManager } from "../../bim-components/modelViewer";
 import { InfoPanel } from "./src/InfoPanel";
-import CameraIconPanel from "./floatingIconPanel/CameraIconPanel";
+import FloatingCameraPanel from "./floatingIconPanel/CameraIconPanel";
 
 const Overlay = () => {
   const components = useComponentsContext();
@@ -48,7 +48,7 @@ const Overlay = () => {
       <InfoPanel />
 
       <ActionButtonPanel />
-      <CameraIconPanel
+      <FloatingCameraPanel
           sx={{
             position: "absolute",
             top: "25%",
