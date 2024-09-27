@@ -333,8 +333,49 @@ export const setUpTreeFromProperties = (id: string, elements: BuildingElement[],
   return tree;
 }
 
+// function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[]][] {
+//   const entries = Array.from(groupedElements.entries());
+
+//   // Function to extract and parse the first number from a string
+//   const extractNumber = (str: string): [number, string] => {
+//     const match = str.match(/(\d+)(?:\.(\d+))?/);
+//     if (match) {
+//       const integerPart = parseInt(match[1]);
+//       const decimalPart = match[2] || '';
+//       return [integerPart, decimalPart];
+//     }
+//     return [Infinity, ''];
+//   };
+
+//   // Custom comparison function for decimal parts
+//   const compareDecimals = (a: string, b: string): number => {
+//     const maxLength = Math.max(a.length, b.length);
+//     const aPadded = a.padEnd(maxLength, '0');
+//     const bPadded = b.padEnd(maxLength, '0');
+//     return aPadded.localeCompare(bPadded);
+//   };
+
+//   // Sort all entries using a custom comparison function
+//   entries.sort((a, b) => {
+//     const [aInt, aDec] = extractNumber(a[0]);
+//     const [bInt, bDec] = extractNumber(b[0]);
+
+//     if (aInt !== bInt) {
+//       return aInt - bInt; // Compare integer parts
+//     }
+//     const decimalComparison = compareDecimals(aDec, bDec);
+//     if (decimalComparison !== 0) {
+//       return decimalComparison; // Compare decimal parts
+//     }
+//     return a[0].localeCompare(b[0]); // If numbers are identical, sort alphabetically
+//   });
+
+//   return entries;
+// }
+
 function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[]][] {
   const entries = Array.from(groupedElements.entries());
+  console.log('sorting', Array.from(groupedElements.keys()));
 
   // Function to extract the first number (including decimals) from a string
   const extractNumber = (str: string): [number, number] => {
@@ -344,29 +385,31 @@ function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[
       const decimalPart = match[2] ? parseInt(match[2]) : 0;
       return [integerPart, decimalPart];
     }
-    return [Infinity, Infinity];
+    return [Infinity, 0];
   };
 
-  // Sort all entries using a custom comparison function
+  // Custom sort function
   entries.sort((a, b) => {
     const [aInt, aDec] = extractNumber(a[0]);
     const [bInt, bDec] = extractNumber(b[0]);
+    console.log('sort between', `${aInt}.${aDec}`, `${bInt}.${bDec}`);
 
-    if (aInt === bInt) {
-      if (aDec === bDec) {
-        // If numbers are exactly the same, sort alphabetically
-        return a[0].localeCompare(b[0]);
-      }
-      return aDec - bDec;
+    if (aInt !== bInt) {
+      return aInt - bInt; // Compare integer parts
     }
 
-    return aInt - bInt;
+    if (aDec !== bDec) {
+      return aDec - bDec; // Compare decimal parts as integers
+    }
+
+    // If numbers are the same, fall back to alphabetical comparison
+    console.log('sorted one', a[0].localeCompare(b[0]));
+    return a[0].localeCompare(b[0]);
   });
 
+  console.log('sorted', entries.map(e => e[0]));
   return entries;
 }
-
-
 
 
 
