@@ -333,45 +333,82 @@ export const setUpTreeFromProperties = (id: string, elements: BuildingElement[],
   return tree;
 }
 
-
 function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[]][] {
   const entries = Array.from(groupedElements.entries());
 
-  // Separate entries into numeric and non-numeric prefixes
-  const numericEntries: [string, any[]][] = [];
-  const nonNumericEntries: [string, any[]][] = [];
-
-  entries.forEach(entry => {
-    const prefix = entry[0].split('_')[0];
-    if (!isNaN(parseFloat(prefix)) && isFinite(parseFloat(prefix))) {
-      numericEntries.push(entry);
-    } else {
-      nonNumericEntries.push(entry);
+  // Function to extract the first number (including decimals) from a string
+  const extractNumber = (str: string): [number, number] => {
+    const match = str.match(/(\d+)(?:\.(\d+))?/);
+    if (match) {
+      const integerPart = parseInt(match[1]);
+      const decimalPart = match[2] ? parseInt(match[2]) : 0;
+      return [integerPart, decimalPart];
     }
+    return [Infinity, Infinity];
+  };
+
+  // Sort all entries using a custom comparison function
+  entries.sort((a, b) => {
+    const [aInt, aDec] = extractNumber(a[0]);
+    const [bInt, bDec] = extractNumber(b[0]);
+
+    if (aInt === bInt) {
+      if (aDec === bDec) {
+        // If numbers are exactly the same, sort alphabetically
+        return a[0].localeCompare(b[0]);
+      }
+      return aDec - bDec;
+    }
+
+    return aInt - bInt;
   });
 
-  // Sort numeric entries using a custom comparison function
-  numericEntries.sort((a, b) => {
-    const aPrefix = a[0].split('_')[0];
-    const bPrefix = b[0].split('_')[0];
-    
-    // Split the prefix into integer and decimal parts
-    const [aInt, aDec = '0'] = aPrefix.split('.');
-    const [bInt, bDec = '0'] = bPrefix.split('.');
-    
-    // Compare integer parts first
-    const intComparison = parseInt(aInt) - parseInt(bInt);
-    if (intComparison !== 0) {
-      return intComparison;
-    }
-    
-    // If integer parts are equal, compare decimal parts
-    return parseInt(aDec) - parseInt(bDec);
-  });
-
-  // Combine sorted numeric entries with unsorted non-numeric entries
-  return [...numericEntries, ...nonNumericEntries];
+  return entries;
 }
+
+
+
+
+
+
+// function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[]][] {
+//   const entries = Array.from(groupedElements.entries());
+
+//   // Separate entries into numeric and non-numeric prefixes
+//   const numericEntries: [string, any[]][] = [];
+//   const nonNumericEntries: [string, any[]][] = [];
+
+//   entries.forEach(entry => {
+//     const prefix = entry[0].split('_')[0];
+//     if (!isNaN(parseFloat(prefix)) && isFinite(parseFloat(prefix))) {
+//       numericEntries.push(entry);
+//     } else {
+//       nonNumericEntries.push(entry);
+//     }
+//   });
+
+//   // Sort numeric entries using a custom comparison function
+//   numericEntries.sort((a, b) => {
+//     const aPrefix = a[0].split('_')[0];
+//     const bPrefix = b[0].split('_')[0];
+    
+//     // Split the prefix into integer and decimal parts
+//     const [aInt, aDec = '0'] = aPrefix.split('.');
+//     const [bInt, bDec = '0'] = bPrefix.split('.');
+    
+//     // Compare integer parts first
+//     const intComparison = parseInt(aInt) - parseInt(bInt);
+//     if (intComparison !== 0) {
+//       return intComparison;
+//     }
+    
+//     // If integer parts are equal, compare decimal parts
+//     return parseInt(aDec) - parseInt(bDec);
+//   });
+
+//   // Combine sorted numeric entries with unsorted non-numeric entries
+//   return [...numericEntries, ...nonNumericEntries];
+// }
 
 
 export const groupElementsByPropertyName = (elements: BuildingElement[], property: string): Map<string, BuildingElement[]> => {
