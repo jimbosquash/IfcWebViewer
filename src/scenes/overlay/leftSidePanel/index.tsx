@@ -1,7 +1,7 @@
 import { Box, IconButton, Tooltip, useTheme, Typography } from "@mui/material";
 import { Icon } from "@iconify/react";
 import { tokens } from "../../../theme";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BimSettings } from "../../../components/BimSettings";
 import ColorPaletteModal from "../../../components/ColorPalleteModal";
 import { useComponentsContext } from "../../../context/ComponentsContext";
@@ -10,6 +10,7 @@ import ProjectOverviewPanel from "./src/ProjectOverViewPanel";
 import TaskBrowserPanel from "./src/TaskBrowserPanel";
 import SettingsPanel from "./src/settingsPanel";
 import { sidebarWidth } from "../rightSidePanel";
+import { ModelViewManager } from "../../../bim-components/modelViewer";
 
 const minWidth = 220;
 
@@ -22,7 +23,7 @@ export const LeftSidePanel: React.FC = () => {
   const [isResizing, setIsResizing] = useState(false);
   const [autoOpen, setAutoOpen] = useState(true);
   const [totalWidth, setTotalWidth] = useState(sidebarWidth);
-
+  const panelAutoOpen = useRef<boolean>(true);
   const [panelContent, setPanelContent] = useState<{ content: JSX.Element | null; name: string }>({
     content: null,
     name: "",
@@ -36,20 +37,24 @@ export const LeftSidePanel: React.FC = () => {
     // listen for new models
     if (!components) return;
 
-    const fragments = components.get(ModelCache);
+    const viewManager = components.get(ModelViewManager);
     console.log("side panel listening");
 
-    fragments.onModelAdded.add(() => listenForModels());
+    viewManager.onTreeChanged.add(() => listenForTreeChange());
 
     return () => {
       // unlisten
-      fragments.onModelAdded.remove(() => listenForModels());
+      viewManager.onTreeChanged.remove(() => listenForTreeChange());
       console.log("side panel stop listening");
     };
   }, [components]);
 
-  const listenForModels = () => {
-    console.log("side panel listening for model");
+  const listenForTreeChange = () => {
+    if(!panelAutoOpen.current) {
+      components.get(ModelViewManager).onTreeChanged.remove(() => listenForTreeChange());
+      return;
+    }
+    // console.log("side panel listening for model");
 
     if (!autoOpen) return;
 

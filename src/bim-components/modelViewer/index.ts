@@ -203,7 +203,7 @@ export class ModelViewManager extends OBC.Component {
         this.setTree(tree.id)
         this._selectedGroup = undefined;
         this._enabled = true;
-        this.updateVisibility(tree.id);
+        // this.updateVisibility(tree.id); // this is slow and the model should already be visible as this is used on opening by default
     }
 
     /**

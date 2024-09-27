@@ -441,7 +441,7 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
     // once that is done I will then want to construct a basic data tree. 
 
     // Usage
-    buildTree(newElements,model,indexer)
+    // await buildTree(newElements,model,indexer)
 
     return newElements;
 }
@@ -495,14 +495,14 @@ async function findParentRecursively(
                 };
                 tree.addNode(tree.root.id, parentEntity.expressID.toString(), parentEntity.name || `Element_${parentEntity.expressID}`, parentEntity.type, parentEntity, false);
                 parentNode = tree.getNode(parents[0].toString());
-                console.log("Parent created", parentNode);
+                // console.log("Parent created", parentNode);
             } else {
-                console.log("Parent found", parentNode);
+                // console.log("Parent found", parentNode);
             }
 
             // Move the current element under its parent
             if (nodeInTree && parentNode) {
-                console.log("Placing element under parent", nodeInTree, parentNode);
+                // console.log("Placing element under parent", nodeInTree, parentNode);
 
                 // Instead of removing and re-adding, update the parent reference
                 if (nodeInTree.parent) {
@@ -522,12 +522,6 @@ async function findParentRecursively(
 
     return nodeInTree?.data || null;
 }
-interface Entity {
-    expressID: number;
-    // Add other properties as needed
-}
-
-
 
 
 export type InverseAttributes = [

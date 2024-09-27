@@ -88,6 +88,7 @@ const SettingsPanel: React.FC = () => {
   const [showFasteners, setShowFasteners] = useState<boolean>(true);
   const [mergeFasteners, setMergeFasteners] = useState<boolean>(true);
   const [showInstallations, setShowInstallations] = useState<boolean>(false);
+  const [labelStyle, setLabelStyle] = useState<"Code" | "Name">("Code");
   const [showGrid, setShowGrid] = useState<boolean>(false);
 
   useEffect(() => {
@@ -97,6 +98,7 @@ const SettingsPanel: React.FC = () => {
     setShowGrid(components.get(ConfigurationManager).sceneConfig.get("showGrid"));
 
     const tagConfigs = components.get(ModelTagger).Configuration;
+    setLabelStyle(tagConfigs.get("labelStyle"));
     setShowFasteners(tagConfigs.get("showFasteners"));
     setMergeFasteners(tagConfigs.get("mergeFasteners"));
     setShowInstallations(tagConfigs.get("showInstallations"));
@@ -119,6 +121,13 @@ const SettingsPanel: React.FC = () => {
       grid.visible = checked;
     });
   };
+
+  const handleLabelStyleToggle = (checked: boolean) => {
+    const labelStyle = checked ? "Code" : "Name";
+    setLabelStyle(labelStyle);
+    components.get(ModelTagger).Configuration.set("labelStyle", labelStyle);
+  };
+
 
   const handleShowFastenersToggle = (checked: boolean) => {
     setShowFasteners(checked);
@@ -168,6 +177,12 @@ const SettingsPanel: React.FC = () => {
       <Typography variant="h6" gutterBottom>
         Tag Settings
       </Typography>
+
+      <ToggleSetting
+        label={`Show label as ${labelStyle}` }
+        value={labelStyle === "Code"}
+        onChange={(e) => handleLabelStyleToggle(e)}
+      />
 
       <ToggleSetting
         label={showFasteners ? "Show Fasteners" : "Hide Fasteners"}

@@ -25,13 +25,16 @@ export const WelcomePanel = () => {
     }
   };
 
-  const handleModelViewSet = (data: 'Assembly' | "Station") => {
-    if(!loadedModel) return;
-    const modelViewManager = components.get(ModelViewManager)
-    modelViewManager.defaultTreeStructure = data === "Assembly" ? [knownProperties.Assembly,knownProperties.BuildingStep] : [knownProperties.Station,knownProperties.BuildingStep];
-    components.get(ModelCache).add(loadedModel, new Uint8Array())
-    setEnableView(false)
-  }
+  const handleModelViewSet = async (data: "Assembly" | "Station") => {
+    if (!loadedModel) return;
+    setEnableView(false);
+    const modelViewManager = components.get(ModelViewManager);
+    modelViewManager.defaultTreeStructure =
+      data === "Assembly"
+        ? [knownProperties.Assembly, knownProperties.BuildingStep]
+        : [knownProperties.Station, knownProperties.BuildingStep];
+    await components.get(ModelCache).add(loadedModel, new Uint8Array());
+  };
   return (
     <>
       {enableView && (
@@ -126,10 +129,13 @@ export const WelcomePanel = () => {
                 >
                   <Box
                     component="div"
-                    onClick={() => handleModelViewSet("Station")}
+                    onClick={() => {
+                      setEnableView(false);
+                      handleModelViewSet("Station");
+                    }}
                     sx={{
                       height: "70%",
-                      width:"40%",
+                      width: "40%",
                       margin: "12px",
                       pointerEvents: "auto",
                       border: `2px dashed gray`,
@@ -144,17 +150,18 @@ export const WelcomePanel = () => {
                       alignItems: "center",
                     }}
                   >
-                    <Icon  icon="streamline:warehouse-1" style={{ fontSize: "52px", marginBottom: "4px" }} />
+                    <Icon icon="streamline:warehouse-1" style={{ fontSize: "52px", marginBottom: "4px" }} />
                     <Typography variant="body1">View by Station</Typography>
                   </Box>
 
-
                   <Box
                     component="div"
-                    onClick={() => handleModelViewSet("Assembly")}
+                    onClick={() =>{
+                      setEnableView(false);
+                      handleModelViewSet("Assembly")}}
                     sx={{
                       height: "70%",
-                      width:"40%",
+                      width: "40%",
                       margin: "12px",
                       pointerEvents: "auto",
                       border: `2px dashed gray`,
@@ -169,7 +176,7 @@ export const WelcomePanel = () => {
                       alignItems: "center",
                     }}
                   >
-                    <Icon  icon="system-uicons:boxes" style={{ fontSize: "52px", marginBottom: "4px" }} />
+                    <Icon icon="system-uicons:boxes" style={{ fontSize: "52px", marginBottom: "4px" }} />
                     <Typography variant="body1">View by Assemblies</Typography>
                   </Box>
                 </Box>
