@@ -233,7 +233,7 @@ export class ModelCache extends OBC.Component {
         return this._enabled
     }
 
-    get BuildingElements() {
+    get buildingElements() {
         return this._buildingElements;
     }
 }

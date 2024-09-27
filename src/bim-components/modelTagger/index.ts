@@ -189,7 +189,7 @@ export class ModelTagger extends OBC.Component {
      */
     private createMarkerPropsFromModelVisibility = () => {
         const cache = this.components.get(ModelCache);
-        if (cache.BuildingElements) {
+        if (cache.buildingElements) {
             // console.log('creating new markers', cache.BuildingElements)
             const allVisibleIDs = GetAllVisibleExpressIDs(cache.models())
             const allVisibleElements: BuildingElement[] = [];
@@ -500,7 +500,7 @@ export class ModelTagger extends OBC.Component {
      * @returns 
      */
     setup() {
-        const cache = this.components.get(ModelCache).BuildingElements
+        const cache = this.components.get(ModelCache).buildingElements
         if (!cache) return;
         this.setupColors(true);
         this.setupMarkerProps(cache)
@@ -520,7 +520,7 @@ export class ModelTagger extends OBC.Component {
     }
 
     setupColors(useExisting: boolean) {
-        const cache = this.components.get(ModelCache).BuildingElements
+        const cache = this.components.get(ModelCache).buildingElements
         if (!cache) return;
         if (!useExisting) {
             this._colorMap = new Map();

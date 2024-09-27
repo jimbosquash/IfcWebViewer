@@ -4,6 +4,7 @@ import AssemblyInfoPanel from "./AssemblyInfoPanel";
 import ElementInfoPanel from "./ElementInfoPanel";
 import CustomTabPanel from "../../../../components/CustomTabPanel";
 import StyledTab from "../../../../components/StyledTab";
+import ModelInfoPanel from "./modelInfoPanel";
 
 export const PropertiesPanel = () => {
   const [value, setValue] = useState(0);
@@ -24,6 +25,7 @@ export const PropertiesPanel = () => {
           <Tabs value={value} onChange={(event: React.SyntheticEvent, newValue: number) => setValue(newValue)}>
             <StyledTab label="Element" index={0} />
             <StyledTab label="Assembly" index={1} />
+            <StyledTab label="Model" index={2} />
           </Tabs>
         </Box>
         <Box component={"div"} height="100%"
@@ -33,7 +35,7 @@ export const PropertiesPanel = () => {
           display: "flex",
           flexDirection: "column",
           // Ensure padding at the bottom for better UX when scrolling
-          // paddingBottom: "50px",
+          paddingBottom: "50px",
         }}
         >
           <CustomTabPanel value={value} index={0}>
@@ -41,6 +43,9 @@ export const PropertiesPanel = () => {
           </CustomTabPanel>
           <CustomTabPanel value={value} index={1}>
             <AssemblyInfoPanel />
+          </CustomTabPanel>
+          <CustomTabPanel value={value} index={2}>
+            <ModelInfoPanel />
           </CustomTabPanel>
         </Box>
       </Box>

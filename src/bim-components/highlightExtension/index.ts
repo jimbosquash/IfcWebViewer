@@ -163,12 +163,4 @@ export class HighlightExtension extends OBC.Component {
         }
         return label;
     }
-
-    // private addCommentOnPreviewPoint = () => {
-    //     if(!(this.enabled && this._hitPoint)) return;
-    //     const text = prompt("Comment")
-    //     if(!(text && text.trim() !== "")) return;
-    //     this.addComment(text,this._hitPoint);
-    // }
-
 }
