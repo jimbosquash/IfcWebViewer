@@ -1,4 +1,3 @@
-
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
 import { ModelCache } from "../bim-components/modelCache";

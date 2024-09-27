@@ -58,17 +58,12 @@ const FloatingCameraPanel: React.FC<BoxProps> = ({ ...props }) => {
   }
 
   const toggleProjectionMode = useCallback(() => {
-    const cache = components?.get(ModelCache);
-    if (!cache || !cache.world?.camera.controls?.enabled) return;
-
     const newMode = projectionMode === "Perspective" ? "Orthographic" : "Perspective";
     setCameraProjection(components, newMode, true);
   }, [components, projectionMode]);
 
   const toggleNavigationMode = useCallback(() => {
     const newNavMode = navMode === "Orbit" ? "Plan" : "Orbit";
-
-    console.log('new and old nav', navMode, newNavMode)
     setCameraNavigation(components, newNavMode, true);
   }, [components, projectionMode,navMode]);
 
