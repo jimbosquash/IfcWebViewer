@@ -58,7 +58,7 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
         </Typography>
       ) : (
         <Typography sx={{ flex: "1 1 100%" }} variant="h6" id="tableTitle" component="div">
-          Nutrition
+          Building Elements
         </Typography>
       )}
       {numSelected > 0 ? (
@@ -297,7 +297,7 @@ export const EnhancedTable: React.FC<EnhancedTableDataProps> = ({ rows }) => {
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
+        {/* <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
           count={rows.length}
@@ -305,7 +305,7 @@ export const EnhancedTable: React.FC<EnhancedTableDataProps> = ({ rows }) => {
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+        /> */}
       </Paper>
       <FormControlLabel control={<Switch checked={dense} onChange={handleChangeDense} />} label="Dense padding" />
     </Box>

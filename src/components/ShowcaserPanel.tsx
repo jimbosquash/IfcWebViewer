@@ -7,14 +7,21 @@ import Showcaser from "../bim-components/showcaser";
 import { ModelCache } from "../bim-components/modelCache";
 import { Box, Button, IconButton, Typography } from "@mui/material";
 import { Icon } from "@iconify/react";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 
+// const columns: GridColDef[] = [
+//     {
 
+//     }
+// ]
 
 export const ShowcaserPanel = () => {
     const components = useComponentsContext();
     const panelSection = useRef<HTMLDivElement | null>(null);
     const [isSetUp, setIsSetUp] = useState<boolean>(false);
     const showcaser = components.get(Showcaser);
+
+
 
     useEffect(() => {
         if (!components || isSetUp) return;
@@ -87,7 +94,11 @@ export const ShowcaserPanel = () => {
                         {/* <Icon icon="mdi:color" /> */}
                     </Button>
                 </Box>
+                <Box component='div' flexDirection='row' display='flex'>
+                    {/* <DataGrid columns={}>
 
+                    </DataGrid> */}
+                </Box>
 
             </div>
         </>
