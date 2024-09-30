@@ -11,6 +11,7 @@ import TaskBrowserPanel from "./src/TaskBrowserPanel";
 import SettingsPanel from "./src/settingsPanel";
 import { sidebarWidth } from "../rightSidePanel";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
+import { ShowcaserPanel } from "../../../components/ShowcaserPanel";
 
 const minWidth = 220;
 
@@ -50,7 +51,7 @@ export const LeftSidePanel: React.FC = () => {
   }, [components]);
 
   const listenForTreeChange = () => {
-    if(!panelAutoOpen.current) {
+    if (!panelAutoOpen.current) {
       components.get(ModelViewManager).onTreeChanged.remove(() => listenForTreeChange());
       return;
     }
@@ -212,6 +213,26 @@ export const LeftSidePanel: React.FC = () => {
             }
           >
             <Icon icon="material-symbols:settings-outline" />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="Presentation" placement="right" arrow>
+          <IconButton
+            style={{
+              backgroundColor: panelContent.name === "Presentations" && panelOpen ? colors.grey[900] : "transparent",
+            }}
+            onClick={() =>
+              handleIconClick(
+                <>
+                  <Typography variant="h6">Presentations</Typography>
+                  <ShowcaserPanel />
+                  {/* <SettingsPanel /> */}
+                </>,
+                "Presentations"
+              )
+            }
+          >
+            <Icon icon="ph:video-camera-bold" />
           </IconButton>
         </Tooltip>
 

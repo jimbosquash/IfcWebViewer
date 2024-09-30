@@ -405,19 +405,20 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
     for (const [systemName, system] of Object.entries(classifier.list)) {
         // console.log('System name:', systemName)
 
-        for (const [className, fragmentMap] of Object.entries(system)) {
-            // console.log(`  Class: ${className}`);
+        for (const [className, map] of Object.entries(system)) {
+            console.log(`  Class: ${className}`, map);
 
-            for (const [fragmentID, expressIDs] of Object.entries(fragmentMap)) {
-                // console.log(`  fragment: ${fragmentID}`);
+            for (const [id, expressIDs] of Object.entries(map.map)) {
+                console.log(`  fragment: ${id}`, expressIDs);
 
                 // Use Promise.all to handle multiple async operations in parallel
                 await Promise.all([...expressIDs].map(async (expressID: number) => {
                     // console.log(`    expressID: ${expressID}`);
 
+
                     //get the element and its base info (name, ids, ect)
                     //get properties and add them to psets
-                    const newElement = await getBuildingElementBase(expressID, fragmentID, model, indexer);
+                    const newElement = await getBuildingElementBase(expressID, id, model, indexer);
 
                     if (newElement) {
                         const props = await GetAllDefinedBy(model, indexer, expressID);
@@ -487,8 +488,8 @@ async function findParentRecursively(
                 // If parent doesn't exist, create it
                 const parentElement = await model.getProperties(parents[0]);
 
-                const parentEntity: IfcElement = { 
-                    expressID: parents[0], 
+                const parentEntity: IfcElement = {
+                    expressID: parents[0],
                     name: parentElement.Name?.value,
                     type: IfcElements[parentElement.type],
                     GlobalID: parentElement.GlobalId?.value,
@@ -572,7 +573,7 @@ export async function GetAssemblies(model: FRAGS.FragmentsGroup, components: OBC
         for (const [className, fragmentMap] of Object.entries(system)) {
             // console.log(`  Class: ${className}`);
 
-            for (const [fragmentID, expressIDs] of Object.entries(fragmentMap)) {
+            for (const [fragmentID, expressIDs] of Object.entries(fragmentMap.map)) {
                 // console.log(`  fragment: ${fragmentID}`);
 
                 // Use Promise.all to handle multiple async operations in parallel
