@@ -2,6 +2,7 @@ import { Icon } from "@iconify/react";
 import { Box, Tabs, Typography, useTheme } from "@mui/material";
 import { useState } from "react";
 import CustomTabPanel from "../../../../components/CustomTabPanel";
+import { PanelBase } from "../../../../components/PanelBase";
 import StyledTab from "../../../../components/StyledTab";
 import { nonSelectableTextStyle } from "../../../../styles";
 import { tokens } from "../../../../theme";
@@ -35,7 +36,12 @@ export const ProjectOverviewPanel = () => {
           
 
           <CustomTabPanel value={value} index={0}>
-          <Box
+            <PanelBase title='Building stations' icon='mdi:file-tree-outline' body='Building elements grouped by Assembly type. Double click to select. You can turn visibility on and off
+                whilst using assembly groupings.'>
+            <AssemblyBrowserPanel />
+
+            </PanelBase>
+          {/* <Box
               component="div"
               sx={{
                 display: "flex",
@@ -45,7 +51,6 @@ export const ProjectOverviewPanel = () => {
                 marginTop: "20px",
                 overflow: "hidden",
                 gap: 2,
-                position: "relative", // For absolute positioning of children if needed
               }}
             >
               <Box component="div" flexDirection="row" display="flex" marginLeft="10px" gap="4">
@@ -78,7 +83,7 @@ export const ProjectOverviewPanel = () => {
               >
               <AssemblyBrowserPanel />
               </Box>
-            </Box>
+            </Box> */}
           </CustomTabPanel>
           <CustomTabPanel value={value} index={1}>
             <Box

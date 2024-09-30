@@ -5,13 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import { BimSettings } from "../../../components/BimSettings";
 import ColorPaletteModal from "../../../components/ColorPalleteModal";
 import { useComponentsContext } from "../../../context/ComponentsContext";
-import { ModelCache } from "../../../bim-components/modelCache";
 import ProjectOverviewPanel from "./src/ProjectOverViewPanel";
 import TaskBrowserPanel from "./src/TaskBrowserPanel";
 import SettingsPanel from "./src/settingsPanel";
 import { sidebarWidth } from "../rightSidePanel";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 import { ShowcaserPanel } from "../../../components/ShowcaserPanel";
+import { PanelBase } from "../../../components/PanelBase";
 
 const minWidth = 220;
 
@@ -112,29 +112,14 @@ export const LeftSidePanel: React.FC = () => {
 
   const CommentsPanel = () => {
     return (
-      <Box
-        component="div"
-        className={"leftSideBox"}
-        flexDirection="column"
-        display="flex"
-        width="100%"
-        marginTop="20px"
-        marginLeft="5px"
-        gap="2"
+      <PanelBase
+        title="Comments panel"
+        body="Use comments to by clicking the button then clicking on desired element. Comments will only be saved if you
+      export a new Ifc model."
+      icon="mdi:file-tree-outline"
       >
-        <Box component="div" flexDirection="row" display="flex" marginLeft="10px" gap="4">
-          <Icon style={{ color: colors.grey[500] }} icon="mdi:chat-add-outline" />
-          <Typography marginLeft="8px" variant="h5">
-            Comments Content
-          </Typography>
-        </Box>
-        <Typography marginLeft="8px" marginRight="16px" marginTop="8px" variant="body2">
-          Use comments to by clicking the button then clicking on desired element. Comments will only be saved if you
-          export a new Ifc model.{" "}
-        </Typography>
         <TaskBrowserPanel />
-        {/* // Use the navigation arrows to move through them. */}
-      </Box>
+      </PanelBase>
     );
   };
 
