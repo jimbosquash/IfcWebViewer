@@ -1,21 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import * as BUI from "@thatopen/ui";
 import { Icon } from "@iconify/react";
 import { useComponentsContext } from "../context/ComponentsContext";
 import Showcaser from "../bim-components/showcaser";
 import { ModelCache } from "../bim-components/modelCache";
 import { Box, Button, InputBase } from "@mui/material";
-import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { ViewRow } from "./ViewRow";
+import { PanelBase } from "./PanelBase";
 
 interface RowData {
   id: number;
   name: string;
 }
 
-export const ShowcaserPanel = () => {
+export const ViewPresenterPanel = () => {
   const components = useComponentsContext();
-  const panelSection = useRef<HTMLDivElement | null>(null);
   const [isSetUp, setIsSetUp] = useState<boolean>(false);
   const [rows, setRows] = useState<RowData[]>([]);
   const showcaser = components.get(Showcaser);
@@ -23,9 +22,7 @@ export const ShowcaserPanel = () => {
   useEffect(() => {
     if (!components || isSetUp) return;
     BUI.Manager.init();
-
     showcaser.onPointsChanged.add(() => updateTable());
-
     if (components.get(ModelCache).world) {
       showcaser.world = components.get(ModelCache).world;
     } else {
@@ -34,12 +31,8 @@ export const ShowcaserPanel = () => {
     updateTable();
 
     return () => {
-      if (panelSection.current) {
-        panelSection.current.innerHTML = "";
-      }
       components.get(ModelCache).onWorldSet.remove((data) => (showcaser.world = data));
       showcaser.onPointsChanged.remove(() => updateTable());
-
       setIsSetUp(false);
     };
   }, [components]);
@@ -58,36 +51,40 @@ export const ShowcaserPanel = () => {
   };
 
   return (
+    <PanelBase
+      title={"View Presenter"}
+      body={"You can save current camer views and animate them with the buttons bellow"}
+      icon="ph:video-camera-bold"
+      buttonBar={ButtonBar()}
+    >
+      {rows &&
+        rows?.map((r, index) => {
+          return <ViewRowComponent rowData={r} index={index} viewManager={showcaser} />;
+        })}
+    </PanelBase>
+  );
+};
+
+const ButtonBar = () => {
+  const components = useComponentsContext();
+  const showcaser = components.get(Showcaser);
+
+  return (
     <>
-      <>
-        <div
-          className="ShowCaserWebComponentContainer"
-          style={{
-            overflow: "auto", // Add scroll if content exceeds dimensions
-          }}
-        >
-          <Box component="div" flexDirection="row" display="flex">
-            <Button onClick={() => showcaser.addPoint()} variant="contained" color="primary">
-              Add Point
-              {/* <Icon icon="mdi:color" /> */}
-            </Button>
-            <Button onClick={() => showcaser.showPath()} variant="contained" color="primary">
-              Show Path
-              {/* <Icon icon="mdi:color" /> */}
-            </Button>
-            <Button onClick={() => showcaser.playPause()} variant="contained" color="primary">
-              Play/pause
-              {/* <Icon icon="mdi:color" /> */}
-            </Button>
-          </Box>
-          <Box component="div" overflow="hidden" flexDirection="column" width="100%" padding="4px" display="flex">
-            {rows &&
-              rows?.map((r, index) => {
-                return <ViewRowComponent rowData={r} index={index} viewManager={showcaser} />;
-              })}
-          </Box>
-        </div>
-      </>
+      <Box component="div" flexDirection="row" display="flex">
+        <Button onClick={() => showcaser.addPoint()} variant="contained" color="primary">
+          Add Point
+          {/* <Icon icon="mdi:color" /> */}
+        </Button>
+        <Button onClick={() => showcaser.showPath()} variant="contained" color="primary">
+          Show Path
+          {/* <Icon icon="mdi:color" /> */}
+        </Button>
+        <Button onClick={() => showcaser.playPause()} variant="contained" color="primary">
+          Play/pause
+          {/* <Icon icon="mdi:color" /> */}
+        </Button>
+      </Box>
     </>
   );
 };
@@ -163,5 +160,3 @@ const ViewRowComponent: React.FC<ViewRowProps> = ({ viewManager, rowData, index 
     />
   );
 };
-
-//

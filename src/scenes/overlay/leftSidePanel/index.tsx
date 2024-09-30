@@ -10,7 +10,7 @@ import TaskBrowserPanel from "./src/TaskBrowserPanel";
 import SettingsPanel from "./src/settingsPanel";
 import { sidebarWidth } from "../rightSidePanel";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
-import { ShowcaserPanel } from "../../../components/ShowcaserPanel";
+import { ViewPresenterPanel } from "../../../components/ViewPresenterPanel";
 import { PanelBase } from "../../../components/PanelBase";
 
 const minWidth = 220;
@@ -116,7 +116,7 @@ export const LeftSidePanel: React.FC = () => {
         title="Comments panel"
         body="Use comments to by clicking the button then clicking on desired element. Comments will only be saved if you
       export a new Ifc model."
-      icon="mdi:file-tree-outline"
+        icon="mdi:file-tree-outline"
       >
         <TaskBrowserPanel />
       </PanelBase>
@@ -170,6 +170,17 @@ export const LeftSidePanel: React.FC = () => {
           </IconButton>
         </Tooltip>
 
+        <Tooltip title="Presentation" placement="right" arrow>
+          <IconButton
+            style={{
+              backgroundColor: panelContent.name === "Presentations" && panelOpen ? colors.grey[900] : "transparent",
+            }}
+            onClick={() => handleIconClick(<ViewPresenterPanel />, "Presentations")}
+          >
+            <Icon icon="ph:video-camera-bold" />
+          </IconButton>
+        </Tooltip>
+
         <Tooltip title="Comments" placement="right" arrow>
           <IconButton
             style={{
@@ -189,7 +200,6 @@ export const LeftSidePanel: React.FC = () => {
             onClick={() =>
               handleIconClick(
                 <>
-                  <Typography variant="h6">Settings Content</Typography>
                   <BimSettings />
                   <SettingsPanel />
                 </>,
@@ -198,26 +208,6 @@ export const LeftSidePanel: React.FC = () => {
             }
           >
             <Icon icon="material-symbols:settings-outline" />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip title="Presentation" placement="right" arrow>
-          <IconButton
-            style={{
-              backgroundColor: panelContent.name === "Presentations" && panelOpen ? colors.grey[900] : "transparent",
-            }}
-            onClick={() =>
-              handleIconClick(
-                <>
-                  <Typography variant="h6">Presentations</Typography>
-                  <ShowcaserPanel />
-                  {/* <SettingsPanel /> */}
-                </>,
-                "Presentations"
-              )
-            }
-          >
-            <Icon icon="ph:video-camera-bold" />
           </IconButton>
         </Tooltip>
 
@@ -289,6 +279,7 @@ export const LeftSidePanel: React.FC = () => {
             component="div"
             style={{
               flexGrow: 1,
+              height:'100%',
             }}
           >
             {panelContent.content}
