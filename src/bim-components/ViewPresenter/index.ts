@@ -150,7 +150,7 @@ export class ViewPresenter extends OBC.Component implements OBC.Disposable {
     private addView(name: string) {
         //get if any group is selected
         const selectedGroup = this.components.get(ModelViewManager).SelectedGroup;
-                
+
         this._views.push({name: name, SelectionGroupId: selectedGroup?.id ?? undefined})
 
 
@@ -174,12 +174,19 @@ export class ViewPresenter extends OBC.Component implements OBC.Disposable {
         return viewPoints;
     }
 
-    async setCamAtIndex(index: number) {
+    /**
+     * optional groupId for updating modelViewManager to display group
+     */
+    async setCamAtIndex(index: number, groupId? : string) {
         const camPos = this.pathPoints[index];
         const targetPos = this.targetPoints[index]
         if (!(camPos && targetPos)) return;
         if (!this.camera.hasCameraControls()) return;
+        console.log('setting groupid',groupId)
 
+        if(groupId) {
+            this.components.get(ModelViewManager).setSelectionGroupByID(groupId,true)
+        }
         await this.camera.controls.setLookAt(camPos.x, camPos.y, camPos.z,targetPos.x, targetPos.y, targetPos.z, true)
     }
 
@@ -318,5 +325,7 @@ export class ViewPresenter extends OBC.Component implements OBC.Disposable {
         }
     }
 }
+
+// we want to know at which point the cam should trigger a change of the elements visible
 
 export default ViewPresenter;

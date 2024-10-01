@@ -141,11 +141,12 @@ const ViewRowComponent: React.FC<ViewRowProps> = ({ viewManager, rowData, index 
             onBlur={handleBlur}
             inputProps={{ "aria-label": "view name input" }}
           />
+          
+          <Box component="div" display="flex" flexDirection="row">
           { selectionGroupId && 
           <Typography>
-            {selectionGroupId}
+            {selectionGroupId.slice(selectionGroupId.lastIndexOf('_') + 1)}
           </Typography>}
-          <Box component="div" display="flex" flexDirection="row">
             <Button
               onClick={() => viewManager.deletePoint(index)}
               sx={{
@@ -158,7 +159,7 @@ const ViewRowComponent: React.FC<ViewRowProps> = ({ viewManager, rowData, index 
               <Icon style={{ fontSize: "12px" }} icon="mdi:bin-outline" />
             </Button>
             <Button
-              onClick={() => viewManager.setCamAtIndex(index)}
+              onClick={() => viewManager.setCamAtIndex(index,selectionGroupId)}
               sx={{
                 minWidth: 0,
                 padding: "8px",
