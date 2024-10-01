@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import * as BUI from "@thatopen/ui";
 import { Icon } from "@iconify/react";
 import { useComponentsContext } from "../context/ComponentsContext";
-import Showcaser from "../bim-components/showcaser";
+import ViewPresenter from "../bim-components/ViewPresenter";
 import { ModelCache } from "../bim-components/modelCache";
 import { Box, Button, InputBase } from "@mui/material";
 import { ViewRow } from "./ViewRow";
@@ -17,33 +17,34 @@ export const ViewPresenterPanel = () => {
   const components = useComponentsContext();
   const [isSetUp, setIsSetUp] = useState<boolean>(false);
   const [rows, setRows] = useState<RowData[]>([]);
-  const showcaser = components.get(Showcaser);
+  const viewPresenter = components.get(ViewPresenter);
+
 
   useEffect(() => {
     if (!components || isSetUp) return;
     BUI.Manager.init();
-    showcaser.onPointsChanged.add(() => updateTable());
+    viewPresenter.onPointsChanged.add(() => updateTable());
     if (components.get(ModelCache).world) {
-      showcaser.world = components.get(ModelCache).world;
+      viewPresenter.world = components.get(ModelCache).world;
     } else {
-      components.get(ModelCache).onWorldSet.add((data) => (showcaser.world = data));
+      components.get(ModelCache).onWorldSet.add((data) => (viewPresenter.world = data));
     }
     updateTable();
 
     return () => {
-      components.get(ModelCache).onWorldSet.remove((data) => (showcaser.world = data));
-      showcaser.onPointsChanged.remove(() => updateTable());
+      components.get(ModelCache).onWorldSet.remove((data) => (viewPresenter.world = data));
+      viewPresenter.onPointsChanged.remove(() => updateTable());
       setIsSetUp(false);
     };
   }, [components]);
 
   const updateTable = () => {
-    if (!showcaser) {
+    if (!viewPresenter) {
       // could fill with dumby data...
       return;
     }
     const updatedRows: RowData[] = [];
-    [...showcaser.views.values()].forEach((sceneProps, index) => {
+    [...viewPresenter.views.values()].forEach((sceneProps, index) => {
       updatedRows.push({ id: index, name: sceneProps.name });
     });
 
@@ -59,7 +60,7 @@ export const ViewPresenterPanel = () => {
     >
       {rows &&
         rows?.map((r, index) => {
-          return <ViewRowComponent rowData={r} index={index} viewManager={showcaser} />;
+          return <ViewRowComponent rowData={r} key={index} index={index} viewManager={viewPresenter} />;
         })}
     </PanelBase>
   );
@@ -67,7 +68,7 @@ export const ViewPresenterPanel = () => {
 
 const ButtonBar = () => {
   const components = useComponentsContext();
-  const showcaser = components.get(Showcaser);
+  const showcaser = components.get(ViewPresenter);
 
   return (
     <>
@@ -92,7 +93,7 @@ const ButtonBar = () => {
 interface ViewRowProps {
   rowData: RowData;
   index: number;
-  viewManager: Showcaser;
+  viewManager: ViewPresenter;
 }
 
 const ViewRowComponent: React.FC<ViewRowProps> = ({ viewManager, rowData, index }) => {

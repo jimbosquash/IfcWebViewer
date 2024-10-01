@@ -1,12 +1,33 @@
 import * as OBC from "@thatopen/components";
 import * as THREE from "three";
+import { ConfigManager } from "../../utilities/ConfigManager";
+import { deserializeVector3, serializeVector3 } from "../../utilities/threeUtils";
+import { viewPresenterConfig, viewPresenterConfigSchema } from "./src/ViewPresenterConfig";
 
-interface ViewProps {
+// used for saving
+export interface viewPoint {
+    index: number,
+    properties: viewData,
+    position: {
+        x: number
+        y: number
+        z: number
+    }, 
+    target: {
+        x: number
+        y: number
+        z: number
+    }, 
+}
+
+export interface viewData {
     // id: number, // number of point index
     name: string, // user editable name
 }
 
-export class Showcaser extends OBC.Component implements OBC.Disposable {
+
+
+export class ViewPresenter extends OBC.Component implements OBC.Disposable {
     static uuid = "009f51d3-ff6c-401e-8ffa-1328636acdfc" as const;
     enabled = true;
 
@@ -16,10 +37,12 @@ export class Showcaser extends OBC.Component implements OBC.Disposable {
     private _clock: THREE.Clock;
     private _isPlaying: boolean;
     readonly pathMesh: THREE.Mesh;
+    private _Config = new ConfigManager<viewPresenterConfig>(viewPresenterConfigSchema, 'viewPresenterConfig');
+
 
     constructor(components: OBC.Components) {
         super(components);
-        components.add(Showcaser.uuid, this);
+        components.add(ViewPresenter.uuid, this);
 
         this._pathCurve = new THREE.CatmullRomCurve3();
         this._targetCurve = new THREE.CatmullRomCurve3();
@@ -36,7 +59,28 @@ export class Showcaser extends OBC.Component implements OBC.Disposable {
 
         this._clock = new THREE.Clock();
         this._isPlaying = false;
+        const cachedViews = this._Config.get('viewPoints')
+        if(cachedViews) { 
+            this.viewPoints = cachedViews;
+        }
     }
+
+    private set viewPoints(viewPoints: viewPoint[]) {
+        const sortedViews = viewPoints.sort((viewA,viewB) => { return viewA.index - viewB.index})
+
+        sortedViews.forEach((vp) => {
+            console.log('loading saved data', vp.position,vp.target)
+            if(!(vp.position && vp.target)) return;
+            this._pathCurve.points.push(deserializeVector3(vp.position))
+            this._targetCurve.points.push(deserializeVector3(vp.target))
+            this._views.push(vp.properties)
+        })
+        if (this._pathCurve.points.length > 1) {
+            this.updateGeometry();
+        }
+    }
+
+
     dispose = (): void | Promise<void> => {
         // do something grand
     }
@@ -89,8 +133,9 @@ export class Showcaser extends OBC.Component implements OBC.Disposable {
         // Adds the new point to the curve's points
         this._pathCurve.points.push(position);
         this._targetCurve.points.push(target);
-
         this._views.push({name: `View ${this._pathCurve.points.length}`})
+
+        this._Config.set("viewPoints",this.viewPoints)
 
         // The points property needs at least two points,
         // when there are enough points, the geometry is created/updated
@@ -99,6 +144,22 @@ export class Showcaser extends OBC.Component implements OBC.Disposable {
         }
         this.onPointAdded.trigger(position);
         this.onPointsChanged.trigger();
+    }
+
+    get viewPoints () {
+        const positions = this.pathPoints;
+        const targets = this.targetPoints;
+        const viewPoints: viewPoint[] = [];
+        this._views.forEach((view,index) => {
+            viewPoints.push({
+                index: index,
+                properties: view,
+                position: serializeVector3(positions[index]),
+                target: serializeVector3(targets[index])
+            })
+        })
+        console.log('cahcing view points', viewPoints)
+        return viewPoints;
     }
 
     async setCamAtIndex(index: number) {
@@ -122,6 +183,8 @@ export class Showcaser extends OBC.Component implements OBC.Disposable {
         this._views = this._views.filter((_,ptIndex) => {
             return ptIndex !== index;
         })
+
+        this._Config.set("viewPoints",this.viewPoints)
         this.onPointsChanged.trigger();
 
         if (this.pathPoints.length > 1 && this.targetPoints.length > 1) {
@@ -132,7 +195,7 @@ export class Showcaser extends OBC.Component implements OBC.Disposable {
         this.onPointsChanged.trigger();
     }
 
-    changeViewProperties(index: number, props: ViewProps) {
+    changeViewProperties(index: number, props: viewData) {
         const view = this._views[index]
         if(!view) return;
 
@@ -197,7 +260,7 @@ export class Showcaser extends OBC.Component implements OBC.Disposable {
     }
 
     
-    private _views: ViewProps[] = []; // should look up cache
+    private _views: viewData[] = []; // should look up cache
 
     get views() {
         return this._views;
@@ -213,6 +276,7 @@ export class Showcaser extends OBC.Component implements OBC.Disposable {
         const t = (time % looptime) / looptime;
 
         // Returns the _position and _target along the curve
+        console.log('tick',t)
         const cameraPosition = this._pathCurve.getPoint(t);
         const cameraTarget = this._targetCurve.getPoint(t);
 
@@ -243,4 +307,4 @@ export class Showcaser extends OBC.Component implements OBC.Disposable {
     }
 }
 
-export default Showcaser;
+export default ViewPresenter;
