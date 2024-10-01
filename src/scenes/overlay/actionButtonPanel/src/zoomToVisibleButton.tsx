@@ -1,12 +1,8 @@
 import { Icon } from "@iconify/react";
 import { Button, Tooltip, useTheme } from "@mui/material";
-import { ModelCache } from "../../../../bim-components/modelCache";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { tokens } from "../../../../theme";
-import { zoomToBuildingElements } from "../../../../utilities/BuildingElementUtilities";
 import { zoomToVisible } from "../../../../utilities/CameraUtilities";
-import { GetAllVisibleExpressIDs } from "../../../../utilities/IfcUtilities";
-import { BuildingElement } from "../../../../utilities/types";
 
 export const ZoomToVisibleButton = () => {
   const theme = useTheme();

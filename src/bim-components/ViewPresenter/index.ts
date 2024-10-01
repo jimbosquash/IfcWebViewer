@@ -14,19 +14,27 @@ export interface viewPoint {
         x: number
         y: number
         z: number
-    }, 
+    },
     target: {
         x: number
         y: number
         z: number
-    }, 
+    },
 }
 
 export interface viewData {
     // id: number, // number of point index
     name: string, // user editable name
-    SelectionGroupId?: string // the id of the treenode to select
+    SelectionGroupId?: string, // the id of the treenode to select
+    id: string, // random number for unqiue tracking
+    index: number, // the index in an array of the camera path and target
+    position: THREE.Vector3,
+    target: THREE.Vector3
 }
+
+const generateRandomId = (): string => {
+    return Math.random().toString(36).substr(2, 9);
+};
 
 
 
@@ -63,17 +71,17 @@ export class ViewPresenter extends OBC.Component implements OBC.Disposable {
         this._clock = new THREE.Clock();
         this._isPlaying = false;
         const cachedViews = this._Config.get('viewPoints')
-        if(cachedViews) { 
+        if (cachedViews) {
             this.viewPoints = cachedViews;
         }
     }
 
     private set viewPoints(viewPoints: viewPoint[]) {
-        const sortedViews = viewPoints.sort((viewA,viewB) => { return viewA.index - viewB.index})
+        const sortedViews = viewPoints.sort((viewA, viewB) => { return viewA.index - viewB.index })
 
         sortedViews.forEach((vp) => {
-            console.log('loading saved data', vp.position,vp.target)
-            if(!(vp.position && vp.target)) return;
+            console.log('loading saved data', vp.position, vp.target)
+            if (!(vp.position && vp.target)) return;
             this._pathCurve.points.push(deserializeVector3(vp.position))
             this._targetCurve.points.push(deserializeVector3(vp.target))
             this._views.push(vp.properties)
@@ -90,7 +98,7 @@ export class ViewPresenter extends OBC.Component implements OBC.Disposable {
 
 
     onDisposed: OBC.Event<any> = new OBC.Event();
-    onPointAdded: OBC.Event<any> = new OBC.Event();
+    onViewAdded: OBC.Event<any> = new OBC.Event();
     onPointsChanged: OBC.Event<any> = new OBC.Event();
 
     set world(world: OBC.World | null) {
@@ -120,7 +128,34 @@ export class ViewPresenter extends OBC.Component implements OBC.Disposable {
         this.pathMesh.visible = !this.pathMesh.visible;
     }
 
-    addPoint() {
+    // addPoint() {
+    //     // Vector3 objects to track _position and _target
+    //     const position = new THREE.Vector3();
+    //     const target = new THREE.Vector3();
+
+    //     // We need to make sure our camera has controls!
+    //     if (this.camera.hasCameraControls()) {
+    //         this.camera.controls.getPosition(position);
+    //         this.camera.controls.getTarget(target);
+    //     } else {
+    //         throw new Error("Showcase: Camera has no controls!");
+    //     }
+
+    //     // Adds the new point to the curve's points
+    //     this._pathCurve.points.push(position);
+    //     this._targetCurve.points.push(target);
+    //     this.addView(`View ${this._pathCurve.points.length}`, this._pathCurve.points.length + 1)
+
+    //     // The points property needs at least two points,
+    //     // when there are enough points, the geometry is created/updated
+    //     if (this._pathCurve.points.length > 1) {
+    //         this.updateGeometry();
+    //     }
+    //     this.onViewAdded.trigger(position);
+    //     this.onPointsChanged.trigger();
+    // }
+
+    getPoints() {
         // Vector3 objects to track _position and _target
         const position = new THREE.Vector3();
         const target = new THREE.Vector3();
@@ -132,37 +167,64 @@ export class ViewPresenter extends OBC.Component implements OBC.Disposable {
         } else {
             throw new Error("Showcase: Camera has no controls!");
         }
+        return { position: position, target: target }
+    }
 
-        // Adds the new point to the curve's points
-        this._pathCurve.points.push(position);
-        this._targetCurve.points.push(target);
-        this.addView(`View ${this._pathCurve.points.length}`)
+    addNewView(name?: string) {
+        const points = this.getPoints()
+        if (!(points.position && points.target)) {
+            console.log('failed to create new view, point creation failed')
+            return;
+        }
+
+        const selectedGroup = this.components.get(ModelViewManager).SelectedGroup;
+        const index = this._pathCurve.points.push(points.position) - 1;
+        this._targetCurve.points.push(points.target);
+
+        const newView = {
+            name: name ?? `View ${this._pathCurve.points.length}`,
+            SelectionGroupId: selectedGroup?.id ?? undefined,
+            id: generateRandomId(),
+            index: index,
+            position: points.position,
+            target: points.target
+        }
+        this._views.push(newView)
+
+        this._Config.set("viewPoints", this.viewPoints)
 
         // The points property needs at least two points,
         // when there are enough points, the geometry is created/updated
         if (this._pathCurve.points.length > 1) {
             this.updateGeometry();
         }
-        this.onPointAdded.trigger(position);
+        this.onViewAdded.trigger(newView);
         this.onPointsChanged.trigger();
     }
+    // // first
+    // private addView(name: string, index: number) {
+    //     //get if any group is selected
+    //     const selectedGroup = this.components.get(ModelViewManager).SelectedGroup;
 
-    private addView(name: string) {
-        //get if any group is selected
-        const selectedGroup = this.components.get(ModelViewManager).SelectedGroup;
+    //     this._views.push({
+    //         name: name,
+    //         SelectionGroupId: selectedGroup?.id ?? undefined,
+    //         id: generateRandomId(),
+    //         index: index,
+    //         position: ...,
+    //         target: ...
+    //     })
 
-        this._views.push({name: name, SelectionGroupId: selectedGroup?.id ?? undefined})
 
 
+    //     this._Config.set("viewPoints", this.viewPoints)
+    // }
 
-        this._Config.set("viewPoints",this.viewPoints)
-    }
-
-    get viewPoints () {
+    private get viewPoints() {
         const positions = this.pathPoints;
         const targets = this.targetPoints;
         const viewPoints: viewPoint[] = [];
-        this._views.forEach((view,index) => {
+        this._views.forEach((view, index) => {
             viewPoints.push({
                 index: index,
                 properties: view,
@@ -177,48 +239,127 @@ export class ViewPresenter extends OBC.Component implements OBC.Disposable {
     /**
      * optional groupId for updating modelViewManager to display group
      */
-    async setCamAtIndex(index: number, groupId? : string) {
-        const camPos = this.pathPoints[index];
-        const targetPos = this.targetPoints[index]
+     async setCamAtView(id: string, groupId?: string) {
+        console.log('set cam at view',id)
+
+        let view = this._views.find(view => view.id === id)
+        if (!view) {
+            console.log('failed to set cam to view no id match', id,this._views)
+            return;
+        }
+
+
+        const camPos = this.pathPoints[view.index];
+        const targetPos = this.targetPoints[view.index]
+        console.log('set cam at view', view,camPos,targetPos)
+
         if (!(camPos && targetPos)) return;
+
         if (!this.camera.hasCameraControls()) return;
-        console.log('setting groupid',groupId)
+        console.log('setting groupid', groupId)
 
-        if(groupId) {
-            this.components.get(ModelViewManager).setSelectionGroupByID(groupId,true)
+        if (view.SelectionGroupId) {
+            this.components.get(ModelViewManager).setSelectionGroupByID(view.SelectionGroupId, true)
         }
-        await this.camera.controls.setLookAt(camPos.x, camPos.y, camPos.z,targetPos.x, targetPos.y, targetPos.z, true)
+        await this.camera.controls.setLookAt(camPos.x, camPos.y, camPos.z, targetPos.x, targetPos.y, targetPos.z, true)
     }
 
-    deletePoint(index: number) {
-        console.log(` delete ${index}`,this.pathPoints )
-        this._pathCurve.points = this.pathPoints.filter((_, ptIndex) => {
-            return ptIndex !== index;
-        })
-        this._targetCurve.points = this.targetPoints.filter((_, ptIndex) => {
-            return ptIndex !== index;
-        })
+    // /**
+    //  * optional groupId for updating modelViewManager to display group
+    //  */
+    // async setCamAtIndex(index: number, groupId?: string) {
+    //     const camPos = this.pathPoints[index];
+    //     const targetPos = this.targetPoints[index]
+    //     if (!(camPos && targetPos)) return;
+    //     if (!this.camera.hasCameraControls()) return;
+    //     console.log('setting groupid',index, groupId)
 
-        this._views = this._views.filter((_,ptIndex) => {
-            return ptIndex !== index;
-        })
+    //     if (groupId) {
+    //         this.components.get(ModelViewManager).setSelectionGroupByID(groupId, true)
+    //     }
+    //     await this.camera.controls.setLookAt(camPos.x, camPos.y, camPos.z, targetPos.x, targetPos.y, targetPos.z, true)
+    // }
 
-        this._Config.set("viewPoints",this.viewPoints)
-        this.onPointsChanged.trigger();
+    // deletePoint(index: number) {
+    //     console.log(` delete ${index}`, this._views[index], this.pathPoints[index])
+    //     this._pathCurve.points = this.pathPoints.filter((_, ptIndex) => {
+    //         return ptIndex !== index;
+    //     })
+    //     this._targetCurve.points = this.targetPoints.filter((_, ptIndex) => {
+    //         return ptIndex !== index;
+    //     })
 
-        if (this.pathPoints.length > 1 && this.targetPoints.length > 1) {
-            this.updateGeometry();
+    //     this._views = this._views.filter((_, ptIndex) => {
+    //         return ptIndex !== index;
+    //     })
+
+    //     const viewPoints = this.viewPoints;
+    //     console.log('updated view points', viewPoints)
+
+    //     this._Config.set("viewPoints", viewPoints)
+
+    //     if (this.pathPoints.length > 1 && this.targetPoints.length > 1) {
+    //         this.updateGeometry();
+    //     } else {
+    //         this.pathMesh.visible = false;
+    //     }
+    //     this.onPointsChanged.trigger();
+    // }
+
+    deleteView(id: string) {
+        let view = this._views.find(view => view.id === id)
+        if (!view) {
+            console.log('failed to delete view no id match', id)
+            return;
+        }
+
+        // now find its index by assuming that its wrong
+        // quickly check if index does match the position point other wise search until equel
+
+        if (this._pathCurve.points[view.index] === view.position) {
+            // then index is correct and can delete
+            this._pathCurve.points = this.pathPoints.filter((_, ptIndex) => {
+                return ptIndex !== view?.index;
+            })
+            this._targetCurve.points = this.targetPoints.filter((_, ptIndex) => {
+                return ptIndex !== view?.index;
+            })
+            this._views = this._views.filter((viewB) => {
+                return viewB.id !== view?.id;
+            })
+
+            view = undefined;
+
+            // go back through all views and reindex them assuming the array index is the correct index
+
+            this._views.forEach((v, index) => { v.index = index })
+
+            const viewPoints = this.viewPoints;
+            console.log('updated view points', viewPoints)
+
+            this._Config.set("viewPoints", viewPoints)
+
+            if (this.pathPoints.length > 1 && this.targetPoints.length > 1) {
+                this.updateGeometry();
+            } else {
+                this.pathMesh.visible = false;
+            }
+            this.onPointsChanged.trigger();
+
+
         } else {
-            this.pathMesh.visible = false;
+            console.log('index is out of order, deletion canceled,', id, this._views)
         }
-        this.onPointsChanged.trigger();
+
+
     }
 
-    changeViewProperties(index: number, props: viewData) {
-        const view = this._views[index]
-        if(!view) return;
+    changeViewName(id: string, name: string) {
+        const view = this._views.find(view => view.id === id)
+        if (!view) return;
 
-        view.name = props.name;
+        view.name = name;
+        this._Config.set("viewPoints", this.viewPoints)
     }
 
     async overridePositionTo(index: number) {
@@ -278,7 +419,7 @@ export class ViewPresenter extends OBC.Component implements OBC.Disposable {
         return this._pathCurve.points
     }
 
-    
+
     private _views: viewData[] = []; // should look up cache
 
     get views() {
@@ -295,7 +436,7 @@ export class ViewPresenter extends OBC.Component implements OBC.Disposable {
         const t = (time % looptime) / looptime;
 
         // Returns the _position and _target along the curve
-        console.log('tick',t)
+        console.log('tick', t)
         const cameraPosition = this._pathCurve.getPoint(t);
         const cameraTarget = this._targetCurve.getPoint(t);
 

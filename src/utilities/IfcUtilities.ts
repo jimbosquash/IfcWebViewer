@@ -406,10 +406,10 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
         // console.log('System name:', systemName)
 
         for (const [className, map] of Object.entries(system)) {
-            console.log(`  Class: ${className}`, map);
+            // console.log(`  Class: ${className}`, map);
 
             for (const [id, expressIDs] of Object.entries(map.map)) {
-                console.log(`  fragment: ${id}`, expressIDs);
+                // console.log(`  fragment: ${id}`, expressIDs);
 
                 // Use Promise.all to handle multiple async operations in parallel
                 await Promise.all([...expressIDs].map(async (expressID: number) => {
@@ -639,7 +639,7 @@ async function getBuildingElementBase(expressID: number, fragmentID: string, mod
                     // console.log('typed by ', elementType);
                     if (elementType) {
                         newElement.name = elementType.Name.value;
-                        console.log('name found on type', name)
+                        // console.log('name found on type', name)
                     }
                 }
             }
