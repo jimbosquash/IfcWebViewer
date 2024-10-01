@@ -149,6 +149,25 @@ export class ModelViewManager extends OBC.Component {
         }
     }
 
+    /**
+     * Assuming the id is found in the current Tree. set the new selection group based on args selectionGroupId and this.Tree
+     * @param selectionGroupId the treenode id to search the rpimary tree from
+     * @param updateModelVisibility to update the model visibility based on the new selection group
+     */
+    setSelectionGroupByID(selectionGroupId: string, updateModelVisibility: boolean) {
+        const node = this.Tree?.getNode(selectionGroupId);
+
+        if (!node) return;
+
+        this._selectedGroup = { groupType: node.type, id: node.id, groupName: node.name, elements: TreeUtils.getChildrenNonNullData(node) };
+        console.log("ModelViewManager: selected group changed:", selectionGroupId)
+
+        this.onSelectedGroupChanged.trigger(this._selectedGroup)
+        if (updateModelVisibility && this.Tree?.id) {
+            this.updateBasedOnVisibilityMode(undefined, undefined, this.Tree?.id);
+        }
+    }
+
     get Tree(): Tree<BuildingElement> | undefined {
         return this._tree?.tree;
     }

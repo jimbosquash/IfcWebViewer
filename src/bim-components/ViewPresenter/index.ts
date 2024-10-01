@@ -2,6 +2,8 @@ import * as OBC from "@thatopen/components";
 import * as THREE from "three";
 import { ConfigManager } from "../../utilities/ConfigManager";
 import { deserializeVector3, serializeVector3 } from "../../utilities/threeUtils";
+import { SelectionGroup } from "../../utilities/types";
+import { ModelViewManager } from "../modelViewer";
 import { viewPresenterConfig, viewPresenterConfigSchema } from "./src/ViewPresenterConfig";
 
 // used for saving
@@ -23,6 +25,7 @@ export interface viewPoint {
 export interface viewData {
     // id: number, // number of point index
     name: string, // user editable name
+    SelectionGroupId?: string // the id of the treenode to select
 }
 
 
@@ -133,9 +136,7 @@ export class ViewPresenter extends OBC.Component implements OBC.Disposable {
         // Adds the new point to the curve's points
         this._pathCurve.points.push(position);
         this._targetCurve.points.push(target);
-        this._views.push({name: `View ${this._pathCurve.points.length}`})
-
-        this._Config.set("viewPoints",this.viewPoints)
+        this.addView(`View ${this._pathCurve.points.length}`)
 
         // The points property needs at least two points,
         // when there are enough points, the geometry is created/updated
@@ -144,6 +145,17 @@ export class ViewPresenter extends OBC.Component implements OBC.Disposable {
         }
         this.onPointAdded.trigger(position);
         this.onPointsChanged.trigger();
+    }
+
+    private addView(name: string) {
+        //get if any group is selected
+        const selectedGroup = this.components.get(ModelViewManager).SelectedGroup;
+                
+        this._views.push({name: name, SelectionGroupId: selectedGroup?.id ?? undefined})
+
+
+
+        this._Config.set("viewPoints",this.viewPoints)
     }
 
     get viewPoints () {

@@ -4,9 +4,10 @@ import { Icon } from "@iconify/react";
 import { useComponentsContext } from "../context/ComponentsContext";
 import ViewPresenter from "../bim-components/ViewPresenter";
 import { ModelCache } from "../bim-components/modelCache";
-import { Box, Button, InputBase } from "@mui/material";
+import { Box, Button, InputBase, Slider, Typography } from "@mui/material";
 import { ViewRow } from "./ViewRow";
 import { PanelBase } from "./PanelBase";
+import AnimationSlider from "./AnimationSlider";
 
 interface RowData {
   id: number;
@@ -70,8 +71,18 @@ const ButtonBar = () => {
   const components = useComponentsContext();
   const showcaser = components.get(ViewPresenter);
 
+  
+
   return (
     <>
+          <Box component="div" padding='0.5rem 1rem'  flexDirection="row" display="flex">
+            {/* <Slider color="secondary" 
+            step={100 / showcaser.views.length}
+            marks>
+              
+            </Slider> */}
+            {/* <AnimationSlider/> */}
+          </Box>
       <Box component="div" flexDirection="row" display="flex">
         <Button onClick={() => showcaser.addPoint()} variant="contained" color="primary">
           Add Point
@@ -98,6 +109,7 @@ interface ViewRowProps {
 
 const ViewRowComponent: React.FC<ViewRowProps> = ({ viewManager, rowData, index }) => {
   const [value, setValue] = useState(rowData.name);
+  const [selectionGroupId, setSelectionGroupId] = useState(viewManager.views[index]?.SelectionGroupId);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
@@ -129,6 +141,10 @@ const ViewRowComponent: React.FC<ViewRowProps> = ({ viewManager, rowData, index 
             onBlur={handleBlur}
             inputProps={{ "aria-label": "view name input" }}
           />
+          { selectionGroupId && 
+          <Typography>
+            {selectionGroupId}
+          </Typography>}
           <Box component="div" display="flex" flexDirection="row">
             <Button
               onClick={() => viewManager.deletePoint(index)}
