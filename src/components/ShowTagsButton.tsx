@@ -11,7 +11,7 @@ import { ModelCache } from "../bim-components/modelCache";
 import * as REACT from "react";
 import { useEffect, useRef, useState } from "react";
 import { ModelTagger } from "../bim-components/modelTagger";
-import { Tag } from "../bim-components/modelTagger/src/Tag";
+import { markProperties } from "../bim-components/modelTagger/src/Tag";
 
 interface DynamicButtonProp {
   variant: "floating" | "panel";
@@ -60,7 +60,7 @@ export const ShowTagsButton: REACT.FC<DynamicButtonProp> = ({ variant }) => {
     // });
   }, [world]);
 
-  const createTagBubble = (comment: Tag) => {
+  const createTagBubble = (comment: markProperties) => {
 
     const commentBubble = BUI.Component.create(() => {
       const commentsTable = document.createElement("bim-table");

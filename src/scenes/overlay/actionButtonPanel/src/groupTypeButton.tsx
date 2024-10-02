@@ -1,10 +1,11 @@
 import { Icon } from "@iconify/react";
-import { Button, ToggleButtonGroup, Tooltip, useTheme } from "@mui/material";
+import { Button, Tooltip, useTheme } from "@mui/material";
 import { useState } from "react";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { tokens } from "../../../../theme";
-import { TreeNode, TreeUtils } from "../../../../utilities/Tree";
+import { TreeNode } from "../../../../utilities/Tree";
+import { TreeUtils } from "../../../../utilities/treeUtils";
 import { BuildingElement, SelectionGroup } from "../../../../utilities/types";
 
 export const GroupTypeButton = () => {

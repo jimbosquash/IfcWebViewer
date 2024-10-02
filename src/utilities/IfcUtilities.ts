@@ -5,9 +5,10 @@ import * as THREE from 'three'
 import { FragmentIdMap } from "@thatopen/fragments";
 import * as WEBIFC from "web-ifc";
 import { ModelCache } from "../bim-components/modelCache";
-import { BasicProperty, BuildingElement } from "./types";
-import { Tag } from "../bim-components/modelTagger/src/Tag";
-import { IfcElements } from "@thatopen/components";
+import { BasicProperty, BuildingElement, IfcElement } from "./types";
+import { markProperties } from "../bim-components/modelTagger/src/Tag";
+import { IfcCategories, IfcCategoryMap, IfcElements, IfcPropertiesUtils } from "@thatopen/components";
+import { Tree } from "./Tree";
 
 // allows you to pass these idmaps into helpful functions with @thatopen
 export function GetFragmentIdMaps(elements: BuildingElement[], components: OBC.Components) {
@@ -180,27 +181,6 @@ export function getFragments(buildingElements: BuildingElement[], components: OB
     return fragments;
 }
 
-
-// export function GetCenterPoints(models: FRAGS.FragmentsGroup[], buildingElements: BuildingElement[], components: OBC.Components): Map<BuildingElement, Tag> {
-
-//     const tags = new Map<BuildingElement, Tag>();
-
-//     buildingElements.forEach((buildingElement) => {
-//         const model = models.find(m => m.uuid === buildingElement.modelID);
-//         if (!model) {
-//             console.log('Get Center failed: no model found', buildingElement.modelID)
-//             return;
-//         }
-//         const center = GetCenterPoint(buildingElement, model, components);
-//         if (!center) {
-//             console.log('Get Center failed: no center point found', buildingElement)
-//             return;
-//         }
-        
-//         tags.set(buildingElement, new Tag(buildingElement.name, center));
-//     })
-//     return tags;
-// }
 
 /**
  * Get a bounding box using the OBC.boundingBoxer and then get its center, reseting boundingBoxer after completion.
@@ -408,7 +388,7 @@ export function getUniqueElementCount(elements: BuildingElement[]) {
     return Object.keys(groupedByProductCode).length;
 }
 
-export async function GetBuildingElements(model: FRAGS.FragmentsGroup, components: OBC.Components | undefined) : Promise<BuildingElement[]> {
+export async function GetBuildingElements(model: FRAGS.FragmentsGroup, components: OBC.Components | undefined): Promise<BuildingElement[]> {
     if (!components) {
         console.log('components not set, getBuildingElements exiting')
         return [];
@@ -422,24 +402,179 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
     const classifier = components.get(OBC.Classifier);
     classifier.byEntity(model);
 
+    for (const [systemName, system] of Object.entries(classifier.list)) {
+        // console.log('System name:', systemName)
+
+        for (const [className, map] of Object.entries(system)) {
+            // console.log(`  Class: ${className}`, map);
+
+            for (const [id, expressIDs] of Object.entries(map.map)) {
+                // console.log(`  fragment: ${id}`, expressIDs);
+
+                // Use Promise.all to handle multiple async operations in parallel
+                await Promise.all([...expressIDs].map(async (expressID: number) => {
+                    // console.log(`    expressID: ${expressID}`);
+
+
+                    //get the element and its base info (name, ids, ect)
+                    //get properties and add them to psets
+                    const newElement = await getBuildingElementBase(expressID, id, model, indexer);
+
+                    if (newElement) {
+                        const props = await GetAllDefinedBy(model, indexer, expressID);
+                        newElement.properties = props;
+                        // Do something with props...
+                        // console.log(`    props for ${expressID}:`, props);
+                        // console.log('new element', newElement)
+                        newElements.push(newElement)
+
+                    } else {
+                        console.log('failed to create building element from expressID:', expressID)
+                    }
+                }));
+
+            }
+        }
+    }
+
+    // FIRST CHECK IF PARENT RETURNS ANY WITH DECOMPOSES IF THATS NULL THEN TRYING getEntityRelations WITH ContainedInStructure. then group this elements by parent 
+
+    // once that is done I will then want to construct a basic data tree. 
+
+    // Usage
+    // await buildTree(newElements,model,indexer)
+
+    return newElements;
+}
+
+
+// Usage
+async function buildTree(newElements: IfcElement[], model: any, indexer: any) {
+    const relationTypes = ["Decomposes", "ContainedInStructure"];
+    const tree = new Tree<IfcElement>('elementTree', 'Project', 'project');
+
+    for (const element of newElements) {
+        await findParentRecursively(tree, model, indexer, element, relationTypes);
+    }
+    console.log('Tree by file', tree);
+
+    return tree;
+}
+
+
+async function findParentRecursively(
+    tree: Tree<IfcElement>,
+    model: any,
+    indexer: any,
+    element: IfcElement,
+    relationTypes: string[],
+    maxDepth: number = 10
+): Promise<IfcElement | null> {
+    if (maxDepth === 0) return null;
+
+    let nodeInTree = tree.getNode(element.expressID.toString());
+    if (!nodeInTree) {
+        // If not, add it to the tree under the root (we'll move it later if needed)
+        tree.addNode(tree.root.id, element.expressID.toString(), element.name || `Element_${element.expressID}`, element.type, element, true);
+        nodeInTree = tree.getNode(element.expressID.toString());
+    }
+
+    for (const relationType of relationTypes) {
+        const parents = indexer.getEntityRelations(model, element.expressID, relationType);
+
+        if (parents && parents[0]) {
+            let parentNode = tree.getNode(parents[0].toString());
+            if (!parentNode) {
+                // If parent doesn't exist, create it
+                const parentElement = await model.getProperties(parents[0]);
+
+                const parentEntity: IfcElement = {
+                    expressID: parents[0],
+                    name: parentElement.Name?.value,
+                    type: IfcElements[parentElement.type],
+                    GlobalID: parentElement.GlobalId?.value,
+                };
+                tree.addNode(tree.root.id, parentEntity.expressID.toString(), parentEntity.name || `Element_${parentEntity.expressID}`, parentEntity.type, parentEntity, false);
+                parentNode = tree.getNode(parents[0].toString());
+                // console.log("Parent created", parentNode);
+            } else {
+                // console.log("Parent found", parentNode);
+            }
+
+            // Move the current element under its parent
+            if (nodeInTree && parentNode) {
+                // console.log("Placing element under parent", nodeInTree, parentNode);
+
+                // Instead of removing and re-adding, update the parent reference
+                if (nodeInTree.parent) {
+                    nodeInTree.parent.children.delete(nodeInTree.id);
+                }
+                nodeInTree.parent = parentNode;
+                parentNode.children.set(nodeInTree.id, nodeInTree);
+                // nodeInTree.isLeaf = true;  // Ensure the moved node is marked as a leaf
+                // parentNode.isLeaf = false; // Ensure the parent is not marked as a leaf
+            }
+
+            const grandparent = await findParentRecursively(tree, model, indexer, parentNode!.data!, relationTypes, maxDepth - 1);
+
+            return grandparent || parentNode!.data!;
+        }
+    }
+
+    return nodeInTree?.data || null;
+}
+
+
+export type InverseAttributes = [
+    "IsDecomposedBy",
+    "Decomposes",
+    "AssociatedTo",
+    "HasAssociations",
+    "ClassificationForObjects",
+    "IsGroupedBy",
+    "HasAssignments",
+    "IsDefinedBy",
+    "DefinesOcurrence",
+    "IsTypedBy",
+    "Types",
+    "Defines",
+    "ContainedInStructure",
+    "ContainsElements"
+];
+
+export async function GetAssemblies(model: FRAGS.FragmentsGroup, components: OBC.Components | undefined): Promise<BuildingElement[]> {
+    if (!components) {
+        console.log('components not set, getBuildingElements exiting')
+        return [];
+    }
+
+    const newElements: BuildingElement[] = []// = Map<number,buildingElement[]>;
+
+
+    const indexer = components.get(OBC.IfcRelationsIndexer);
+    await indexer.process(model);
+    const classifier = components.get(OBC.Classifier);
+    // classifier.byEntity(model);
+    classifier.bySpatialStructure(model);
+
     const ifcElements = IfcElements;
 
-    console.log("IfcElements",IfcElements)
+    console.log("IfcElements", IfcElements)
 
 
-    console.log('clasified types,', classifier.list)
+    console.log('clasified spatial structres,', classifier.list)
     // each item in the list is the fragment guid and a list of express id of elements
     // each element needs to go find all its relations
 
 
     for (const [systemName, system] of Object.entries(classifier.list)) {
-        console.log('System name:', systemName)
+        // console.log('System name:', systemName)
 
         for (const [className, fragmentMap] of Object.entries(system)) {
-            console.log(`  Class: ${className}`);
+            // console.log(`  Class: ${className}`);
 
-            for (const [fragmentID, expressIDs] of Object.entries(fragmentMap)) {
-                console.log(`  fragment: ${fragmentID}`);
+            for (const [fragmentID, expressIDs] of Object.entries(fragmentMap.map)) {
+                // console.log(`  fragment: ${fragmentID}`);
 
                 // Use Promise.all to handle multiple async operations in parallel
                 await Promise.all([...expressIDs].map(async (expressID: number) => {
@@ -447,14 +582,14 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
 
                     //get the element and its base info (name, ids, ect)
                     //get properties and add them to psets
-                    const newElement = await getBuildingElementBase(expressID,fragmentID, model, indexer);
+                    const newElement = await getBuildingElementBase(expressID, fragmentID, model, indexer);
 
                     if (newElement) {
                         const props = await GetAllDefinedBy(model, indexer, expressID);
                         newElement.properties = props;
                         // Do something with props...
                         // console.log(`    props for ${expressID}:`, props);
-                        console.log('new element', newElement)
+                        // console.log('new element', newElement)
                         newElements.push(newElement)
 
                     } else {
@@ -475,7 +610,7 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
  * @param fragmentID the fragment id representing the 3d geometry/ type of this element
  * @returns a building element with no property sets or undefined
  */
-async function getBuildingElementBase(expressID: number,fragmentID: string, model: FRAGS.FragmentsGroup, indexer: OBC.IfcRelationsIndexer): Promise<BuildingElement | undefined> {
+async function getBuildingElementBase(expressID: number, fragmentID: string, model: FRAGS.FragmentsGroup, indexer: OBC.IfcRelationsIndexer): Promise<BuildingElement | undefined> {
 
     const element = await model.getProperties(expressID);
     // console.log('element ', element);
@@ -504,7 +639,7 @@ async function getBuildingElementBase(expressID: number,fragmentID: string, mode
                     // console.log('typed by ', elementType);
                     if (elementType) {
                         newElement.name = elementType.Name.value;
-                        console.log('name found on type', name)
+                        // console.log('name found on type', name)
                     }
                 }
             }
@@ -513,7 +648,7 @@ async function getBuildingElementBase(expressID: number,fragmentID: string, mode
     return newElement;
 }
 
-async function GetAllDefinedBy(model: FRAGS.FragmentsGroup, indexer: OBC.IfcRelationsIndexer, elementID: number) : Promise<BasicProperty[]> {
+async function GetAllDefinedBy(model: FRAGS.FragmentsGroup, indexer: OBC.IfcRelationsIndexer, elementID: number): Promise<BasicProperty[]> {
     const psets = indexer.getEntityRelations(model, elementID, "IsDefinedBy");
 
 
@@ -531,7 +666,7 @@ async function GetAllDefinedBy(model: FRAGS.FragmentsGroup, indexer: OBC.IfcRela
                     const prop = await model.getProperties(propExpressID);
                     // console.log(prop);
                     // props.push(prop)
-                    props.push({ name: prop?.Name.value, value: prop?.NominalValue.value, pSet: pset?.Name})
+                    props.push({ name: prop?.Name.value, value: prop?.NominalValue.value, pSet: pset?.Name })
                 },
             );
         }

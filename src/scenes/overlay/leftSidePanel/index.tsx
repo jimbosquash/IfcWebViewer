@@ -1,19 +1,21 @@
-import { Box, IconButton, Tooltip, useTheme, Typography, Paper, styled } from "@mui/material";
+import { Box, IconButton, Tooltip, useTheme, Typography } from "@mui/material";
 import { Icon } from "@iconify/react";
 import { tokens } from "../../../theme";
-import { useEffect, useState } from "react";
-import StationBrowserPanel from "./src/StationBrowserPanel";
+import { useEffect, useRef, useState } from "react";
 import { BimSettings } from "../../../components/BimSettings";
 import ColorPaletteModal from "../../../components/ColorPalleteModal";
 import { useComponentsContext } from "../../../context/ComponentsContext";
-import { ModelCache } from "../../../bim-components/modelCache";
 import ProjectOverviewPanel from "./src/ProjectOverViewPanel";
 import TaskBrowserPanel from "./src/TaskBrowserPanel";
 import SettingsPanel from "./src/settingsPanel";
+import { sidebarWidth } from "../rightSidePanel";
+import { ModelViewManager } from "../../../bim-components/modelViewer";
+import { ViewPresenterPanel } from "../../../components/ViewPresenterPanel";
+import { PanelBase } from "../../../components/PanelBase";
 
 const minWidth = 220;
 
-export const LeftSideBox: React.FC = () => {
+export const LeftSidePanel: React.FC = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
@@ -21,30 +23,39 @@ export const LeftSideBox: React.FC = () => {
   const [panelWidth, setPanelWidth] = useState(310); // Initial width of the panel
   const [isResizing, setIsResizing] = useState(false);
   const [autoOpen, setAutoOpen] = useState(true);
-  const sidebarWidth = 52;
+  const [totalWidth, setTotalWidth] = useState(sidebarWidth);
+  const panelAutoOpen = useRef<boolean>(true);
   const [panelContent, setPanelContent] = useState<{ content: JSX.Element | null; name: string }>({
     content: null,
     name: "",
   });
 
   useEffect(() => {
+    setTotalWidth(panelOpen ? panelWidth + sidebarWidth : sidebarWidth);
+  }, [panelWidth]);
+
+  useEffect(() => {
     // listen for new models
     if (!components) return;
 
-    const fragments = components.get(ModelCache);
+    const viewManager = components.get(ModelViewManager);
     console.log("side panel listening");
 
-    fragments.onModelAdded.add(() => listenForModels());
+    viewManager.onTreeChanged.add(() => listenForTreeChange());
 
     return () => {
       // unlisten
-      fragments.onModelAdded.remove(() => listenForModels());
+      viewManager.onTreeChanged.remove(() => listenForTreeChange());
       console.log("side panel stop listening");
     };
   }, [components]);
 
-  const listenForModels = () => {
-    console.log("side panel listening for model");
+  const listenForTreeChange = () => {
+    if (!panelAutoOpen.current) {
+      components.get(ModelViewManager).onTreeChanged.remove(() => listenForTreeChange());
+      return;
+    }
+    // console.log("side panel listening for model");
 
     if (!autoOpen) return;
 
@@ -58,18 +69,19 @@ export const LeftSideBox: React.FC = () => {
     if (panelContent.name === panelName && panelOpen) {
       setPanelOpen(false); // Close the panel on double click
       console.log("close panel");
+      setTotalWidth(sidebarWidth);
     } else {
       setPanelContent({ content, name: panelName });
       setPanelOpen(true); // Open or change content on single click
       console.log("set panel");
+      setTotalWidth(panelWidth + sidebarWidth);
     }
     console.log("panel input", panelContent, content, panelOpen);
   };
-
   // Start the resizing
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsResizing(true);
-  };
+  const handleMouseDown = (e: React.MouseEvent) => setIsResizing(true);
+  // Stop the resizing
+  const handleMouseUp = () => setIsResizing(false);
 
   // Resize the panel as the user moves the mouse
   const handleMouseMove = (e: MouseEvent) => {
@@ -80,11 +92,6 @@ export const LeftSideBox: React.FC = () => {
         setPanelWidth(newWidth);
       }
     }
-  };
-
-  // Stop the resizing
-  const handleMouseUp = () => {
-    setIsResizing(false);
   };
 
   // Attach the mouse move and mouse up events
@@ -105,32 +112,35 @@ export const LeftSideBox: React.FC = () => {
 
   const CommentsPanel = () => {
     return (
-      <Box component="div" flexDirection="column" display="flex" width="100%" marginTop="20px" marginLeft="5px" gap="2">
-        <Box component="div" flexDirection="row" display="flex" marginLeft="10px" gap="4">
-          <Icon style={{ color: colors.grey[500] }} icon="mdi:chat-add-outline" />
-          <Typography marginLeft="8px" variant="h5">
-            Comments Content
-          </Typography>
-        </Box>
-        <Typography marginLeft="8px" marginRight="16px" marginTop="8px" variant="body2">
-          Use comments to by clicking the button then clicking on desired element. Comments will only be saved if you
-          export a new Ifc model.{" "}
-        </Typography>
+      <PanelBase
+        title="Comments panel"
+        body="Use comments to by clicking the button then clicking on desired element. Comments will only be saved if you
+      export a new Ifc model."
+        icon="mdi:file-tree-outline"
+      >
         <TaskBrowserPanel />
-        {/* // Use the navigation arrows to move through them. */}
-      </Box>
+      </PanelBase>
     );
   };
 
   return (
-    <Box display="flex" height="100vh" component={"div"} position="absolute">
+    <Box
+      display="flex"
+      className="leftSidePanel"
+      component={"div"}
+      sx={{
+        width: totalWidth,
+        height: "100%",
+        flexShrink: 0,
+      }}
+    >
       <Box
         component={"div"}
         style={{ pointerEvents: "auto", backgroundColor: colors.primary[100], borderColor: colors.primary[900] }} // or 400
         display="flex"
         padding="6px"
         zIndex={1100}
-        width="{sidebarWidth}px"
+        width={sidebarWidth}
         gap="3px"
         alignContent="center"
         flexDirection="column"
@@ -160,6 +170,17 @@ export const LeftSideBox: React.FC = () => {
           </IconButton>
         </Tooltip>
 
+        <Tooltip title="Presentation" placement="right" arrow>
+          <IconButton
+            style={{
+              backgroundColor: panelContent.name === "Presentations" && panelOpen ? colors.grey[900] : "transparent",
+            }}
+            onClick={() => handleIconClick(<ViewPresenterPanel />, "Presentations")}
+          >
+            <Icon icon="ph:video-camera-bold" />
+          </IconButton>
+        </Tooltip>
+
         <Tooltip title="Comments" placement="right" arrow>
           <IconButton
             style={{
@@ -179,9 +200,8 @@ export const LeftSideBox: React.FC = () => {
             onClick={() =>
               handleIconClick(
                 <>
-                  <Typography variant="h6">Settings Content</Typography>
                   <BimSettings />
-                  <SettingsPanel/>
+                  <SettingsPanel />
                 </>,
                 "settings"
               )
@@ -207,9 +227,11 @@ export const LeftSideBox: React.FC = () => {
           </IconButton>
         )}
       </Box>
+
       {/* exanpding Panel */}
       <Box
         component={"div"}
+        className="leftPanelContentContainer"
         borderRight="1px solid"
         display="flex"
         style={{
@@ -248,27 +270,24 @@ export const LeftSideBox: React.FC = () => {
             display: "flex",
             flexDirection: "column",
             flexGrow: 1,
-            width:'100%',
+            width: "100%",
             height: "100%",
           }}
         >
-          {/* You can add a header here if needed */}
-
           {/* Scrollable Content Area */}
           <Box
             component="div"
             style={{
               flexGrow: 1,
+              height:'100%',
             }}
           >
             {panelContent.content}
           </Box>
-
-          {/* You can add a footer here if needed */}
         </Box>
       </Box>
     </Box>
   );
 };
 
-export default LeftSideBox;
+export default LeftSidePanel;

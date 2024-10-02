@@ -46,27 +46,32 @@ export interface SelectionGroup {
     elements: BuildingElement[];
   }
 
-  /**
-   * A container for handeling Sustainer elements and properties 
-   */
-  export interface BuildingElement {
+  // representing https://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/IfcElement.htm
+export interface IfcElement{ 
     /**
      * the number of the line in the .ifc file
      */
-    expressID: number; 
-    /**
+     expressID: number; 
+         /**
      * The guid of an element from the .ifc file. It is more unique than the expressID
      */
     GlobalID: string;
+        /**
+     * The type enumerated of all IFC types. use the ifcElements Map to get number version
+     */
+         type: string;
+         name: string;
+}
+
+  /**
+   * A container for handeling Sustainer elements and properties 
+   */
+  export interface BuildingElement extends IfcElement {
     /**
      * The Id of the fragment which holds the reference to the InstanceMesh of this object
      */
     FragmentID: string;
-    /**
-     * The type enumerated of all IFC types. use the ifcElements Map to get number version
-     */
-    type: string;
-    name: string;
+
     /**
      * The Id of the FragmentGroup which represents the ifc model file
      */

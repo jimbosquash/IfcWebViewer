@@ -1,4 +1,4 @@
-import { Tree, TreeNode, TreeUtils } from "./Tree";
+import { Tree, TreeNode } from "./Tree";
 import { SelectionGroup, BuildingElement, KnowGroupType, knownProperties } from "./types";
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
@@ -7,6 +7,7 @@ import { GetCenterPoint, GetFragmentIdMaps } from "./IfcUtilities";
 import { ModelViewManager } from "../bim-components/modelViewer";
 import { FragmentsGroup } from "@thatopen/fragments";
 import { Components } from "@thatopen/components";
+import { TreeUtils } from "./treeUtils";
 
 
 /**
@@ -227,7 +228,7 @@ export const select = async (elements: BuildingElement[], components: OBC.Compon
     const expressIds = elements.flatMap(e => e.expressID);
     const elementTypeIds = model.getFragmentMap(expressIds);
     // console.log("high light these elements",elementTypeIds)
-    await highlighter.highlightByID("select", elementTypeIds, false, false);
+    await highlighter.highlightByID("select", elementTypeIds,clearPrevious, false);
     hider.set(true, elementTypeIds)
   });
 
@@ -289,6 +290,10 @@ export function distanceToCenter(a: BuildingElement, b: BuildingElement, model: 
   return aCenter?.distanceTo(bCenter);
 }
 
+export const setUpContainedByTree = ( elements: BuildingElement[]) => {
+
+}
+
 
 /**
  * Create a tree structure by using the input node order to group building elements by their property.
@@ -331,42 +336,83 @@ export const setUpTreeFromProperties = (id: string, elements: BuildingElement[],
 
 function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[]][] {
   const entries = Array.from(groupedElements.entries());
+  // console.log('sorting', Array.from(groupedElements.keys()));
 
-  // Separate entries into numeric and non-numeric prefixes
-  const numericEntries: [string, any[]][] = [];
-  const nonNumericEntries: [string, any[]][] = [];
-
-  entries.forEach(entry => {
-    const prefix = entry[0].split('_')[0];
-    if (!isNaN(parseFloat(prefix)) && isFinite(parseFloat(prefix))) {
-      numericEntries.push(entry);
-    } else {
-      nonNumericEntries.push(entry);
+  // Function to extract the first number (including decimals) from a string
+  const extractNumber = (str: string): [number, number] => {
+    const match = str.match(/(\d+)(?:\.(\d+))?/);
+    if (match) {
+      const integerPart = parseInt(match[1]);
+      const decimalPart = match[2] ? parseInt(match[2]) : 0;
+      return [integerPart, decimalPart];
     }
+    return [Infinity, 0];
+  };
+
+  // Custom sort function
+  entries.sort((a, b) => {
+    const [aInt, aDec] = extractNumber(a[0]);
+    const [bInt, bDec] = extractNumber(b[0]);
+    // console.log('sort between', `${aInt}.${aDec}`, `${bInt}.${bDec}`);
+
+    if (aInt !== bInt) {
+      return aInt - bInt; // Compare integer parts
+    }
+
+    if (aDec !== bDec) {
+      return aDec - bDec; // Compare decimal parts as integers
+    }
+
+    // If numbers are the same, fall back to alphabetical comparison
+    // console.log('sorted one', a[0].localeCompare(b[0]));
+    return a[0].localeCompare(b[0]);
   });
 
-  // Sort numeric entries using a custom comparison function
-  numericEntries.sort((a, b) => {
-    const aPrefix = a[0].split('_')[0];
-    const bPrefix = b[0].split('_')[0];
-    
-    // Split the prefix into integer and decimal parts
-    const [aInt, aDec = '0'] = aPrefix.split('.');
-    const [bInt, bDec = '0'] = bPrefix.split('.');
-    
-    // Compare integer parts first
-    const intComparison = parseInt(aInt) - parseInt(bInt);
-    if (intComparison !== 0) {
-      return intComparison;
-    }
-    
-    // If integer parts are equal, compare decimal parts
-    return parseInt(aDec) - parseInt(bDec);
-  });
-
-  // Combine sorted numeric entries with unsorted non-numeric entries
-  return [...numericEntries, ...nonNumericEntries];
+  // console.log('sorted', entries.map(e => e[0]));
+  return entries;
 }
+
+
+
+
+// function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[]][] {
+//   const entries = Array.from(groupedElements.entries());
+
+//   // Separate entries into numeric and non-numeric prefixes
+//   const numericEntries: [string, any[]][] = [];
+//   const nonNumericEntries: [string, any[]][] = [];
+
+//   entries.forEach(entry => {
+//     const prefix = entry[0].split('_')[0];
+//     if (!isNaN(parseFloat(prefix)) && isFinite(parseFloat(prefix))) {
+//       numericEntries.push(entry);
+//     } else {
+//       nonNumericEntries.push(entry);
+//     }
+//   });
+
+//   // Sort numeric entries using a custom comparison function
+//   numericEntries.sort((a, b) => {
+//     const aPrefix = a[0].split('_')[0];
+//     const bPrefix = b[0].split('_')[0];
+    
+//     // Split the prefix into integer and decimal parts
+//     const [aInt, aDec = '0'] = aPrefix.split('.');
+//     const [bInt, bDec = '0'] = bPrefix.split('.');
+    
+//     // Compare integer parts first
+//     const intComparison = parseInt(aInt) - parseInt(bInt);
+//     if (intComparison !== 0) {
+//       return intComparison;
+//     }
+    
+//     // If integer parts are equal, compare decimal parts
+//     return parseInt(aDec) - parseInt(bDec);
+//   });
+
+//   // Combine sorted numeric entries with unsorted non-numeric entries
+//   return [...numericEntries, ...nonNumericEntries];
+// }
 
 
 export const groupElementsByPropertyName = (elements: BuildingElement[], property: string): Map<string, BuildingElement[]> => {

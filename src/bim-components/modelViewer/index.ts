@@ -3,10 +3,11 @@ import * as OBF from "@thatopen/components-front"
 import * as THREE from 'three'
 import { setUpTreeFromProperties } from "../../utilities/BuildingElementUtilities";
 import { GetFragmentsFromExpressIds } from "../../utilities/IfcUtilities";
-import { BuildingElement, KnowGroupType, knownProperties, SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
-import { Tree, TreeNode, TreeUtils } from "../../utilities/Tree";
+import { BuildingElement, knownProperties, SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
+import { Tree, TreeNode } from "../../utilities/Tree";
 import { _roots } from "@react-three/fiber";
 import { ModelCache } from "../modelCache";
+import { TreeUtils } from "../../utilities/treeUtils";
 
 interface TreeContainer {
     id: string; // name of tree
@@ -148,6 +149,25 @@ export class ModelViewManager extends OBC.Component {
         }
     }
 
+    /**
+     * Assuming the id is found in the current Tree. set the new selection group based on args selectionGroupId and this.Tree
+     * @param selectionGroupId the treenode id to search the rpimary tree from
+     * @param updateModelVisibility to update the model visibility based on the new selection group
+     */
+    setSelectionGroupByID(selectionGroupId: string, updateModelVisibility: boolean) {
+        const node = this.Tree?.getNode(selectionGroupId);
+
+        if (!node) return;
+
+        this._selectedGroup = { groupType: node.type, id: node.id, groupName: node.name, elements: TreeUtils.getChildrenNonNullData(node) };
+        console.log("ModelViewManager: selected group changed:", selectionGroupId)
+
+        this.onSelectedGroupChanged.trigger(this._selectedGroup)
+        if (updateModelVisibility && this.Tree?.id) {
+            this.updateBasedOnVisibilityMode(undefined, undefined, this.Tree?.id);
+        }
+    }
+
     get Tree(): Tree<BuildingElement> | undefined {
         return this._tree?.tree;
     }
@@ -185,11 +205,11 @@ export class ModelViewManager extends OBC.Component {
         this._defaultTreeStructure = propertyOrder;
     }
 
+
     /**
      * Sets up Tree strucutre based on building elements properties and ignores the ifc file structure
-     * 
      */
-    setUpDefaultTree = (buildingElements: BuildingElement[] | undefined, groupVisibility?: Map<string, VisibilityState>): void => {
+    setUpDefaultTree = (buildingElements: BuildingElement[] | undefined): void => {
         if (!buildingElements) {
             this.onTreeChanged.trigger(undefined);
             return;
@@ -202,7 +222,7 @@ export class ModelViewManager extends OBC.Component {
         this.setTree(tree.id)
         this._selectedGroup = undefined;
         this._enabled = true;
-        this.updateVisibility(tree.id);
+        // this.updateVisibility(tree.id); // this is slow and the model should already be visible as this is used on opening by default
     }
 
     /**
@@ -311,6 +331,14 @@ export class ModelViewManager extends OBC.Component {
         await Promise.all(highlightPromises);
     }
 
+    /**
+     * Run updateVisibility assuming that thee treeID is the current tree if not undefined
+     */
+    update() {
+        if (this._tree)
+            this.updateVisibility(this._tree?.id);
+    }
+
 
     /**
      * sets the view of the 3d elements based on the input viewmode and selection group. Note it clears the existing view tree
@@ -344,22 +372,21 @@ export class ModelViewManager extends OBC.Component {
                 sameNodeTypes.forEach(treeNode => {
                     const visibilityState = treeNode.id === group?.id ? VisibilityState.Visible : VisibilityState.Hidden;
 
-                    if(visibilityState === VisibilityState.Visible) {
+                    if (visibilityState === VisibilityState.Visible) {
                         console.log("Isolation view updating", treeNode)
-                        this.setVisibility(treeNode.id, tree.tree.id,VisibilityState.Visible, false)
+                        this.setVisibility(treeNode.id, tree.tree.id, VisibilityState.Visible, false)
                         treeNode.children.forEach(child => {
-                            if(!child.isLeaf) 
-                            {
+                            if (!child.isLeaf) {
                                 console.log("Isolation child", child)
 
-                                this.setVisibility(child.id, tree.tree.id,VisibilityState.Visible, false)
+                                this.setVisibility(child.id, tree.tree.id, VisibilityState.Visible, false)
                             } else {
                                 console.log('not isolating child', child)
                             }
                         })
 
                     } else {
-                        this.setVisibility(treeNode.id, tree.tree.id,VisibilityState.Hidden, false)
+                        this.setVisibility(treeNode.id, tree.tree.id, VisibilityState.Hidden, false)
                     }
                 });
                 break;
@@ -424,9 +451,9 @@ export class ModelViewManager extends OBC.Component {
         // console.log('all hidden nodes found:', hiddenNodes)
 
         // make each node, their parent and children are visible
-        console.log('visible nodes of tree',visibleNodes)
+        console.log('visible nodes of tree', visibleNodes)
         visibleNodes.forEach(treeNode => {
-            
+
             this.setVisibility(treeNode.id, tree.id, VisibilityState.Visible, false)
 
             // now set all their children visible
@@ -445,53 +472,6 @@ export class ModelViewManager extends OBC.Component {
 
         return true;
     }
-
-    // private showPreviousTreeNodes = (tree: Tree<BuildingElement>, nodeID: string): boolean => {
-    //     const visibleNodes: TreeNode<BuildingElement>[] = [];
-    //     const hiddenNodes: TreeNode<BuildingElement>[] = [];
-    //     // every parent node and children before this parents node are hidden
-
-    //     const node = this._tree?.getNode(nodeID);
-    //     if (!node || !node.parent) return false; // its the root or cant be found
-
-    //     //let parents: TreeNode<BuildingElement>[] = [];
-
-    //     //if(node.parent) parents.push(node.parent)
-    //     //if(node.parent?.parent) parents.push(node.parent.parent)
-    //     // make parent visible 
-
-    //     const parents: TreeNode<BuildingElement>[] = [];
-    //     let currentNode = node;
-    //     while (currentNode.parent) {
-    //         parents.unshift(currentNode.parent); // Add parent to the beginning of the array
-    //         currentNode = currentNode.parent;
-    //     }
-
-    //     parents.forEach(parent => {
-    //         const children = [...parent.children.values()].filter(child => !parents.includes(child));
-    //         children.forEach(child => )
-
-    //     });
-
-    //     // Step 2: Traverse from highest parent to reference node
-    //     for (let i = 0; i < parents.length; i++) {
-    //         const parent = parents[i];
-    //         const childToKeepVisible = i === parents.length - 1 ? node : parents[i + 1];
-
-    //         // Hide all children except for the sub-parent or reference node
-    //         for (const child of parent.children) {
-    //             if (child !== childToKeepVisible) {
-    //                 hiddenNodes.push(child)
-    //             }
-    //         }
-    //     }
-    // }
-
-
-
-
-
-
 
 
     isolate(group: SelectionGroup, treeID: string) {

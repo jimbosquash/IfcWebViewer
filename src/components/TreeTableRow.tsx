@@ -6,11 +6,12 @@ import { useComponentsContext } from "../context/ComponentsContext";
 import { nonSelectableTextStyle } from "../styles";
 import { tokens } from "../theme";
 import { GetFragmentIdMaps } from "../utilities/IfcUtilities";
-import { TreeNode, TreeUtils } from "../utilities/Tree";
+import { TreeNode } from "../utilities/Tree";
 import { BuildingElement, SelectionGroup, VisibilityState } from "../utilities/types";
 import * as OBF from "@thatopen/components-front";
 import * as FRAGS from "@thatopen/fragments";
 import { ModelViewManager } from "../bim-components/modelViewer";
+import { TreeUtils } from "../utilities/treeUtils";
 
 // todo: need to decide where the selection of elements will happen
 // either here are with an update from the ModelViewManager

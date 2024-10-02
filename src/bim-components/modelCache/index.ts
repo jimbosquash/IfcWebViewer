@@ -170,6 +170,7 @@ export class ModelCache extends OBC.Component {
         this.onModelAdded.trigger(model)
 
         try {
+            // let test = await 
             let newElements = await GetBuildingElements(model, this.components);
             if (!this._buildingElements) {
                 this._buildingElements = newElements;
@@ -232,7 +233,7 @@ export class ModelCache extends OBC.Component {
         return this._enabled
     }
 
-    get BuildingElements() {
+    get buildingElements() {
         return this._buildingElements;
     }
 }

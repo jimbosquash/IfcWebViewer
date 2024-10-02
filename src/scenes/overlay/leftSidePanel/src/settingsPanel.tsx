@@ -8,18 +8,14 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  FormControlLabel,
   SelectChangeEvent,
   Divider,
 } from "@mui/material";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
-import * as THREE from "three";
-import * as BUI from "@thatopen/ui";
-import * as CUI from "@thatopen/ui-obc";
 import { ModelTagger } from "../../../../bim-components/modelTagger";
-import { ModelCache } from "../../../../bim-components/modelCache";
+import { ConfigurationManager } from "../../../../bim-components/configManager";
 
 // Define types for our setting components
 interface ToggleSettingProps {
@@ -90,16 +86,22 @@ const SettingsPanel: React.FC = () => {
   const components = useComponentsContext();
   const [zoomOnSelection, setZoomOnSelection] = useState<boolean>(true);
   const [showFasteners, setShowFasteners] = useState<boolean>(true);
+  const [mergeFasteners, setMergeFasteners] = useState<boolean>(true);
   const [showInstallations, setShowInstallations] = useState<boolean>(false);
-  const [enableGrid, setEnableGrid] = useState<boolean>(false);
+  const [labelStyle, setLabelStyle] = useState<"Code" | "Name">("Code");
+  const [showGrid, setShowGrid] = useState<boolean>(false);
 
   useEffect(() => {
     // get all settings that are state
     const highlighter = components.get(OBF.Highlighter);
     setZoomOnSelection(highlighter.zoomToSelection);
-    const tagger = components.get(ModelTagger);
-    setShowFasteners(tagger.Configuration?.showFasteners ?? false);
+    setShowGrid(components.get(ConfigurationManager).sceneConfig.get("showGrid"));
 
+    const tagConfigs = components.get(ModelTagger).Configuration;
+    setLabelStyle(tagConfigs.get("labelStyle"));
+    setShowFasteners(tagConfigs.get("showFasteners"));
+    setMergeFasteners(tagConfigs.get("mergeFasteners"));
+    setShowInstallations(tagConfigs.get("showInstallations"));
     return () => {
       // unhook any changes
     };
@@ -107,35 +109,39 @@ const SettingsPanel: React.FC = () => {
 
   const handleZoomToggle = (checked: boolean) => {
     setZoomOnSelection(checked);
-    const highlighter = components.get(OBF.Highlighter);
-    highlighter.zoomToSelection = checked;
+    components.get(ConfigurationManager).sceneConfig.set("zoomToSelection", checked);
+    components.get(OBF.Highlighter).zoomToSelection = checked;
   };
 
   const handleGridToggle = (checked: boolean) => {
-    setEnableGrid(checked);
+    setShowGrid(checked);
+    components.get(ConfigurationManager).sceneConfig.set("showGrid", checked);
     const grids = components.get(OBC.Grids).list;
-    grids.forEach(grid => {
-      grid.visible = checked})
+    grids.forEach((grid) => {
+      grid.visible = checked;
+    });
   };
+
+  const handleLabelStyleToggle = (checked: boolean) => {
+    const labelStyle = checked ? "Code" : "Name";
+    setLabelStyle(labelStyle);
+    components.get(ModelTagger).Configuration.set("labelStyle", labelStyle);
+  };
+
 
   const handleShowFastenersToggle = (checked: boolean) => {
     setShowFasteners(checked);
-    const tagger = components.get(ModelTagger);
-    const config = tagger.Configuration;
-    if (config) {
-      config.showFasteners = checked;
-      tagger.Configuration = config;
-    }
+    components.get(ModelTagger).Configuration.set("showFasteners", checked);
+  };
+
+  const handleMergeFastenersToggle = (checked: boolean) => {
+    setMergeFasteners(checked);
+    components.get(ModelTagger).Configuration.set("mergeFasteners", checked);
   };
 
   const handleShowInstallationsToggle = (checked: boolean) => {
     setShowInstallations(checked);
-    const tagger = components.get(ModelTagger);
-    const config = tagger.Configuration;
-    if (config) {
-      config.showInstallations = checked;
-      tagger.Configuration = config;
-    }
+    components.get(ModelTagger).Configuration.set("showInstallations", checked);
   };
 
   return (
@@ -161,8 +167,8 @@ const SettingsPanel: React.FC = () => {
       />
 
       <ToggleSetting
-        label={enableGrid ? "Show Grid" : "Hide Grid"}
-        value={enableGrid}
+        label={showGrid ? "Show Grid" : "Hide Grid"}
+        value={showGrid}
         onChange={(e) => handleGridToggle(e)}
       />
 
@@ -173,9 +179,20 @@ const SettingsPanel: React.FC = () => {
       </Typography>
 
       <ToggleSetting
+        label={`Show label as ${labelStyle}` }
+        value={labelStyle === "Code"}
+        onChange={(e) => handleLabelStyleToggle(e)}
+      />
+
+      <ToggleSetting
         label={showFasteners ? "Show Fasteners" : "Hide Fasteners"}
         value={showFasteners}
         onChange={(e) => handleShowFastenersToggle(e)}
+      />
+      <ToggleSetting
+        label={mergeFasteners ? "UnMerge Fasteners" : "Merge Fasteners"}
+        value={mergeFasteners}
+        onChange={(e) => handleMergeFastenersToggle(e)}
       />
 
       <ToggleSetting
@@ -190,12 +207,18 @@ const SettingsPanel: React.FC = () => {
           components.get(ModelTagger).setupColors(false);
           if (components.get(ModelTagger).enabled) {
             components.get(ModelTagger).setup();
-            components.get(ModelTagger).setTags();
+            components.get(ModelTagger).setMarkerProps();
           }
         }}
       />
 
       <Divider />
+
+      <Box component="div" py={1}>
+    <Button variant="contained" fullWidth onClick={() => {localStorage.clear()}}>
+      Clear local storage
+    </Button>
+  </Box>
 
       {/* 
 

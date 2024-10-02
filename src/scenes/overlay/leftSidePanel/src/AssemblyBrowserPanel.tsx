@@ -1,15 +1,15 @@
-import { Box, Button, ButtonGroup, colors, Tooltip } from "@mui/material";
+import { Box, ButtonGroup } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { Tree, TreeNode, TreeUtils } from "../../../../utilities/Tree";
-import { BuildingElement, knownProperties, VisibilityState } from "../../../../utilities/types";
+import { Tree, TreeNode } from "../../../../utilities/Tree";
+import { BuildingElement, VisibilityState } from "../../../../utilities/types";
 import { ModelCache } from "../../../../bim-components/modelCache";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import TreeTableRow from "../../../../components/TreeTableRow";
 import React from "react";
+import { TreeUtils } from "../../../../utilities/treeUtils";
 
 const treeName = ModelViewManager.defaultyTreeName;
-const treeStructure = [knownProperties.Assembly, knownProperties.BuildingStep];
 
 export const AssemblyBrowserPanel: React.FC = React.memo(() => {
   const [nodes, setNodes] = useState<TreeNode<BuildingElement>[]>();

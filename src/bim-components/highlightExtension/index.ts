@@ -1,7 +1,11 @@
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
 import * as THREE from "three";
+import { GetPropertyByName } from "../../utilities/BuildingElementUtilities";
+import { BuildingElement, knownProperties } from "../../utilities/types";
 import { ModelCache } from "../modelCache";
+import { ModelTagger } from "../modelTagger";
+import { ModelViewManager } from "../modelViewer";
 
 export class HighlightExtension extends OBC.Component {
 
@@ -123,7 +127,7 @@ export class HighlightExtension extends OBC.Component {
 
                 if (firstElement) {
                     const element = cache.getElementByExpressId(firstElement, result.object.fragment.group.uuid)
-                    this._hitLabel = element?.name ?? null;
+                    this._hitLabel = element !== undefined ? this.getLabel(element) : null;
                     const newTag = this.createNewTag(this.world, this._hitLabel);
                     this._previewElement.dispose();
                     this._previewElement = newTag;
@@ -147,12 +151,16 @@ export class HighlightExtension extends OBC.Component {
 
     }
 
-
-    // private addCommentOnPreviewPoint = () => {
-    //     if(!(this.enabled && this._hitPoint)) return;
-    //     const text = prompt("Comment")
-    //     if(!(text && text.trim() !== "")) return;
-    //     this.addComment(text,this._hitPoint);
-    // }
-
+    private getLabel = (element: BuildingElement) : string => {
+        const config = this.components.get(ModelTagger).Configuration;
+        const labelStyle = config.get('labelStyle')
+        let label = element.name;
+        if(labelStyle === `Code`) {
+            let code = GetPropertyByName(element,knownProperties.ProductCode)?.value
+            const mat = GetPropertyByName(element, knownProperties.Material)?.value ?? "";
+            if(mat && code) code = `${mat}_${code}`
+            if(code) label = code;
+        }
+        return label;
+    }
 }

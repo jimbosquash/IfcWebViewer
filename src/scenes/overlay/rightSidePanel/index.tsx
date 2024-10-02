@@ -7,13 +7,13 @@ import PropertiesPanel from "./src/propertyPanel";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import { ModelCache } from "../../../bim-components/modelCache";
 
-interface RightSidePanelProps {
+export interface SidePanelProps {
   onWidthChange: (width: number) => void;
 }
+export const sidebarWidth = 52;
 
-export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange }) => {
+export const RightSidePanel: React.FC = () => {
   const panelRef = useRef<HTMLDivElement>(null);
-
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
@@ -21,13 +21,14 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
   const [panelWidth, setPanelWidth] = useState(250); // Initial width of the panel
   const [isResizing, setIsResizing] = useState(false);
   const [autoOpen, setAutoOpen] = useState(true);
+  const [totalWidth, setTotalWidth] = useState(sidebarWidth);
   const [panelContent, setPanelContent] = useState<{ content: JSX.Element | null; name: string }>({
     content: null,
     name: "",
   });
 
   useEffect(() => {
-    onWidthChange(panelWidth);
+    setTotalWidth(panelOpen ? panelWidth + sidebarWidth : sidebarWidth);
   }, [panelWidth]);
 
   useEffect(() => {
@@ -35,7 +36,6 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
     const cache = components.get(ModelCache);
     console.log("side panel listening");
 
-    // open property panel on open model
     //cache.onModelAdded.add(() => listenForModels());
 
     return () => {
@@ -43,25 +43,6 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
       console.log("side panel stop listening");
     };
   }, [components]);
-
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        if (entry.target === panelRef.current) {
-          onWidthChange(entry.contentRect.width);
-          // onWidthChange(panelWidth);
-        }
-      }
-    });
-
-    if (panelRef.current) {
-      resizeObserver.observe(panelRef.current);
-    }
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [onWidthChange]);
 
   const listenForModels = () => {
     console.log("right panel listening for highlight");
@@ -71,24 +52,19 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
   };
 
   // Start the resizing
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsResizing(true);
-  };
+  const handleMouseDown = (e: React.MouseEvent) => setIsResizing(true);
+  // Stop the resizing
+  const handleMouseUp = () => setIsResizing(false);
 
   // Resize the panel as the user moves the mouse
   const handleMouseMove = (e: MouseEvent) => {
-    if (isResizing) {
-      const newWidth = window.innerWidth - e.clientX;
-      if (newWidth >= 150 && newWidth <= 600) {
-        // Min and Max width limits
-        setPanelWidth(newWidth);
-      }
-    }
-  };
+    if (!isResizing) return;
 
-  // Stop the resizing
-  const handleMouseUp = () => {
-    setIsResizing(false);
+    const newWidth = window.innerWidth - e.clientX;
+    if (newWidth >= 150 && newWidth <= 600) {
+      // Min and Max width limits
+      setPanelWidth(newWidth);
+    }
   };
 
   // Attach the mouse move and mouse up events
@@ -111,12 +87,12 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
     if (panelContent.name === panelName && panelOpen) {
       setPanelOpen(false); // Close the panel on double click
       console.log("close panel");
-      onWidthChange(0);
+      setTotalWidth(sidebarWidth);
     } else {
       setPanelContent({ content, name: panelName });
       setPanelOpen(true); // Open or change content on single click
       console.log("set panel");
-      onWidthChange(panelWidth);
+      setTotalWidth(panelWidth + sidebarWidth);
     }
     console.log("panel input", panelContent, content, panelOpen);
   };
@@ -133,22 +109,41 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
   };
 
   return (
-    <Box ref={panelRef} display="flex" height="100vh" width="100vw" component={"div"} position="absolute">
+    <Box
+      ref={panelRef}
+      className={"rightSidePanel"}
+      display="flex"
+      height="100%"
+      component={"div"}
+      sx={{
+        width: totalWidth,
+        height: "100%",
+        flexShrink: 0,
+      }}
+      position="relative"
+    >
+      {/* Persistant icon Bar */}
+
       <Box
         component={"div"}
-        style={{ pointerEvents: "auto", backgroundColor: colors.primary[100], borderColor: colors.primary[900] }} // or 400
-        display="flex"
-        padding="6px"
-        zIndex={1100}
-        width="52px"
-        gap="3px"
-        alignContent="center"
-        flexDirection="column"
-        height="100%"
-        borderLeft="1px solid"
-        position="fixed" // Position it absolutely within its container
-        right={0} // Align it to the right side of its container
-        // top={0} // Align it to the top of its container
+        sx={{
+          pointerEvents: "auto",
+          backgroundColor: colors.primary[100],
+          borderColor: colors.primary[900],
+          display: "flex",
+          padding: "6px",
+          zIndex: 1100,
+          width: "52px",
+          gap: "3px",
+          alignContent: "center",
+          flexDirection: "column",
+          height: "100%",
+          borderLeft: "1px solid",
+          position: "absolute",
+          right: 0,
+          // left: 100,
+          top: 0,
+        }}
       >
         <Tooltip title="Properties" placement="left" arrow>
           <IconButton
@@ -162,63 +157,67 @@ export const RightSidePanel: React.FC<RightSidePanelProps> = ({ onWidthChange })
         </Tooltip>
       </Box>
       {/* exanpding Panel */}
-      <Box
-        ref={panelRef}
-        component="div"
-        borderLeft="1px solid"
-        position="absolute"
-        marginRight="52px"
-        right={0}
-        style={{
-          pointerEvents: "auto",
-          width: `${panelWidth}px`, // Dynamic width based on resizing
-          height: "100%",
-          transform: panelOpen ? "translateX(0)" : `translateX(${panelWidth}px)`,
-          transition: isResizing ? "none" : "transform 0.2s ease",
-          zIndex: 1000,
-          backgroundColor: colors.primary[100],
-          borderColor: colors.primary[900],
-          paddingTop: "16px",
-        }}
-      >
-        {/* Resize Handle */}
+
+      {panelOpen && (
         <Box
+          ref={panelRef}
+          className="rightPanelContentContainer"
           component="div"
+          borderLeft="1px solid"
+          position="absolute"
+          marginRight="52px"
+          right={0}
           style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            bottom: 0,
-            width: "5px",
-            cursor: "ew-resize",
-            // backgroundColor: "darkgrey",
-          }}
-          onMouseDown={handleMouseDown}
-        />
-        {/* Main Panel Content Container */}
-        <Box
-          component="div"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            flexGrow: 1,
-            width: "100%",
+            pointerEvents: "auto",
+            width: `${panelWidth}px`, // Dynamic width based on resizing
             height: "100%",
+            transform: panelOpen ? "translateX(0)" : `translateX(${panelWidth}px)`,
+            transition: isResizing ? "none" : "transform 0.3s ease",
+            zIndex: 1000,
+            backgroundColor: colors.primary[100],
+            borderColor: colors.primary[900],
+            paddingTop: "16px",
           }}
         >
-          {/* You can add a header here if needed */}
-
-          {/* Scrollable Content Area */}
+          {/* Resize Handle */}
           <Box
             component="div"
+            className="rightPanelResizeHandle"
             style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              width: "10px",
+              height: "100%",
+              cursor: "ew-resize",
+              // backgroundColor: "lightgrey",
+              flexShrink: 1,
+            }}
+            onMouseDown={handleMouseDown}
+          />
+          {/* Main Panel Content Container */}
+          <Box
+            component="div"
+            className="rightPanelContent"
+            style={{
+              display: "flex",
+              flexDirection: "column",
               flexGrow: 1,
+              height: "100%",
             }}
           >
-            {panelContent.content}
+            {/* Scrollable Content Area */}
+            <Box
+              component="div"
+              style={{
+                flexGrow: 1,
+              }}
+            >
+              {panelContent.content}
+            </Box>
           </Box>
         </Box>
-      </Box>
+      )}
     </Box>
   );
 };

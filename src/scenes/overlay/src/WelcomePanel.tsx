@@ -21,17 +21,15 @@ export const WelcomePanel = () => {
     console.log("Opening Ifc file please wait.");
     const newModel = await uploadFile(data, components, false);
     if (newModel) {
+      // use to give user settings preference in window (uploading configs or ignoring configs)
       setLoadedModel(newModel);
+      const modelViewManager = components.get(ModelViewManager);
+      modelViewManager.defaultTreeStructure = [knownProperties.Station, knownProperties.BuildingStep];
+      await components.get(ModelCache).add(newModel, new Uint8Array());
+      setEnableView(false)
     }
   };
 
-  const handleModelViewSet = (data: 'Assembly' | "Station") => {
-    if(!loadedModel) return;
-    const modelViewManager = components.get(ModelViewManager)
-    modelViewManager.defaultTreeStructure = data === "Assembly" ? [knownProperties.Assembly,knownProperties.BuildingStep] : [knownProperties.Station,knownProperties.BuildingStep];
-    components.get(ModelCache).add(loadedModel, new Uint8Array())
-    setEnableView(false)
-  }
   return (
     <>
       {enableView && (
@@ -109,76 +107,105 @@ export const WelcomePanel = () => {
               </Box>
             )}
 
-            {loadedModel !== undefined && (
-              <Box component="div">
-                <Typography variant="h6">{loadedModel.name} : Successfully loaded</Typography>
-                <Box
-                  component="div"
-                  sx={{
-                    margin: "0px",
-                    width: "100%",
-                    height: "100%",
-                    justifyContent: "center",
-                    flexDirection: "row",
-                    alignContent: "center",
-                    display: "flex",
-                  }}
-                >
-                  <Box
-                    component="div"
-                    onClick={() => handleModelViewSet("Station")}
-                    sx={{
-                      height: "70%",
-                      width:"40%",
-                      margin: "12px",
-                      pointerEvents: "auto",
-                      border: `2px dashed gray`,
-                      borderRadius: "4px",
-                      padding: "20px",
-                      cursor: "pointer",
-                      position: "relative",
-                      zIndex: 1000,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Icon  icon="streamline:warehouse-1" style={{ fontSize: "52px", marginBottom: "4px" }} />
-                    <Typography variant="body1">View by Station</Typography>
-                  </Box>
-
-
-                  <Box
-                    component="div"
-                    onClick={() => handleModelViewSet("Assembly")}
-                    sx={{
-                      height: "70%",
-                      width:"40%",
-                      margin: "12px",
-                      pointerEvents: "auto",
-                      border: `2px dashed gray`,
-                      borderRadius: "4px",
-                      padding: "20px",
-                      cursor: "pointer",
-                      position: "relative",
-                      zIndex: 1000,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Icon  icon="system-uicons:boxes" style={{ fontSize: "52px", marginBottom: "4px" }} />
-                    <Typography variant="body1">View by Assemblies</Typography>
-                  </Box>
-                </Box>
-              </Box>
-            )}
+            {/* users selects how to format model */}
+            {/* {loadedModel !== undefined && (
+              <GroupSelector loadedModel={loadedModel} setEnabled={(data) => setEnableView(data)}/>
+            )} */}
           </Paper>
         </Box>
       )}
     </>
+  );
+};
+
+interface groupSelectorProps {
+  loadedModel: FragmentsGroup;
+  setEnabled: (enabled: boolean) => void;
+}
+const GroupSelector: React.FC<groupSelectorProps> = ({ loadedModel, setEnabled }) => {
+  const components = useComponentsContext();
+
+  const handleModelViewSet = async (data: "Assembly" | "Station") => {
+    if (!loadedModel) return;
+    setEnabled(false);
+    const modelViewManager = components.get(ModelViewManager);
+    modelViewManager.defaultTreeStructure =
+      data === "Assembly"
+        ? [knownProperties.Assembly, knownProperties.BuildingStep]
+        : [knownProperties.Station, knownProperties.BuildingStep];
+    await components.get(ModelCache).add(loadedModel, new Uint8Array());
+  };
+
+  return (
+    <Box component="div">
+      <Typography variant="h6">{loadedModel.name} : Successfully loaded</Typography>
+      <Box
+        component="div"
+        sx={{
+          margin: "0px",
+          width: "100%",
+          height: "100%",
+          justifyContent: "center",
+          flexDirection: "row",
+          alignContent: "center",
+          display: "flex",
+        }}
+      >
+        <Box
+          component="div"
+          onClick={() => {
+            setEnabled(false);
+            handleModelViewSet("Station");
+          }}
+          sx={{
+            height: "70%",
+            width: "40%",
+            margin: "12px",
+            pointerEvents: "auto",
+            border: `2px dashed gray`,
+            borderRadius: "4px",
+            padding: "20px",
+            cursor: "pointer",
+            position: "relative",
+            zIndex: 1000,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Icon icon="streamline:warehouse-1" style={{ fontSize: "52px", marginBottom: "4px" }} />
+          <Typography variant="body1">View by Station</Typography>
+        </Box>
+
+        <Box
+          component="div"
+          onClick={() => {
+            setEnabled(false);
+            handleModelViewSet("Assembly");
+          }}
+          sx={{
+            height: "70%",
+            width: "40%",
+            margin: "12px",
+            pointerEvents: "auto",
+            border: `2px dashed gray`,
+            borderRadius: "4px",
+            padding: "20px",
+            cursor: "pointer",
+            position: "relative",
+            zIndex: 1000,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Icon icon="system-uicons:boxes" style={{ fontSize: "52px", marginBottom: "4px" }} />
+          <Typography variant="body1">View by Assemblies</Typography>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

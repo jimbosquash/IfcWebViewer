@@ -1,4 +1,3 @@
-
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
 import { ModelCache } from "../bim-components/modelCache";
@@ -7,6 +6,7 @@ import { CameraProjection } from "@thatopen/components";
 import { GetAllVisibleExpressIDs } from "./IfcUtilities";
 import { zoomToBuildingElements } from "./BuildingElementUtilities";
 import { BuildingElement } from "./types";
+import { ConfigurationManager } from "../bim-components/configManager";
 
 
 /**
@@ -20,8 +20,9 @@ export async function setPlanView(components: OBC.Components) {
   if (!cache?.world) return;
 
   let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
-  cam.projection.set("Orthographic");
-  cam.set("Plan" as OBC.NavModeID);
+
+  setAndSaveCamNavigation('Plan',cam,components)
+  setAndSaveCamProjection('Orthographic',cam,components)
 
   const bbox = new THREE.Box3().setFromObject(cache.world.scene.three);
   const center = bbox.getCenter(new THREE.Vector3());
@@ -37,13 +38,27 @@ export async function setPlanView(components: OBC.Components) {
   cam.controls.camera.up.set(size.x > size.z ? 0 : 1, 1, 0);
   await cam.controls.setLookAt(center.x, cameraHeight, center.z, center.x, center.y, center.z, false);
   console.log("cam target center:", center.x, center.y, center.z);
-  // zoomAllorSelected(components, false,false);
   if (!cache.world?.meshes || cache.world.meshes.size === 0)
     return;
 
     await zoomToVisible(components)
-  // zoom(components, cache.world.meshes, cache.world.camera, false, false)
 };
+
+/**
+ * Save the new setting to configurationManager for local storage management 
+ */
+function setAndSaveCamNavigation (navMode: OBC.NavModeID,cam: OBC.OrthoPerspectiveCamera,components: OBC.Components) {
+  cam.set(navMode)
+  components?.get(ConfigurationManager).camConfig.set('navMode', navMode);
+}
+
+/**
+ * Save the new setting to configurationManager for local storage management 
+ */
+function setAndSaveCamProjection (projection: OBC.CameraProjection,cam: OBC.OrthoPerspectiveCamera,components: OBC.Components) {
+  cam.projection.set(projection)
+  components?.get(ConfigurationManager).camConfig.set('projection',projection);
+}
 
 /**
  * Set view to input view desired. will set nav mode to orthogonal and pan.
@@ -57,10 +72,7 @@ export async function setView(components: OBC.Components, viewType: "front" | "b
   if (!cache?.world) return;
 
   let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
-  // cam.projection.set("Orthographic");
-  // cam.set("Plan" as OBC.NavModeID);
-  cam.onAfterUpdate.trigger(cam); // to do so a listener can know to change mode in UI
-
+  setAndSaveCamProjection("Orthographic",cam,components)
 
   // get geometry to fit to view + creat bbox
   const bboxer = components.get(OBC.BoundingBoxer);
@@ -103,8 +115,6 @@ export async function setView(components: OBC.Components, viewType: "front" | "b
       cam.controls.camera.up.set(size.x > size.z ? 0 : 1, 1, 0);
       break;
   }
-
-
 
   // Set camera target to look at the center
   await cam.controls.setLookAt(viewDirection.x * cameraDistance, viewDirection.y * cameraDistance, viewDirection.z * cameraDistance, center.x, center.y, center.z, false);
@@ -210,6 +220,10 @@ export async function setOrthogonalView(components: OBC.Components, projection: 
   const maxDim = Math.max(size.x, size.y, size.z);
   //const fov = cam.three.fov * (Math.PI / 180); // convert vertical fov to radians
 
+  if(cam.three instanceof THREE.PerspectiveCamera) {
+    console.log('fov',cam.three.fov); // edit?
+  }
+
   let cameraDistance = maxDim; /// (2 * Math.tan(fov / 2));
 
   // Add some padding to the distance
@@ -251,7 +265,7 @@ export function setCameraNavigation(components: OBC.Components, newMode: OBC.Nav
   let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
   console.log("cam mode setting:", newMode);
 
-  cam.set(newMode)
+  setAndSaveCamNavigation(newMode,cam,components)
   cam.controls.camera.up.set(0, 1, 0);
   cam.controls.updateCameraUp();
   if (zoom) {
@@ -276,17 +290,18 @@ export function setCameraProjection(components: OBC.Components, newProjection: C
   console.log("cam mode setting:", newProjection);
 
   if (newProjection === "Orthographic") {
-    cam.set("Orbit" as OBC.NavModeID);
-    cam.projection.set("Orthographic");
+    setAndSaveCamNavigation('Orbit',cam,components)
+    setAndSaveCamProjection('Orthographic',cam,components)
+
   } else if (newProjection === "Perspective") {
-    cam.projection.set("Perspective");
-    cam.set("Orbit" as OBC.NavModeID);
+    setAndSaveCamNavigation('Orbit',cam,components)
+    setAndSaveCamProjection('Perspective',cam,components)
+
   }
   cam.controls.camera.up.set(0, 1, 0);
   cam.controls.updateCameraUp();
 
   if (zoom) {
-    // zoomAllorSelected(components, false);
     zoomToVisible(components,0.55)
   }
 };

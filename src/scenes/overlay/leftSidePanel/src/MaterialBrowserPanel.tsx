@@ -35,7 +35,7 @@ export const MaterialBrowserPanel: React.FC = () => {
     // now remove top tree as its project
     const viewManager = components.get(ModelViewManager);
     viewManager.onBuildingElementsChanged.add((data) => handleNewElements(data));
-    const elements = components.get(ModelCache).BuildingElements
+    const elements = components.get(ModelCache).buildingElements
     if(elements) {
       handleNewElements(elements)
     }
