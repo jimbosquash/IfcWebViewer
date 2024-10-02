@@ -38,8 +38,8 @@ export const VisibilityModeButton = () => {
     const viewManager = components?.get(ModelViewManager);
 
     if (visibilityMode === VisibilityMode.Isolate) viewManager.VisibilityMode = VisibilityMode.showPrevious;
-    else if (visibilityMode === VisibilityMode.showPrevious) viewManager.VisibilityMode = VisibilityMode.showNeighbors;
-    else if (visibilityMode === VisibilityMode.showNeighbors) viewManager.VisibilityMode = VisibilityMode.Isolate;
+    else if (visibilityMode === VisibilityMode.showPrevious) viewManager.VisibilityMode = VisibilityMode.Isolate;
+    // else if (visibilityMode === VisibilityMode.showNeighbors) viewManager.VisibilityMode = VisibilityMode.Isolate;
     // else if (visibilityMode === VisibilityMode.selectGroup) viewManager.VisibilityMode = VisibilityMode.Isolate;
 
     setVisibilityMode(viewManager.VisibilityMode);
@@ -54,12 +54,12 @@ export const VisibilityModeButton = () => {
     switch (mode) {
       case VisibilityMode.Isolate:
         return <Icon icon="tabler:stack" />;
-      case VisibilityMode.selectGroup:
-        return <Icon icon="tabler:stack-middle" />;
+      // case VisibilityMode.selectGroup:
+      //   return <Icon icon="tabler:stack-middle" />;
       case VisibilityMode.showPrevious:
         return <Icon icon="tabler:stack-2" />;
-      case VisibilityMode.showNeighbors:
-        return <Icon icon="tabler:stack-3" />;
+      // case VisibilityMode.showNeighbors:
+      //   return <Icon icon="tabler:stack-3" />;
       default:
         return <Icon icon="mdi-light:vector-arrange-below" />; // Default icon
     }

@@ -214,6 +214,12 @@ const SettingsPanel: React.FC = () => {
 
       <Divider />
 
+      <Box component="div" py={1}>
+    <Button variant="contained" fullWidth onClick={() => {localStorage.clear()}}>
+      Clear local storage
+    </Button>
+  </Box>
+
       {/* 
 
       <OptionSetting

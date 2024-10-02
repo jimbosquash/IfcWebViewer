@@ -69,14 +69,14 @@ const ModelInfoPanel = () => {
     const groupedRows = newRows.reduce((acc, row) => {
       const productCode = row.productCode;
       if (!acc.has(productCode)) {
-        acc.set(productCode,row);
-      } 
+        acc.set(productCode, row);
+      }
       const newRow = acc.get(productCode)
-      if (newRow){
+      if (newRow) {
         newRow.quantity += 1; // Increment the quantity
       }
       return acc;
-    },  new Map<string, TableData> );
+    }, new Map<string, TableData>);
 
     // Convert the grouped object back to an array
     const finalRows = Object.values(groupedRows);
@@ -163,10 +163,10 @@ const ModelInfoPanel = () => {
             overflowY: "auto", // Enable scrolling when content exceeds height
           }}
         >
-          <BasicDataTable onSelectChanged={onSelectChanged} columns={columns} data={rows} />
-          <EnhancedTable rows={rows}/>
+          {/* <BasicDataTable onSelectChanged={onSelectChanged} columns={columns} data={rows} /> */}
+          <EnhancedTable rows={rows} />
         </Box>
-        <Divider/>
+        <Divider />
       </Box>
     </>
   );

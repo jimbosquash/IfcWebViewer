@@ -35,7 +35,6 @@ export const BimSettings = () => {
             <bim-panel-section>
               ${uploadButton}
               ${modelloadedSection}
-              ${relationsTree}
             </bim-panel-section>
           </bim-panel> 
         `;
