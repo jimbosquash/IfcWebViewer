@@ -405,20 +405,16 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
     for (const [systemName, system] of Object.entries(classifier.list)) {
         // console.log('System name:', systemName)
 
-        for (const [className, map] of Object.entries(system)) {
+        for (const [className, fragMapIds] of Object.entries(system)) {
             // console.log(`  Class: ${className}`, map);
 
-            for (const [id, expressIDs] of Object.entries(map.map)) {
+            for (const elementIDs of Object.entries(fragMapIds)) {
                 // console.log(`  fragment: ${id}`, expressIDs);
 
-                // Use Promise.all to handle multiple async operations in parallel
-                await Promise.all([...expressIDs].map(async (expressID: number) => {
-                    // console.log(`    expressID: ${expressID}`);
+                for (const expressID of elementIDs[1]) {
 
-
-                    //get the element and its base info (name, ids, ect)
-                    //get properties and add them to psets
-                    const newElement = await getBuildingElementBase(expressID, id, model, indexer);
+                    const newElement = await getBuildingElementBase(expressID, elementIDs[0], model, indexer);
+                    // console.log(newElement)
 
                     if (newElement) {
                         const props = await GetAllDefinedBy(model, indexer, expressID);
@@ -431,7 +427,30 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
                     } else {
                         console.log('failed to create building element from expressID:', expressID)
                     }
-                }));
+                }
+
+
+
+                // // Use Promise.all to handle multiple async operations in parallel
+                // ([...elementIDs].map((elementRef) => {
+                //     // console.log(`    expressID: ${expressID}`);
+
+                //     //get the element and its base info (name, ids, ect)
+                //     //get properties and add them to psets
+                //     const newElement = getBuildingElementBase(expressID, elementRef, model, indexer);
+
+                //     if (newElement) {
+                //         const props = GetAllDefinedBy(model, indexer, expressID);
+                //         newElement.properties = props;
+                //         // Do something with props...
+                //         // console.log(`    props for ${expressID}:`, props);
+                //         // console.log('new element', newElement)
+                //         newElements.push(newElement)
+
+                //     } else {
+                //         console.log('failed to create building element from expressID:', expressID)
+                //     }
+                // }));
 
             }
         }
