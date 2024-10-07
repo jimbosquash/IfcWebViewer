@@ -12,105 +12,126 @@ import {
   Checkbox,
   useTheme,
   Divider,
+  Button,
+  TableSortLabel,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { SelectionGroup, KnowGroupType, BuildingElement, knownProperties } from "../../../../utilities/types";
 import { Icon } from "@iconify/react";
 import { tokens } from "../../../../theme";
 import { select } from "../../../../utilities/BuildingElementUtilities";
+// import { saveAs } from "file-saver";
+import Papa from "papaparse";
+import saveAs from "file-saver";
 
+// listen to selected assembly and set its data when changed
 const AssemblyInfoPanel = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
   const [selected, setSelected] = useState<SelectionGroup | null>();
   const [rows, setRows] = useState<any[]>([]);
-
-  // listen to selected assembly and set its data when changed
+  const [order, setOrder] = useState<"asc" | "desc">("asc");
+  const [orderBy, setOrderBy] = useState<keyof RowData>("material"); // Default sorting by 'name'
 
   useEffect(() => {
-    //listen to assembly selected change
     if (!components) return;
-
     const viewManager = components.get(ModelViewManager);
-    viewManager.onSelectedGroupChanged.add((data) => {
-      handleSelectedGroupChange(data);
-    });
+
+    function handleSelectedGroupChange(data: SelectionGroup) {
+      setSelected(data);
+      setupTable(data.elements);
+    }
+
+    viewManager.onSelectedGroupChanged.add(handleSelectedGroupChange);
     if (viewManager.SelectedGroup) handleSelectedGroupChange(viewManager.SelectedGroup);
 
     return () => {
-      viewManager.onSelectedGroupChanged.remove((data) => {
-        handleSelectedGroupChange(data);
-      });
+      viewManager.onSelectedGroupChanged.remove(handleSelectedGroupChange);
     };
   }, [components]);
 
-  function handleSelectedGroupChange(data: SelectionGroup) {
-    setSelected(data);
-    setupTable(data.elements);
-  }
-
-  const setupTable = (elements: BuildingElement[]) => {
+  const setupTable = useCallback((elements: BuildingElement[]) => {
     console.log("start setting up table", elements);
-    let newRows: any[] = [];
+    const newRows = elements.map((element, index) => createRow(element, index));
+    const groupedRows = groupByProductCode(newRows);
+    setRows(groupedRows);
+  }, []);
 
-    elements.map((element, index) => {
-      const row = createSimpleTableDataElement(element, index);
-      newRows.push(row);
-    });
-
-    // Group rows by their matching product code
-    const groupedRows = newRows.reduce((acc, row) => {
-      const productCode = row.productCode;
+  const groupByProductCode = (rows: RowData[]) => {
+    const grouped = rows.reduce((acc, row) => {
+      const { productCode } = row;
       if (!acc[productCode]) {
-        acc[productCode] = { ...row, Quantity: 1 }; // Create a new entry with Quantity 1
+        acc[productCode] = { ...row };
       } else {
-        acc[productCode].Quantity += 1; // Increment the quantity
+        acc[productCode].quantity += 1;
       }
       return acc;
-    }, {} as { [key: string]: any });
-
-    // Convert the grouped object back to an array
-    const finalRows = Object.values(groupedRows);
-
-    console.log("rows", finalRows);
-    setRows(finalRows);
+    }, {} as Record<string, RowData>);
+    return Object.values(grouped);
   };
 
-  const createSimpleTableDataElement = (element: BuildingElement, index: number) => {
+  const createRow = (element: BuildingElement, index: number): RowData => {
     return {
       key: index,
       name: element.name,
-      material: findProperty(element, knownProperties.Material)?.value,
-      productCode: findProperty(element, knownProperties.ProductCode)?.value,
+      material: findProperty(element, knownProperties.Material)?.value || "",
+      productCode: findProperty(element, knownProperties.ProductCode)?.value || "",
       expressID: element.expressID,
+      quantity: 1, // default quantity 1
     };
   };
 
-  const findProperty = (
-    element: BuildingElement,
-    propertyName: knownProperties
-  ): { name: string; value: string; pSet: string } | undefined => {
+  const findProperty = (element: BuildingElement, propertyName: knownProperties) => {
     return element.properties.find((prop) => prop.name === propertyName);
   };
 
   const onSelectChanged = (selectedIds: readonly number[]) => {
     if (!selected?.elements || !selectedIds) return;
-    const rowsSelected = selectedIds.map((id) => rows.find((row) => row.key === id));
+    // Filter out null or undefined elements
+    const selectedElements = selectedIds
+      .map((id) => selected.elements.find((e) => e.expressID === id))
+      .filter((element): element is BuildingElement => element !== undefined);
 
-    // use the row ids to get the elements
-    // select elements with matching Code from the selection group
-    // use these building elements to select them
-    if (!selected) return;
+    // Call select only if there are valid elements
+    if (selectedElements.length > 0) {
+      select(selectedElements, components);
+    }
 
-    const buildingElements = rowsSelected
-      .flatMap((row) => selected.elements.find((sElement) => sElement.expressID === row.expressID))
-      .filter((element): element is NonNullable<typeof element> => element !== undefined);
-    select(buildingElements, components);
-    // console.log("Selected codes", selectedCodes);
-    console.log("Selected elements", buildingElements);
+    console.log("Selected elements", selectedElements);
+  };
+
+  const handleRequestSort = (property: keyof RowData) => {
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property);
+  };
+
+  const sortedRows = useCallback(() => {
+    return rows.slice().sort((a, b) => {
+      if (order === "asc") {
+        return a[orderBy] < b[orderBy] ? -1 : a[orderBy] > b[orderBy] ? 1 : 0;
+      } else {
+        return a[orderBy] > b[orderBy] ? -1 : a[orderBy] < b[orderBy] ? 1 : 0;
+      }
+    });
+  }, [order, orderBy, rows]);
+
+  const exportToCsv = () => {
+    // Select specific properties for export (e.g., name, material, productCode)
+    const exportData = sortedRows().map((row) => ({
+      quantity: row.quantity,
+      productCode: row.productCode,
+      name: row.name,
+      material: row.material,
+    }));
+
+    // Convert the data to CSV format using PapaParse
+    const csv = Papa.unparse(exportData);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, `${selected?.groupType}_assembly_data_${selected?.groupName}.csv`);
   };
 
   return (
@@ -156,44 +177,68 @@ const AssemblyInfoPanel = () => {
             overflowY: "auto", // Enable scrolling when content exceeds height
           }}
         >
-          <BasicDataTable onSelectChanged={onSelectChanged} columns={columns} data={rows} />
+          <BasicDataTable
+            onSelectChanged={onSelectChanged}
+            columns={columns}
+            data={sortedRows()}
+            order={order}
+            orderBy={orderBy}
+            onRequestSort={handleRequestSort}
+          />
         </Box>
-        <Divider/>
+        <Button onClick={exportToCsv} variant="contained" sx={{ m: 2, marginBottom: "2rem" }}>
+          Export to CSV
+        </Button>
+        <Divider />
       </Box>
     </>
   );
 };
 
-interface dataTableProps {
-  data: any[];
-  columns: Column[];
-  onSelectChanged: (selectedIds: readonly number[]) => void;
+interface RowData {
+  key: number;
+  name: string;
+  material: string;
+  productCode: string;
+  expressID: number;
+  quantity: number;
 }
 
-const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChanged }) => {
+interface dataTableProps {
+  data: RowData[];
+  columns: Column[];
+  onSelectChanged: (selectedIds: readonly number[]) => void;
+  order: "asc" | "desc";
+  orderBy: keyof RowData;
+  onRequestSort: (property: keyof RowData) => void;
+}
+
+const BasicDataTable: React.FC<dataTableProps> = ({
+  data,
+  columns,
+  order,
+  orderBy,
+  onRequestSort,
+  onSelectChanged,
+}) => {
   const [selected, setSelected] = useState<readonly number[]>([]);
 
-  useEffect(() => {
-    setSelected([]);
-  }, [data]);
-
-  //   console.log("table new data", data);
-  function handleClick(event: any, id: any): void {
+  const handleClick = (event: React.MouseEvent, id: number) => {
     const selectedIndex = selected.indexOf(id);
     let newSelected: readonly number[] = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
+      newSelected = [...selected, id];
     } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
+      newSelected = selected.slice(1);
     } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
+      newSelected = selected.slice(0, -1);
     } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
+      newSelected = [...selected.slice(0, selectedIndex), ...selected.slice(selectedIndex + 1)];
     }
     setSelected(newSelected);
     onSelectChanged(newSelected);
-  }
+  };
 
   const isSelected = (id: number) => selected.indexOf(id) !== -1;
 
@@ -208,13 +253,21 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
         <TableHead>
           <TableRow>
             {columns.map((column) => (
+              <Tooltip title={column.id}>
               <TableCell
                 key={column.id}
                 align={column.align}
-                style={{ top: 0, maxWidth: column.maxWidth, minWidth: column.minWidth }}
+                style={{ maxWidth: column.maxWidth, minWidth: column.minWidth }}
               >
-                {column.label}
+                <TableSortLabel
+                  active={orderBy === column.id}
+                  direction={orderBy === column.id ? order : "asc"}
+                  onClick={() => onRequestSort(column.id as keyof RowData)}
+                >
+                  {column.label}
+                </TableSortLabel>
               </TableCell>
+              </Tooltip>
             ))}
           </TableRow>
         </TableHead>
@@ -230,7 +283,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
                   onClick={(event) => handleClick(event, row.key)}
                   role="checkbox"
                   aria-checked={isItemSelected}
-                  key={row.id}
+                  key={row.key}
                   selected={isItemSelected}
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 >
@@ -244,7 +297,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
                     />
                   </TableCell>
                   <TableCell component="th" align="center" scope="row">
-                    {row.Quantity}
+                    {row.quantity}
                   </TableCell>
                   <Tooltip title={row.name}>
                     <TableCell
@@ -257,10 +310,10 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
                     </TableCell>
                   </Tooltip>
                   <TableCell align="left" sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
-                    {row.name}
-                  </TableCell>
-                  <TableCell align="right" sx={{ paddingLeft: "0px" }}>
                     {row.productCode}
+                  </TableCell>
+                  <TableCell align="left" sx={{ paddingLeft: "0px",overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
+                    {row.name}
                   </TableCell>
                 </TableRow>
               );
@@ -272,7 +325,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
 };
 
 interface Column {
-  id: "select" | "Quantity" | "name" | "code" | "Material";
+  id: "select" | "quantity" | "name" | "code" | "material";
   label: string;
   minWidth?: number;
   maxWidth?: number;
@@ -282,16 +335,16 @@ interface Column {
 
 const columns: Column[] = [
   { id: "select", label: "Select", minWidth: 20, maxWidth: 20 },
-  { id: "Quantity", label: "Qty", minWidth: 10, maxWidth: 20 },
+  { id: "quantity", label: "Qty", minWidth: 10, maxWidth: 20 },
   {
-    id: "Material",
+    id: "material",
     label: "Material",
-    minWidth: 20,
+    minWidth: 30,
     align: "right",
-    maxWidth: 20,
+    maxWidth: 50,
   },
+  { id: "code", label: "Product\u00a0Code", minWidth: 105, maxWidth: 100 },
   { id: "name", label: "Name", minWidth: 70, maxWidth: 100 },
-  { id: "code", label: "Product\u00a0Code", minWidth: 125, maxWidth: 100 },
 ];
 
 export default AssemblyInfoPanel;

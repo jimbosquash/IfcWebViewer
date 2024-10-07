@@ -25,6 +25,7 @@
     "@thatopen/fragments": "^2.2.0",
     "@thatopen/ui": "^2.2.2",
     "@thatopen/ui-obc": "^2.2.5",
+    "file-saver": "^2.0.5",
     "framer-motion": "^11.3.21",
     "install": "^0.13.0",
     "jszip": "^3.10.1",
@@ -37,6 +38,7 @@
     "react-dom": "^18.2.0",
     "react-draggable": "^4.4.6",
     "react-icons": "^5.2.1",
+    "react-papaparse": "^4.4.0",
     "react-pro-sidebar": "^0.7.1",
     "react-resizable": "^3.0.5",
     "react-router-dom": "^6.22.3",
@@ -47,6 +49,7 @@
   },
   "devDependencies": {
     "@iconify/react": "^5.0.2",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^22.5.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
