@@ -7,11 +7,12 @@ import { nonSelectableTextStyle } from "../styles";
 import { tokens } from "../theme";
 import { GetFragmentIdMaps } from "../utilities/IfcUtilities";
 import { TreeNode } from "../utilities/Tree";
-import { BuildingElement, SelectionGroup, VisibilityState } from "../utilities/types";
+import { BuildingElement, IfcElement, SelectionGroup, VisibilityState } from "../utilities/types";
 import * as OBF from "@thatopen/components-front";
 import * as FRAGS from "@thatopen/fragments";
 import { ModelViewManager } from "../bim-components/modelViewer";
 import { TreeUtils } from "../utilities/treeUtils";
+import { convertToBuildingElement } from "../utilities/BuildingElementUtilities";
 
 // todo: need to decide where the selection of elements will happen
 // either here are with an update from the ModelViewManager
@@ -20,7 +21,7 @@ export interface TreeTableRowProps {
   name: string;
   icon: string;
   treeID: string;
-  node: TreeNode<BuildingElement> | undefined;
+  node: TreeNode<IfcElement> | undefined;
   visibleOnDoubleClick: boolean;
   children?: React.ReactNode;
   variant: "Floating" | "Flat";
@@ -46,7 +47,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         console.log("set selection but returning early");
         return;
       }
-      const elements = TreeUtils.getChildrenNonNullData(node);
+      const elements = convertToBuildingElement(TreeUtils.getChildrenNonNullData(node));
 
       const selectedGroup : SelectionGroup = {
         id: node?.id,
@@ -129,7 +130,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
 
       const highlighter = components.get(OBF.Highlighter);
       const cache = components.get(ModelCache);
-      const elements = TreeUtils.getChildrenNonNullData(node);
+      const elements = convertToBuildingElement(TreeUtils.getChildrenNonNullData(node));
       const idMaps = GetFragmentIdMaps(elements, components);
 
       if (!idMaps || !idMaps[0]) return;
@@ -170,7 +171,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
       if (!node || !components) return;
 
       const highlighter = components.get(OBF.Highlighter);
-      const elements = TreeUtils.getChildrenNonNullData(node);
+      const elements = convertToBuildingElement(TreeUtils.getChildrenNonNullData(node));
       const idMaps = GetFragmentIdMaps(elements, components);
 
       if (!idMaps || !idMaps[0]) return;
@@ -249,7 +250,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         );
 
         if(node){
-        const elements = TreeUtils.getChildrenNonNullData(node);
+        const elements = convertToBuildingElement(TreeUtils.getChildrenNonNullData(node));
         const cache = components.get(ModelCache);
 
         elements.forEach((element) => {
@@ -352,7 +353,7 @@ export interface RowContentProps {
   name: string;
   icon: string;
   getColor: (element: "text" | "background") => string;
-  node: TreeNode<BuildingElement> | undefined;
+  node: TreeNode<IfcElement> | undefined;
   childrenCount: number;
 }
 
@@ -422,3 +423,4 @@ const RowContent: React.FC<RowContentProps> = React.memo(({ name, icon, getColor
 ));
 
 export default TreeTableRow;
+

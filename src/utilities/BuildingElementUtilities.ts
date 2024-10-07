@@ -1,5 +1,5 @@
 import { Tree, TreeNode } from "./Tree";
-import { SelectionGroup, BuildingElement, KnowGroupType, knownProperties } from "./types";
+import { SelectionGroup, BuildingElement, KnowGroupType, knownProperties, IfcElement } from "./types";
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
 import { ModelCache } from "../bim-components/modelCache";
@@ -8,6 +8,38 @@ import { ModelViewManager } from "../bim-components/modelViewer";
 import { FragmentsGroup } from "@thatopen/fragments";
 import { Components } from "@thatopen/components";
 import { TreeUtils } from "./treeUtils";
+import { group } from "console";
+
+// Type guard to check if an IfcElement is also a BuildingElement
+export function isBuildingElement(element: IfcElement): element is BuildingElement {
+  return (
+    'FragmentID' in element &&
+    'modelID' in element &&
+    'properties' in element &&
+    Array.isArray((element as BuildingElement).properties) // Ensure properties is an array
+  );
+}
+
+/**
+ * Function to convert IfcElement(s) to BuildingElement(s) if applicable
+ */
+export function convertToBuildingElement(
+  ifcElements: IfcElement | IfcElement[]
+): BuildingElement[] {
+  // Helper function to check and return BuildingElement or null
+  const convertSingleElement = (element: IfcElement): BuildingElement | null => {
+    return isBuildingElement(element) ? element : null;
+  };
+
+  // If it's an array, map over it and filter out non-BuildingElements
+  if (Array.isArray(ifcElements)) {
+    return ifcElements.map(convertSingleElement).filter(Boolean) as BuildingElement[];
+  }
+
+  // If it's a single element, wrap it in an array and return it, or return an empty array if null
+  const singleElement = convertSingleElement(ifcElements);
+  return singleElement ? [singleElement] : [];
+}
 
 
 /**
@@ -320,10 +352,15 @@ export const setUpTreeFromProperties = (id: string, elements: BuildingElement[],
     const sortedGroups = sortGroupedElements(groupedElements);
 
     sortedGroups.forEach(([groupValue, groupElements]) => {
-      const nodeId = `${parentNode.id}_${currentNodeType}_${groupValue}`;
+      if(groupValue === "Unspecified") {
+        // dont add as new node just pass on
+        createSortedSubTree(tree, tree.getNode(parentNode.id)!, groupElements, currentLevel + 1);
+      } else {
+        const nodeId = `${parentNode.id}_${currentNodeType}_${groupValue}`;
+        tree.addNode(parentNode.id, nodeId, groupValue, currentNodeType);
+        createSortedSubTree(tree, tree.getNode(nodeId)!, groupElements, currentLevel + 1);
+      }
 
-      tree.addNode(parentNode.id, nodeId, groupValue, currentNodeType);
-      createSortedSubTree(tree, tree.getNode(nodeId)!, groupElements, currentLevel + 1);
     });
   }
 
@@ -373,48 +410,6 @@ function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[
 }
 
 
-
-
-// function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[]][] {
-//   const entries = Array.from(groupedElements.entries());
-
-//   // Separate entries into numeric and non-numeric prefixes
-//   const numericEntries: [string, any[]][] = [];
-//   const nonNumericEntries: [string, any[]][] = [];
-
-//   entries.forEach(entry => {
-//     const prefix = entry[0].split('_')[0];
-//     if (!isNaN(parseFloat(prefix)) && isFinite(parseFloat(prefix))) {
-//       numericEntries.push(entry);
-//     } else {
-//       nonNumericEntries.push(entry);
-//     }
-//   });
-
-//   // Sort numeric entries using a custom comparison function
-//   numericEntries.sort((a, b) => {
-//     const aPrefix = a[0].split('_')[0];
-//     const bPrefix = b[0].split('_')[0];
-    
-//     // Split the prefix into integer and decimal parts
-//     const [aInt, aDec = '0'] = aPrefix.split('.');
-//     const [bInt, bDec = '0'] = bPrefix.split('.');
-    
-//     // Compare integer parts first
-//     const intComparison = parseInt(aInt) - parseInt(bInt);
-//     if (intComparison !== 0) {
-//       return intComparison;
-//     }
-    
-//     // If integer parts are equal, compare decimal parts
-//     return parseInt(aDec) - parseInt(bDec);
-//   });
-
-//   // Combine sorted numeric entries with unsorted non-numeric entries
-//   return [...numericEntries, ...nonNumericEntries];
-// }
-
-
 export const groupElementsByPropertyName = (elements: BuildingElement[], property: string): Map<string, BuildingElement[]> => {
   const grouped = new Map<string, BuildingElement[]>();
   elements.forEach(element => {
@@ -422,7 +417,7 @@ export const groupElementsByPropertyName = (elements: BuildingElement[], propert
       console.log('element failed to find property', element, elements)
       return;
     }
-    const value = element.properties.find(prop => prop.name === property)?.value || 'Unknown';
+    const value = element.properties.find(prop => prop.name === property)?.value || 'Unspecified';
     // if(value === "Unknown")
     //   console.log("unknown data found",property,element.properties )
     if (!grouped.has(value)) {

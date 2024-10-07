@@ -25,7 +25,7 @@ export const PropertiesPanel = () => {
           <Tabs value={value} onChange={(event: React.SyntheticEvent, newValue: number) => setValue(newValue)}>
             <StyledTab label="Element" index={0} />
             <StyledTab label="Assembly" index={1} />
-            <StyledTab label="Model" index={2} />
+            {/* <StyledTab label="Model" index={2} /> */}
           </Tabs>
         </Box>
         <Box component={"div"} height="100%"
@@ -44,9 +44,9 @@ export const PropertiesPanel = () => {
           <CustomTabPanel value={value} index={1}>
             <AssemblyInfoPanel />
           </CustomTabPanel>
-          <CustomTabPanel value={value} index={2}>
+          {/* <CustomTabPanel value={value} index={2}>
             <ModelInfoPanel />
-          </CustomTabPanel>
+          </CustomTabPanel> */}
         </Box>
       </Box>
     </>

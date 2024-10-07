@@ -1,5 +1,5 @@
 import { Icon } from "@iconify/react";
-import { Box, Button, Paper, Typography, useTheme } from "@mui/material";
+import { Box, Paper, Typography, useTheme } from "@mui/material";
 import { FragmentsGroup } from "@thatopen/fragments";
 import { useState } from "react";
 import { ModelCache } from "../../../bim-components/modelCache";
@@ -13,7 +13,6 @@ import { knownProperties } from "../../../utilities/types";
 export const WelcomePanel = () => {
   const components = useComponentsContext();
   const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const [loadedModel, setLoadedModel] = useState<FragmentsGroup>();
   const [enableView, setEnableView] = useState<boolean>(true);
 
@@ -24,7 +23,7 @@ export const WelcomePanel = () => {
       // use to give user settings preference in window (uploading configs or ignoring configs)
       setLoadedModel(newModel);
       const modelViewManager = components.get(ModelViewManager);
-      modelViewManager.defaultTreeStructure = [knownProperties.Station, knownProperties.BuildingStep];
+      modelViewManager.defaultTreeStructure = [knownProperties.Station, knownProperties.Assembly,knownProperties.BuildingStep]; //knownProperties.Assembly, 
       await components.get(ModelCache).add(newModel, new Uint8Array());
       setEnableView(false)
     }

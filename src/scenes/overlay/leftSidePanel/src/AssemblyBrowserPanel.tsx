@@ -2,17 +2,18 @@ import { Box, ButtonGroup } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { Tree, TreeNode } from "../../../../utilities/Tree";
-import { BuildingElement, VisibilityState } from "../../../../utilities/types";
+import { BuildingElement, IfcElement, VisibilityState } from "../../../../utilities/types";
 import { ModelCache } from "../../../../bim-components/modelCache";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
-import TreeTableRow from "../../../../components/TreeTableRow";
 import React from "react";
 import { TreeUtils } from "../../../../utilities/treeUtils";
+import MemoizedTreeTableRows from "./MemoizedTreeTableRows";
+import { convertToBuildingElement } from "../../../../utilities/BuildingElementUtilities";
 
 const treeName = ModelViewManager.defaultyTreeName;
 
 export const AssemblyBrowserPanel: React.FC = React.memo(() => {
-  const [nodes, setNodes] = useState<TreeNode<BuildingElement>[]>();
+  const [nodes, setNodes] = useState<TreeNode<IfcElement>[]>();
   const [nodeVisibility, setNodeVisibility] = useState<Map<string, VisibilityState>>(); // key = node.id, value = visibility state
   const [visibleOnDoubleClick, setVisibleOnDoubleClick] = useState<boolean>(true);
   const components = useComponentsContext();
@@ -27,6 +28,7 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
       console.log("get existing tree, in event listener",tree,modelViewManager)
       if (!tree) return;
       setNodeVisibility(modelViewManager.getVisibilityMap(tree.id));
+      console.log('building elements for assembly tree',[...tree.root.children.values()])
       setNodes([...tree.root.children.values()]);
     },
     [modelViewManager]
@@ -35,19 +37,17 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
   useEffect(() => {
     if (!components) return;
     const viewManager = components.get(ModelViewManager);
-    viewManager.onTreeChanged.add((data) => getPropertyTree(data));
+    viewManager.onTreeChanged.add(getPropertyTree);
 
     let existingTree = modelViewManager.Tree;
 
     if (existingTree) {
       console.log("get existing tree",existingTree)
-      setNodeVisibility(modelViewManager.getVisibilityMap(existingTree.id));
-      setNodes([...existingTree.root.children.values()]);
+      getPropertyTree(existingTree);
     }
 
     return () => {
-      viewManager.onTreeChanged.remove((data) => getPropertyTree(data));
-
+      viewManager.onTreeChanged.remove(getPropertyTree);
     };
   }, [components, getPropertyTree]);
 
@@ -84,7 +84,7 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
 
       const node = nodes.find((n) => n.id === nodeID);
       if (!node) return;
-      const elements = TreeUtils.getChildrenNonNullData(node);
+      const elements = convertToBuildingElement(TreeUtils.getChildrenNonNullData(node));
 
       elements.forEach((e) => {
         if (viewManager.ExludedElements.has(e) === enabled) {
@@ -99,54 +99,7 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
     },
     [nodeVisibility, components, nodes]
   );
-
-  const memoizedTreeTableRows = useMemo(
-    () =>
-      nodes &&
-      nodes.map((data) => (
-        <TreeTableRow
-          key={data.id}
-          name={data.name}
-          treeID={treeName}
-          icon=""
-          node={data}
-          variant="Floating"
-          //isEnabled={nodeVisibility?.get(data.id) === VisibilityState.Visible}
-          //setEnabled={(args, enabled) => setVisibility(args, enabled)}
-          visibleOnDoubleClick={visibleOnDoubleClick}
-        >
-          {Array.from(data.children.values()).map((childData) => (
-            <TreeTableRow
-              key={childData.id}
-              name={childData.name}
-              treeID={treeName}
-              icon=""
-              variant="Flat"
-              node={childData}
-              //isEnabled={nodeVisibility?.get(childData.id) === VisibilityState.Visible}
-              //setEnabled={(args, enabled) => setVisibility(args, enabled)}
-              visibleOnDoubleClick={visibleOnDoubleClick}
-            >
-              {[...childData.children.values()].find(child => child.type !== "BuildingElement") && Array.from(childData.children.values()).map((childChildData) => (
-                <TreeTableRow
-                key={childChildData.id}
-                name={childChildData.name}
-                treeID={treeName}
-                icon=""
-                variant="Flat"
-                node={childChildData}
-                //isEnabled={nodeVisibility?.get(childData.id) === VisibilityState.Visible}
-                //setEnabled={(args, enabled) => setVisibility(args, enabled)}
-                visibleOnDoubleClick={visibleOnDoubleClick}
-              />
-              ))}
-            </TreeTableRow>
-          ))}
-        </TreeTableRow>
-      )),
-    [nodeVisibility, setVisibility, visibleOnDoubleClick]
-  );
-
+  
   return (
     <>
       <div
@@ -186,7 +139,7 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
         </ButtonGroup>
 
         <Box component="div" m="0px" maxHeight="100%" overflow="hidden" width="100%">
-          {memoizedTreeTableRows}
+          <MemoizedTreeTableRows nodes={nodes} treeName={treeName} visibleOnDoubleClick={visibleOnDoubleClick} />
         </Box>
       </div>
     </>
@@ -194,3 +147,4 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
 });
 
 export default AssemblyBrowserPanel;
+

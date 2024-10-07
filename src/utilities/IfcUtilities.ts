@@ -3,11 +3,9 @@ import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import * as THREE from 'three'
 import { FragmentIdMap } from "@thatopen/fragments";
-import * as WEBIFC from "web-ifc";
 import { ModelCache } from "../bim-components/modelCache";
 import { BasicProperty, BuildingElement, IfcElement } from "./types";
-import { markProperties } from "../bim-components/modelTagger/src/Tag";
-import { IfcCategories, IfcCategoryMap, IfcElements, IfcPropertiesUtils } from "@thatopen/components";
+import { IfcElements } from "@thatopen/components";
 import { Tree } from "./Tree";
 
 // allows you to pass these idmaps into helpful functions with @thatopen
@@ -394,7 +392,7 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
         return [];
     }
 
-    const newElements: BuildingElement[] = []// = Map<number,buildingElement[]>;
+    const newElements: BuildingElement[] = [];
 
 
     const indexer = components.get(OBC.IfcRelationsIndexer);
@@ -408,7 +406,7 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
         for (const [className, map] of Object.entries(system)) {
             // console.log(`  Class: ${className}`, map);
 
-            for (const [id, expressIDs] of Object.entries(map.map)) {
+            for (const [itemId, expressIDs] of Object.entries(map.map)) {
                 // console.log(`  fragment: ${id}`, expressIDs);
 
                 // Use Promise.all to handle multiple async operations in parallel
@@ -416,16 +414,12 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
                     // console.log(`    expressID: ${expressID}`);
 
 
-                    //get the element and its base info (name, ids, ect)
-                    //get properties and add them to psets
-                    const newElement = await getBuildingElementBase(expressID, id, model, indexer);
+                    //get the element and its base info (name, ids, ect) and then add all props
+                    const newElement = await getBuildingElementBase(expressID, itemId, model, indexer);
 
                     if (newElement) {
                         const props = await GetAllDefinedBy(model, indexer, expressID);
                         newElement.properties = props;
-                        // Do something with props...
-                        // console.log(`    props for ${expressID}:`, props);
-                        // console.log('new element', newElement)
                         newElements.push(newElement)
 
                     } else {
@@ -436,19 +430,17 @@ export async function GetBuildingElements(model: FRAGS.FragmentsGroup, component
             }
         }
     }
-
-    // FIRST CHECK IF PARENT RETURNS ANY WITH DECOMPOSES IF THATS NULL THEN TRYING getEntityRelations WITH ContainedInStructure. then group this elements by parent 
-
-    // once that is done I will then want to construct a basic data tree. 
-
-    // Usage
-    // await buildTree(newElements,model,indexer)
-
     return newElements;
 }
 
 
-// Usage
+/**
+ * Build a tree based on the file strucutre of the ifc
+ * @param newElements 
+ * @param model 
+ * @param indexer 
+ * @returns 
+ */
 async function buildTree(newElements: IfcElement[], model: any, indexer: any) {
     const relationTypes = ["Decomposes", "ContainedInStructure"];
     const tree = new Tree<IfcElement>('elementTree', 'Project', 'project');
@@ -639,7 +631,7 @@ async function getBuildingElementBase(expressID: number, fragmentID: string, mod
                     // console.log('typed by ', elementType);
                     if (elementType) {
                         newElement.name = elementType.Name.value;
-                        // console.log('name found on type', name)
+                        console.log('name found on type', name)
                     }
                 }
             }
@@ -653,24 +645,26 @@ async function GetAllDefinedBy(model: FRAGS.FragmentsGroup, indexer: OBC.IfcRela
 
 
     const props: BasicProperty[] = [];
+    // console.log('pSets', psets)
     if (psets) {
         for (const expressID of psets) {
             // You can get the pset attributes like this
             const pset = await model.getProperties(expressID);
-            // console.log(pset);
+            // console.log("pset - ",pset);
             // You can get the pset props like this or iterate over pset.HasProperties yourself
             await OBC.IfcPropertiesUtils.getPsetProps(
                 model,
                 expressID,
                 async (propExpressID) => {
                     const prop = await model.getProperties(propExpressID);
-                    // console.log(prop);
+                    // console.log("propert",prop);
                     // props.push(prop)
                     props.push({ name: prop?.Name.value, value: prop?.NominalValue.value, pSet: pset?.Name })
                 },
             );
         }
     }
+    console.log("properties",props);
 
     return props;
 

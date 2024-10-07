@@ -186,10 +186,11 @@ const AssemblyInfoPanel = () => {
             onRequestSort={handleRequestSort}
           />
         </Box>
+        <Divider />
+
         <Button onClick={exportToCsv} variant="contained" sx={{ m: 2, marginBottom: "2rem" }}>
           Export to CSV
         </Button>
-        <Divider />
       </Box>
     </>
   );
@@ -325,7 +326,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({
 };
 
 interface Column {
-  id: "select" | "quantity" | "name" | "code" | "material";
+  id: "select" | "quantity" | "name" | "productCode" | "material";
   label: string;
   minWidth?: number;
   maxWidth?: number;
@@ -343,7 +344,7 @@ const columns: Column[] = [
     align: "right",
     maxWidth: 50,
   },
-  { id: "code", label: "Product\u00a0Code", minWidth: 105, maxWidth: 100 },
+  { id: "productCode", label: "Product\u00a0Code", minWidth: 105, maxWidth: 100 },
   { id: "name", label: "Name", minWidth: 70, maxWidth: 100 },
 ];
 
