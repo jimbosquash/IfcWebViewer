@@ -19,6 +19,7 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
   world.scene.three.background = null;
 
   world.renderer = new OBF.PostproductionRenderer(components, containerRef)
+  // world.renderer.onBeforeUpdate.add((data) => console.log('renderer update'))
   const { postproduction } = world.renderer;
 
   world.camera = new OBC.OrthoPerspectiveCamera(components)

@@ -1,4 +1,3 @@
-import { objectShallowCompare } from "@mui/x-data-grid/hooks/utils/useGridSelector";
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import { Fragment, FragmentIdMap, FragmentsGroup } from "@thatopen/fragments";
@@ -55,6 +54,8 @@ export class ModelCache extends OBC.Component {
 
     constructor(components: OBC.Components) {
         super(components);
+        this.animateRotation = this.animateRotation.bind(this);
+
     }
     /**
      * 
@@ -93,7 +94,7 @@ export class ModelCache extends OBC.Component {
                 console.log('Failed to find model', modelID)
                 return;
             }
-            modelMap.set(model,elements)
+            modelMap.set(model, elements)
         })
         return modelMap;
     }
@@ -157,6 +158,7 @@ export class ModelCache extends OBC.Component {
         return true;
     }
 
+    private model: FRAGS.FragmentsGroup | undefined = undefined;
     // delete
     // remove building building elements
 
@@ -168,6 +170,11 @@ export class ModelCache extends OBC.Component {
         //this._modelData.set(model.uuid,data)
         console.log("model added to cache", model)
         this.onModelAdded.trigger(model)
+        this.model = model;
+        console.log('model cache model set', this.model, model)
+
+        document.addEventListener('keydown', (event) => this.onKeyPress(event), false);
+
 
         try {
             // let test = await 
@@ -235,5 +242,107 @@ export class ModelCache extends OBC.Component {
 
     get buildingElements() {
         return this._buildingElements;
+    }
+
+   // To track whether the model is rotated forward or back
+   private isRotatedForward: boolean = false;
+
+    private rotationSpeed = 0.5;
+
+    // Function to handle key press
+    private onKeyPress(event: KeyboardEvent) {
+        console.log('key down', this.models)
+        var ifcModel = this.model;
+        if (!ifcModel) return;
+        console.log('key model', ifcModel)
+
+        // switch (event.code) {
+        //     case 'ArrowUp':
+        //         // Rotate around the X-axis (tilting upward)
+        //         ifcModel.rotation.x -= this.rotationSpeed;
+        //         break;
+        //     case 'ArrowDown':
+        //         // Rotate around the X-axis (tilting downward)
+        //         ifcModel.rotation.x += this.rotationSpeed;
+        //         break;
+        // }
+
+        // Check if Ctrl is pressed and the 'F' key is pressed
+        if (event.ctrlKey && event.code === 'KeyF') {
+            // Rotate the model 180 degrees upside down
+            // this.rotateModelUpsideDown();
+            this.startRotationAnimation();
+        }
+    }
+
+    onUpdateListener: ((event: any) => void) | null = null;
+
+
+    // Function to rotate the model 180 degrees upside down
+    rotateModelUpsideDown() {
+        // Rotate 180 degrees around the X-axis (PI radians = 180 degrees)
+        if (this.model) {
+            this.model.rotation.x += Math.PI; // 180 degrees in radians
+        }
+    }
+
+    targetRotation: number | null = null;
+    startRotation: number | null = null;
+    animationDuration: number = 0.5; // Duration of the animation in seconds
+    animationStartTime: number | null = null;
+
+    // Function to start the rotation animation (toggle between forward and back)
+    startRotationAnimation(): void {
+        if (this.model) {
+            this.startRotation = this.model.rotation.x; // Initial rotation
+
+            if (this.isRotatedForward) {
+                // If already rotated forward, rotate back
+                this.targetRotation = this.startRotation - Math.PI; // Rotate back 180 degrees
+            } else {
+                // If not rotated forward, rotate forward
+                this.targetRotation = this.startRotation + Math.PI; // Rotate forward 180 degrees
+            }
+
+            this.animationStartTime = performance.now(); // Start time using performance.now()
+
+            // Add the animation to the renderer's update event listener if not already added
+            if (!this.onUpdateListener) {
+                this.onUpdateListener = this.animateRotation;
+                this.components.get(ModelCache).world?.renderer?.onBeforeUpdate.add(this.onUpdateListener);
+            }
+        }
+    }
+
+    // Function to smoothly rotate the model over time
+    animateRotation(): void {
+        const currentTime = performance.now(); // Get the current time
+
+        if (this.targetRotation !== null && this.startRotation !== null && this.animationStartTime !== null) {
+            // Calculate elapsed time
+            const elapsedTime = (currentTime - this.animationStartTime) / 1000; // Convert to seconds
+            const progress = Math.min(elapsedTime / this.animationDuration, 1); // Cap progress at 1 (100%)
+
+            // Interpolate between startRotation and targetRotation
+            const currentRotation = this.startRotation + progress * (this.targetRotation - this.startRotation);
+            if (this.model) {
+                this.model.rotation.x = currentRotation;
+            }
+
+            // If the animation is complete, reset variables and stop listening
+            if (progress >= 1) {
+                this.targetRotation = null;
+                this.startRotation = null;
+
+                // Toggle the flag for the next click (forward/back)
+                this.isRotatedForward = !this.isRotatedForward;
+
+                // Remove the event listener to stop the animation
+                if (this.onUpdateListener) {
+                    this.components.get(ModelCache).world?.renderer?.onBeforeUpdate.remove(this.onUpdateListener);
+                    this.onUpdateListener = null; // Clear the reference
+                }
+            }
+        }
     }
 }

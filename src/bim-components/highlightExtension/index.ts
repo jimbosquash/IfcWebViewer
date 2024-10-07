@@ -1,4 +1,5 @@
 import * as OBC from "@thatopen/components";
+import { FragmentsManager } from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
 import * as THREE from "three";
 import { GetPropertyByName } from "../../utilities/BuildingElementUtilities";
@@ -151,15 +152,15 @@ export class HighlightExtension extends OBC.Component {
 
     }
 
-    private getLabel = (element: BuildingElement) : string => {
+    private getLabel = (element: BuildingElement): string => {
         const config = this.components.get(ModelTagger).Configuration;
         const labelStyle = config.get('labelStyle')
         let label = element.name;
-        if(labelStyle === `Code`) {
-            let code = GetPropertyByName(element,knownProperties.ProductCode)?.value
+        if (labelStyle === `Code`) {
+            let code = GetPropertyByName(element, knownProperties.ProductCode)?.value
             const mat = GetPropertyByName(element, knownProperties.Material)?.value ?? "";
-            if(mat && code) code = `${mat}_${code}`
-            if(code) label = code;
+            if (mat && code) code = `${mat}_${code}`
+            if (code) label = code;
         }
         return label;
     }
