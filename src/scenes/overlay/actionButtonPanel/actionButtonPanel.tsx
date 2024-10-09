@@ -13,6 +13,7 @@ import VisibilityModeButton from "./src/visibilityModeButton";
 import GroupTypeButton from "./src/groupTypeButton";
 import NavigationButtonGroup from "./src/navigationButtonGroup";
 import { ZoomToVisibleButton } from "./src/zoomToVisibleButton";
+import FlipButton from "./src/FlipButton";
 
 const ActionButtonPanel = () => {
   const theme = useTheme();
@@ -54,6 +55,7 @@ const ActionButtonPanel = () => {
           }}
         >
           <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "40px" }}>
+            <FlipButton />
             <GroupTypeButton />
             <VisibilityModeButton />
             <ZoomToVisibleButton/>

@@ -25,6 +25,7 @@ import { select } from "../../../../utilities/BuildingElementUtilities";
 // import { saveAs } from "file-saver";
 import Papa from "papaparse";
 import saveAs from "file-saver";
+import { ModelCache } from "../../../../bim-components/modelCache";
 
 // listen to selected assembly and set its data when changed
 const AssemblyInfoPanel = () => {
@@ -124,14 +125,14 @@ const AssemblyInfoPanel = () => {
     const exportData = sortedRows().map((row) => ({
       quantity: row.quantity,
       productCode: row.productCode,
-      name: row.name,
       material: row.material,
+      name: row.name,
     }));
 
     // Convert the data to CSV format using PapaParse
     const csv = Papa.unparse(exportData);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, `${selected?.groupType}_assembly_data_${selected?.groupName}.csv`);
+    saveAs(blob, `${components.get(ModelCache).models()[0].name}_${selected?.groupType}_${selected?.groupName}_BOM.csv`);
   };
 
   return (

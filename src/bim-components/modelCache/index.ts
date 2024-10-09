@@ -292,7 +292,7 @@ export class ModelCache extends OBC.Component {
     animationStartTime: number | null = null;
 
     // Function to start the rotation animation (toggle between forward and back)
-    startRotationAnimation(): void {
+    public startRotationAnimation(): void {
         if (this.model) {
             this.startRotation = this.model.rotation.x; // Initial rotation
 
