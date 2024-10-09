@@ -23,7 +23,6 @@ export const WelcomePanel = () => {
       // use to give user settings preference in window (uploading configs or ignoring configs)
       setLoadedModel(newModel);
       const modelViewManager = components.get(ModelViewManager);
-      modelViewManager.defaultTreeStructure = [knownProperties.Station, knownProperties.Assembly,knownProperties.BuildingStep]; //knownProperties.Assembly, 
       await components.get(ModelCache).add(newModel, new Uint8Array());
       setEnableView(false)
     }
@@ -128,7 +127,7 @@ const GroupSelector: React.FC<groupSelectorProps> = ({ loadedModel, setEnabled }
     if (!loadedModel) return;
     setEnabled(false);
     const modelViewManager = components.get(ModelViewManager);
-    modelViewManager.defaultTreeStructure =
+    modelViewManager.stationTreeStructure =
       data === "Assembly"
         ? [knownProperties.Assembly, knownProperties.BuildingStep]
         : [knownProperties.Station, knownProperties.BuildingStep];

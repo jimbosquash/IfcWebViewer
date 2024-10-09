@@ -22,14 +22,14 @@ export const NavigationButtonGroup = () => {
       console.log("No group selected, default will be used");
     }
     // console.log("Setting adjacent",current);
-    console.log("GetAdjacentGroup to", current?.id);
+    console.log("GetAdjacentGroup to", current?.id,viewManager.Tree);
     const newGroup = GetAdjacentGroup(current, viewManager.Tree, adjacency);
     console.log("next group", newGroup?.id);
 
     if (newGroup) {
       try {
         if (!viewManager.Tree) return;
-        viewManager.setSelectionGroup(newGroup, true);
+        viewManager.setSelectionGroup(newGroup, true,viewManager.Tree.id,false);
         //zoomToSelected(viewManager.getBuildingElements(newGroup.id),components);
       } catch (error) {
         console.error("Error updating visibility:", error);

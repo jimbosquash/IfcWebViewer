@@ -10,7 +10,7 @@ import { TreeUtils } from "../../../../utilities/treeUtils";
 import MemoizedTreeTableRows from "./MemoizedTreeTableRows";
 import { convertToBuildingElement } from "../../../../utilities/BuildingElementUtilities";
 
-const treeName = ModelViewManager.defaultyTreeName;
+const treeName = ModelViewManager.assemblyTreeName;
 
 export const AssemblyBrowserPanel: React.FC = React.memo(() => {
   const [nodes, setNodes] = useState<TreeNode<IfcElement>[]>();
@@ -36,19 +36,13 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
 
   useEffect(() => {
     if (!components) return;
-    const viewManager = components.get(ModelViewManager);
-    viewManager.onTreeChanged.add(getPropertyTree);
+    const existingTree = modelViewManager.getTree(treeName)?.tree;
 
-    let existingTree = modelViewManager.Tree;
-
-    if (existingTree) {
+    if (existingTree !== undefined) {
       console.log("get existing tree",existingTree)
       getPropertyTree(existingTree);
     }
 
-    return () => {
-      viewManager.onTreeChanged.remove(getPropertyTree);
-    };
   }, [components, getPropertyTree]);
 
   const clearAllVisibility = () => {

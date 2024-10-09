@@ -55,7 +55,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         groupName: name,
         elements: elements,
       };
-      modelViewManager.setSelectionGroup(selectedGroup,true)
+      modelViewManager.setSelectionGroup(selectedGroup,true,treeID,true)
     };
 
     // when ModelVIewManager updates its vismap of parent tree check on visibility state
@@ -90,7 +90,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
       if (treeID !== tID || !node?.id || !modelViewManager) return;
       // console.log('setting visibility state start')
 
-      const tree = modelViewManager.getViewTree(treeID);
+      const tree = modelViewManager.getTree(treeID);
       if (!tree) return;
 
       const cacheVisState = tree.visibilityMap.get(node.id);
@@ -114,7 +114,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
 
         const visState = visibilityMap
           ? visibilityMap.get(node.id)
-          : modelViewManager.getViewTree(treeID)?.visibilityMap.get(node.id);
+          : modelViewManager.getTree(treeID)?.visibilityMap.get(node.id);
 
         setVisibility(visState);
         if (visState === undefined || visState === visibilityState) return;
