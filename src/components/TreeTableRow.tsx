@@ -193,10 +193,10 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
           return element === "text" ? colors.primary[100] : colors.blueAccent[700];
         }
         if (visibilityState !== VisibilityState.Visible && !isHovered) {
-          return element === "text" ? colors.grey[800] : colors.primary[400];
+          return element === "text" ? colors.grey[600] : colors.primary[100];
         }
         if (isHovered) {
-          return element === "text" ? colors.primary[100] : colors.blueAccent[600];
+          return element === "text" ? colors.grey[400] : colors.blueAccent[800];
         }
         return element === "background" ? colors.grey[1000] : colors.grey[500];
       },
@@ -212,7 +212,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
               width: isHovered ? "95%" : "92%",
               borderRadius: "12px",
               margin: "4px 0",
-              marginLeft:"8px",
+              marginLeft: "8px",
               border: "0.8px solid #ccc",
             }
           : {
