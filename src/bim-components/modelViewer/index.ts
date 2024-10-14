@@ -138,7 +138,7 @@ export class ModelViewManager extends OBC.Component {
             this.updateBasedOnVisibilityMode(undefined, undefined, treeID ?? this.Tree?.id);
         }
 
-        if(setTree && this._tree?.id !== treeID) {
+        if (setTree && this._tree?.id !== treeID) {
             this.setTree(treeID);
             console.log("ModelViewManager: selection group forced tree change:", treeID)
 
@@ -267,6 +267,41 @@ export class ModelViewManager extends OBC.Component {
         if (!this._tree.visibilityMap) return false;
         this.onGroupVisibilitySet.trigger({ treeID: this._tree.id, visibilityMap: this._tree.visibilityMap });
         return true;
+    }
+
+    /**
+     * Set the visibility state of a tree node based on state input and tree id if found
+     * @param treeID 
+     * @param nodeID 
+     * @param newVisState 
+     * @returns 
+     */
+    setVisibilityState = (treeID: string, nodeID: string, newVisState: VisibilityState) => {
+
+        const cacheVisState = this.getVisibilityState(treeID, nodeID)
+
+        if (cacheVisState === newVisState) return;
+
+        const tree = this.getTree(treeID);
+
+        if (!tree) return;
+        this.setVisibility(nodeID, treeID, newVisState, false);
+        this.onGroupVisibilitySet.trigger({ treeID: treeID, visibilityMap: tree.visibilityMap });
+    };
+
+
+    getVisibilityState = (treeID: string, nodeID: string): VisibilityState | undefined => {
+        if (treeID !== treeID || !nodeID) return;
+
+        const tree = this.getTree(treeID);
+        if (!tree) return;
+
+        const visState = tree.visibilityMap.get(nodeID);
+        if (!visState) {
+            console.log("Error finding vis state for node as no node found in tree", treeID, nodeID);
+            return;
+        }
+        return visState;
     }
 
 

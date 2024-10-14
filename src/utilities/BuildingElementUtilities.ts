@@ -8,7 +8,6 @@ import { ModelViewManager } from "../bim-components/modelViewer";
 import { FragmentsGroup } from "@thatopen/fragments";
 import { Components } from "@thatopen/components";
 import { TreeUtils } from "./treeUtils";
-import { group } from "console";
 
 // Type guard to check if an IfcElement is also a BuildingElement
 export function isBuildingElement(element: IfcElement): element is BuildingElement {
@@ -104,23 +103,23 @@ function getFirstGroup(tree: Tree<BuildingElement>) {
  * Group by Model ID for easy handeling
  * @returns key = ModuleID, value = Building Elements 
  */
-export function groupByModelID(buildingElements : BuildingElement[]) :  Map<string, BuildingElement[]> {
+export function groupByModelID(buildingElements: BuildingElement[]): Map<string, BuildingElement[]> {
   return buildingElements.reduce((acc, element) => {
     if (!acc.get(element.modelID)) {
-        acc.set(element.modelID, [])
+      acc.set(element.modelID, [])
     }
     acc.get(element.modelID)?.push(element)
     return acc;
-}, new Map<string, BuildingElement[]>);
+  }, new Map<string, BuildingElement[]>);
 }
 
 export function mapByName(buildingElements: BuildingElement[]) {
   return buildingElements.reduce((acc, element) => {
-      if (!acc.has(element.name)) {
-          acc.set(element.name, [])
-      }
-      acc.get(element.name)?.push(element)
-      return acc;
+    if (!acc.has(element.name)) {
+      acc.set(element.name, [])
+    }
+    acc.get(element.name)?.push(element)
+    return acc;
   }, new Map<string, BuildingElement[]>);
 }
 
@@ -260,7 +259,7 @@ export const select = async (elements: BuildingElement[], components: OBC.Compon
     const expressIds = elements.flatMap(e => e.expressID);
     const elementTypeIds = model.getFragmentMap(expressIds);
     // console.log("high light these elements",elementTypeIds)
-    await highlighter.highlightByID("select", elementTypeIds,clearPrevious, false);
+    await highlighter.highlightByID("select", elementTypeIds, clearPrevious, false);
     hider.set(true, elementTypeIds)
   });
 
@@ -308,6 +307,32 @@ export const isolate = async (elements: BuildingElement[], components: OBC.Compo
 }
 
 /**
+ * Simply set the visibility of building elements directly and not changing any sletion state or settings
+ * @param node 
+ * @param components 
+ * @returns 
+ */
+export const setVisibility = (elements: BuildingElement[], components: OBC.Components, visibility: boolean = true) => {
+  if (!elements || !components) return;
+
+  const idMaps = GetFragmentIdMaps(elements, components);
+  if (!idMaps || !idMaps[0]) return;
+
+  const cache = components.get(ModelCache);
+  console.log('setting visibility', visibility)
+
+  elements.forEach((element) => {
+    const frag = cache.getFragmentByElement(element);
+    if (visibility && frag && frag.hiddenItems.has(element.expressID)) {
+      frag.setVisibility(true, [element.expressID]);
+    }
+    if (!visibility && frag && !frag.hiddenItems.has(element.expressID)) {
+      frag.setVisibility(false, [element.expressID]);
+    }
+  });
+}
+
+/**
  * Get the distance between the center point of two building elements
  * @param a 
  * @param b 
@@ -315,15 +340,11 @@ export const isolate = async (elements: BuildingElement[], components: OBC.Compo
  * @param components 
  * @returns 
  */
-export function distanceToCenter(a: BuildingElement, b: BuildingElement, model: FragmentsGroup,components : Components) {
+export function distanceToCenter(a: BuildingElement, b: BuildingElement, model: FragmentsGroup, components: Components) {
   const aCenter = GetCenterPoint(a, model, components);
   const bCenter = GetCenterPoint(b, model, components);
-  if(!bCenter) return;
+  if (!bCenter) return;
   return aCenter?.distanceTo(bCenter);
-}
-
-export const setUpContainedByTree = ( elements: BuildingElement[]) => {
-
 }
 
 
@@ -352,7 +373,7 @@ export const setUpTreeFromProperties = (id: string, elements: BuildingElement[],
     const sortedGroups = sortGroupedElements(groupedElements);
 
     sortedGroups.forEach(([groupValue, groupElements]) => {
-      if(groupValue === "Unspecified") {
+      if (groupValue === "Unspecified") {
         // dont add as new node just pass on
         createSortedSubTree(tree, tree.getNode(parentNode.id)!, groupElements, currentLevel + 1);
       } else {

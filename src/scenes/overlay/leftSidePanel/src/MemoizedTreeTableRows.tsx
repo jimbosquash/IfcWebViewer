@@ -7,17 +7,19 @@ import { IfcElement } from "../../../../utilities/types";
 interface MemoizedTreeTableRowsProps {
   nodes: TreeNode<IfcElement>[] | undefined;
   treeName: string;
-  visibleOnDoubleClick: boolean;
   nodeVisibility?: Map<string, string>; // Visibility state mapping
   setVisibility?: (nodeId: string, enabled: boolean) => void;
+  onDoubleClick: (node: TreeNode<IfcElement>) => void;
+  onClick?: (node: TreeNode<IfcElement>) => void;
 }
 
 const MemoizedTreeTableRows: React.FC<MemoizedTreeTableRowsProps> = ({
   nodes,
   treeName,
-  visibleOnDoubleClick,
   nodeVisibility,
   setVisibility,
+  onDoubleClick,
+  onClick,
 }) => {
   const memoizedTreeTableRows = useMemo(() => {
     if (!nodes) return null;
@@ -25,13 +27,14 @@ const MemoizedTreeTableRows: React.FC<MemoizedTreeTableRowsProps> = ({
     // Function to render a single TreeTableRow
     const renderTreeTableRow = (node: TreeNode<IfcElement>, variant: "Floating" | "Flat" = "Floating") => (
       <TreeTableRow
+        onDoubleClick={onDoubleClick}
+        onClick={onClick}
         key={node.id}
         name={node.name}
         treeID={treeName}
         icon=""
         node={node}
         variant={variant}
-        visibleOnDoubleClick={visibleOnDoubleClick}
       >
         {renderChildren(node)}
       </TreeTableRow>
@@ -43,14 +46,14 @@ const MemoizedTreeTableRows: React.FC<MemoizedTreeTableRowsProps> = ({
 
       // if children are building elements dont show them
       const filteredChildren = children.filter((child) => child.type !== "BuildingElement");
-      if(filteredChildren.length < 1) {
-        console.log('tree display: no children that are not building elements',node.name,filteredChildren)
+      if (filteredChildren.length < 1) {
+        console.log("tree display: no children that are not building elements", node.name, filteredChildren);
         return;
       }
-      
+
       // If the second-level node has only one child called "Unspecified", skip it
       if (children[0].name === "Unspecified") {
-        console.log('tree display: Children with Unspecified name')
+        console.log("tree display: Children with Unspecified name");
         return renderGrandChildren(children[0]);
       } else {
         // Otherwise, render each child as a new TreeTableRow
@@ -70,7 +73,7 @@ const MemoizedTreeTableRows: React.FC<MemoizedTreeTableRowsProps> = ({
 
     // Map through the top-level nodes and render the tree structure
     return nodes.map((node) => renderTreeTableRow(node));
-  }, [nodes, nodeVisibility, setVisibility, visibleOnDoubleClick, treeName]);
+  }, [nodes, nodeVisibility, setVisibility, treeName]);
 
   return <>{memoizedTreeTableRows}</>;
 };
