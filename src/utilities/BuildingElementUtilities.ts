@@ -1,5 +1,5 @@
 import { Tree, TreeNode } from "./Tree";
-import { SelectionGroup, BuildingElement, KnowGroupType, knownProperties, IfcElement } from "./types";
+import { SelectionGroup, BuildingElement, KnownGroupType, knownProperties, IfcElement } from "./types";
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
 import { ModelCache } from "../bim-components/modelCache";
@@ -8,6 +8,7 @@ import { ModelViewManager } from "../bim-components/modelViewer";
 import { FragmentsGroup } from "@thatopen/fragments";
 import { Components } from "@thatopen/components";
 import { TreeUtils } from "./treeUtils";
+import { ViewableTree } from "../bim-components/modelViewer/src/viewableTree";
 
 // Type guard to check if an IfcElement is also a BuildingElement
 export function isBuildingElement(element: IfcElement): element is BuildingElement {
@@ -47,7 +48,7 @@ export function convertToBuildingElement(
  */
 export function GetAdjacentGroup(
   current: SelectionGroup | undefined,
-  tree: Tree<BuildingElement> | undefined,
+  tree: ViewableTree<BuildingElement> | undefined,
   direction: 'next' | 'previous' = 'next'
 ): SelectionGroup | undefined {
 
@@ -83,20 +84,24 @@ export function GetAdjacentGroup(
   return undefined;
 }
 
-function getFirstGroup(tree: Tree<BuildingElement>) {
+function getFirstGroup(tree: ViewableTree<IfcElement>): SelectionGroup | undefined {
 
-  const firstGroup = tree.getFirstOrUndefinedNode(n => n.type !== "Project");
+  if(tree.root.children.size === 0 ) {
+    console.log('failed to find next group because root node has no children')
+    return;
+  }
+  const firstGroup =  tree.getFirstOrUndefinedNode(n => n.type !== "Project");
   console.log('getting default group', firstGroup, tree)
 
   if (!firstGroup) return undefined;
 
-  const el = TreeUtils.getChildren(firstGroup, n => n.type === KnowGroupType.BuildingElement)
+  const el = TreeUtils.getChildren(firstGroup, n => n.type === KnownGroupType.BuildingElement)
     .map(n => n.data)
     .filter((data): data is NonNullable<typeof data> => data != null)
     .flat();
 
 
-  return { groupType: firstGroup.type, id: firstGroup.id, groupName: firstGroup.name, elements: el };
+  return { groupType: firstGroup.type, id: firstGroup.id, groupName: firstGroup.name, elements: convertToBuildingElement(el) };
 }
 
 /**
@@ -355,15 +360,15 @@ export function distanceToCenter(a: BuildingElement, b: BuildingElement, model: 
  */
 export const setUpTreeFromProperties = (id: string, elements: BuildingElement[], propertyNames: string[] | knownProperties[]) => {
 
-  const tree = new Tree<BuildingElement>(id, "Project", "Project");
+  const tree = new Tree<IfcElement>(id, "Project", "Project");
   const root = tree.getNode("Project")
 
 
-  function createSortedSubTree(tree: Tree<BuildingElement>, parentNode: TreeNode<BuildingElement>, currentElements: any[], currentLevel: number) {
+  function createSortedSubTree(tree: Tree<IfcElement>, parentNode: TreeNode<IfcElement>, currentElements: any[], currentLevel: number) {
     if (currentLevel >= propertyNames.length) {
       // We've reached the leaf level, add elements as leaf nodes
       currentElements.forEach((element, index) => {
-        tree.addNode(parentNode.id, `${parentNode.id}_${index}`, element.name, "BuildingElement", element, true);
+        tree.addNode(parentNode.id, `${parentNode.id}_${index}`, element.name, KnownGroupType.BuildingElement, element, true);
       });
       return;
     }

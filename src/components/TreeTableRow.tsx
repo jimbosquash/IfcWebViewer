@@ -70,27 +70,6 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
       [node?.id]
     );
 
-    // const setVisibilityState = (treeID: string, nodeID: string, newVisState: VisibilityState) => {
-    //   if (treeID !== treeID || !nodeID || !modelViewManager) return;
-    //   // console.log('setting visibility state start')
-
-    //   const tree = modelViewManager.getTree(treeID);
-    //   if (!tree) return;
-
-    //   const cacheVisState = tree.visibilityMap.get(nodeID);
-    //   if (!cacheVisState) {
-    //     console.log("TreeTable Row error updating vis state as no node and tree relationship found");
-    //     return;
-    //   }
-
-    //   console.log("setting visibility state", cacheVisState, newVisState);
-
-    //   if (cacheVisState === newVisState) return;
-    //   // tree.visibilityMap.set(node.id, newVisState);
-    //   modelViewManager.setVisibility(nodeID, treeID, newVisState, false);
-    //   modelViewManager.onGroupVisibilitySet.trigger({ treeID: treeID, visibilityMap: tree.visibilityMap });
-    // };
-
     const getVisibilityState = useCallback(
       (tID: string, visibilityMap: Map<string, VisibilityState> | undefined) => {
         if (treeID !== tID || !node?.id || !modelViewManager) return;
@@ -122,38 +101,11 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
       if (!node || !components) return;
 
       // Log the double-click for debugging
-      console.log("Double-clicked on node", node);
+      console.log("clicked on node", node);
 
       // Call the function passed through props
       if (onClick) onClick(node);
     }, [node, components, onDoubleClick]);
-
-    // // make visible on double click
-    // const handleDoubleClick = useCallback(() => {
-    //   if (!node || !components) return;
-    //   console.log('double click')
-
-    //   const cache = components.get(ModelCache);
-    //   const elements = convertToBuildingElement(TreeUtils.getChildrenNonNullData(node));
-    //   const idMaps = GetFragmentIdMaps(elements, components);
-
-    //   if (!idMaps || !idMaps[0]) return;
-
-    //   if (visibleOnDoubleClick) {
-    //     elements.forEach((element) => {
-    //       const frag = cache.getFragmentByElement(element);
-    //       if (frag && frag.hiddenItems.has(element.expressID)) {
-    //         frag.setVisibility(true, [element.expressID]);
-    //       }
-    //     });
-    //   }
-
-    //   const fragmentIdMap = getFragmentMapOfVisible(elements);
-
-    //   //highlighter.highlightByID("select", fragmentIdMap, false, false, undefined);
-    //   setSelected();
-
-    // }, [node, components, visibleOnDoubleClick]);
 
     // on hover changed highlight all elements in the node
     useEffect(() => {
@@ -254,7 +206,6 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
 
 
     const handleToggleVisibility = onToggleVisibility || defaultToggleVisibility;
-
     const handleMouseEnter = useCallback(() => setIsHovered(true), []);
     const handleMouseLeave = useCallback(() => setIsHovered(false), []);
 
@@ -277,7 +228,6 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
           onClick={(e) => {
             handleToggleExpand(e);
             handleClick();
-            // modelViewManager.updateVisibility(treeID)
           }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}

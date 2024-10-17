@@ -2,6 +2,12 @@ import { TreeNode } from "./Tree";
 
 export class TreeUtils {
 
+    /**
+     * Recursively search children for nodes that meet the condition
+     * @param node 
+     * @param condition 
+     * @returns 
+     */
     static getChildren = <T>(node: TreeNode<T>, condition: (child: TreeNode<T>) => boolean) => {
         // search a treenodes children for a condition 
         const result: TreeNode<T>[] = [];

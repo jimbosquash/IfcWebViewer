@@ -18,7 +18,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { SelectionGroup, KnowGroupType, BuildingElement, knownProperties } from "../../../../utilities/types";
+import { SelectionGroup, KnownGroupType, BuildingElement, knownProperties } from "../../../../utilities/types";
 import { Icon } from "@iconify/react";
 import { tokens } from "../../../../theme";
 import { select } from "../../../../utilities/BuildingElementUtilities";
@@ -158,7 +158,7 @@ const AssemblyInfoPanel = () => {
           <Box component="div" sx={{ mr: 2 }}>
             <Icon
               color={colors.grey[400]}
-              icon={selected?.groupType === KnowGroupType.Assembly ? "system-uicons:box" : "system-uicons:boxes"}
+              icon={selected?.groupType === KnownGroupType.Assembly ? "system-uicons:box" : "system-uicons:boxes"}
             />
           </Box>
           <Typography variant="h6">{!selected ? "Assembly Name" : selected.groupName}</Typography>

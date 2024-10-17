@@ -1,3 +1,5 @@
+import { VisibilityState } from "./types";
+
 export interface TreeNode<T> {
     id: string; // uniuqe id for node map
     name: string // name to support container nodes eg "station WS01"
@@ -10,12 +12,13 @@ export interface TreeNode<T> {
 
 
 
+
 export class Tree<T> {
     private _id: string;
     private _root: TreeNode<T>;
-    private _nodeMap: Map<string, TreeNode<T>> = new Map();
+    private _nodeMap: Map<string, TreeNode<T>> = new Map(); // key = id
 
-    get id() {return this._id}
+    get id() { return this._id }
 
     get root(): TreeNode<T> { return this._root }
 
@@ -56,7 +59,7 @@ export class Tree<T> {
         return this.getNodes(node => node.isLeaf && node.type === type);
     }
 
-    
+
     getNodes(predicate: (node: TreeNode<T>) => boolean): TreeNode<T>[] {
         const result: TreeNode<T>[] = [];
 
@@ -71,13 +74,13 @@ export class Tree<T> {
         return result;
     }
 
-    getFirstOrUndefinedNode(predicate: (node: TreeNode<T>) => boolean): TreeNode<T> | undefined{
+    getFirstOrUndefinedNode(predicate: (node: TreeNode<T>) => boolean): TreeNode<T> | undefined {
         let result: TreeNode<T> | undefined = undefined;
         let traverseSuccessful = false;
 
         const traverse = (node: TreeNode<T>) => {
             // console.log('traversing', node, predicate(node));
-            if(traverseSuccessful) return true;
+            if (traverseSuccessful) return true;
 
             if (predicate(node)) {
                 result = node;
@@ -123,6 +126,67 @@ export class Tree<T> {
 
         // Remove this node from the nodeMap
         this._nodeMap.delete(id);
+        // console.log('tree node deleted', id, this._id)
+    }
+
+
+    /**
+     * Duplicates the tree structure, copying data as reference and not duplicating its.
+     * It returns a new Tree with the same structure.
+     */
+    duplicate(): Tree<T> {
+        // Create a new tree with the same root node details, but no data
+        const newTree = new Tree<T>(this._id, this._root.id, this._root.type);
+
+        // Helper function to recursively copy nodes
+        const copyNode = (originalNode: TreeNode<T>, parentNode: TreeNode<T> | undefined) => {
+            // Create a new node in the new tree without copying the data
+            const newNode = newTree.createNode(
+                originalNode.id,
+                originalNode.name,
+                originalNode.type,
+                originalNode.data, // Do not copy data
+                originalNode.isLeaf,
+                parentNode
+            );
+
+            if (parentNode !== undefined)
+                parentNode.children.set(originalNode.id, newNode); // Set the parent in the new tree
+            else {
+                newTree._root = newNode;
+            }
+
+            // Recursively copy the children
+            originalNode.children.forEach((child) => {
+                copyNode(child, newNode); // Copy each child with the new parent
+            });
+        };
+
+        // Start copying from the root
+        copyNode(this._root, undefined);
+
+        return newTree;
+    }
+
+
+    /**
+     * Returns all parent nodes of the given node until the root that satisfy a condition.
+     * @param node - The starting node to traverse upwards from.
+     * @param condition - A function that takes a TreeNode and returns a boolean indicating if the node should be included.
+     * @returns Array of parent nodes that match the condition.
+     */
+     getParents(node: TreeNode<T>, condition: (node: TreeNode<T>) => boolean): TreeNode<T>[] {
+        const parents: TreeNode<T>[] = [];
+        let currentNode: TreeNode<T> | undefined = node.parent;
+
+        while (currentNode) {
+            if (condition(currentNode)) {
+                parents.push(currentNode);
+            }
+            currentNode = currentNode.parent;
+        }
+
+        return parents;
     }
 }
 

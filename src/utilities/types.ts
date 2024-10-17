@@ -29,7 +29,7 @@ export enum VisibilityState {
   Ghost = "Ghost"
 }
 
-export enum KnowGroupType {
+export enum KnownGroupType {
   Station = "Station",
   BuildingStep = "BuildingStep",
   Assembly = "Assembly",
@@ -37,7 +37,7 @@ export enum KnowGroupType {
   Unknown = "Unknown"
 }
 
-export type GroupingType = KnowGroupType | string;
+export type GroupingType = KnownGroupType | string;
 
 export interface SelectionGroup {
   id: string; // used for tree nodeMap searching
@@ -61,6 +61,7 @@ export interface IfcElement {
 */
   type: string;
   name: string;
+  properties: BasicProperty[]
 }
 
 /**
@@ -76,7 +77,7 @@ export interface BuildingElement extends IfcElement {
    * The Id of the FragmentGroup which represents the ifc model file
    */
   modelID: string; // the fraggroup id
-  properties: BasicProperty[]
+  // properties: BasicProperty[]
 }
 
 export interface BasicProperty {

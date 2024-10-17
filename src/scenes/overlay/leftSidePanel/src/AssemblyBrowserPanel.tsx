@@ -1,32 +1,30 @@
 import { Box, ButtonGroup } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { Tree, TreeNode } from "../../../../utilities/Tree";
-import { BuildingElement, IfcElement, SelectionGroup, VisibilityState } from "../../../../utilities/types";
+import {  TreeNode } from "../../../../utilities/Tree";
+import {  IfcElement, SelectionGroup } from "../../../../utilities/types";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import React from "react";
 import { TreeUtils } from "../../../../utilities/treeUtils";
 import MemoizedTreeTableRows from "./MemoizedTreeTableRows";
 import { convertToBuildingElement, setVisibility } from "../../../../utilities/BuildingElementUtilities";
+import { ViewableTree } from "../../../../bim-components/modelViewer/src/viewableTree";
 
-const treeName = ModelViewManager.assemblyTreeName;
+const treeID = ModelViewManager.assemblyTreeName;
 
 export const AssemblyBrowserPanel: React.FC = React.memo(() => {
   const [nodes, setNodes] = useState<TreeNode<IfcElement>[]>();
-  // const [nodeVisibility, setNodeVisibility] = useState<Map<string, VisibilityState>>(); // key = node.id, value = visibility state
-  // const [visibleOnDoubleClick, setVisibleOnDoubleClick] = useState<boolean>(true);
   const components = useComponentsContext();
 
   const modelViewManager = useMemo(() => components?.get(ModelViewManager), [components]);
 
   // called on component change
   const getPropertyTree = useCallback(
-    (tree: Tree<BuildingElement>) => {
+    (tree: ViewableTree<IfcElement>) => {
       if (!tree || !modelViewManager) return;
 
       console.log("get existing tree, in event listener",tree,modelViewManager)
       if (!tree) return;
-      // setNodeVisibility(modelViewManager.getVisibilityMap(tree.id));
       console.log('building elements for assembly tree',[...tree.root.children.values()])
       setNodes([...tree.root.children.values()]);
     },
@@ -35,7 +33,7 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
 
   useEffect(() => {
     if (!components) return;
-    const existingTree = modelViewManager.getTree(treeName)?.tree;
+    const existingTree = modelViewManager.getTree(treeID);
 
     if (existingTree !== undefined) {
       console.log("get existing tree",existingTree)
@@ -43,23 +41,6 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
     }
 
   }, [components, getPropertyTree]);
-
-  const clearAllVisibility = () => {
-    const map = new Map(modelViewManager.GroupVisibility);
-    const selectedId = modelViewManager.SelectedGroup?.id;
-    if (!selectedId) return;
-    const neighbors = modelViewManager.Tree?.getNodes(
-      (n) => n.type === modelViewManager.SelectedGroup?.groupType
-    ).flatMap((n) => n.id);
-    neighbors?.push(selectedId);
-    if (!neighbors) return;
-
-    map.forEach((entry, key) => {
-      map.set(key, neighbors?.find((ne) => ne === key) ? VisibilityState.Visible : VisibilityState.Hidden);
-    });
-
-    modelViewManager.GroupVisibility = map;
-  };
 
    // make visible on double click
    const handleDoubleClick = useCallback((node: TreeNode<IfcElement>) => {
@@ -79,7 +60,7 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
       groupName: node.name,
       elements: elements,
     };
-    modelViewManager.setSelectionGroup(selectedGroup, true, treeName, true);
+    modelViewManager.setSelectionGroup(selectedGroup, true, treeID, true);
   }, [components]);
   
   return (
@@ -100,7 +81,7 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
         </ButtonGroup>
 
         <Box component="div" m="0px" maxHeight="100%" overflow="hidden" width="100%">
-          <MemoizedTreeTableRows onDoubleClick={handleDoubleClick} nodes={nodes} treeName={treeName} />
+          <MemoizedTreeTableRows onDoubleClick={handleDoubleClick} nodes={nodes} treeName={treeID} />
         </Box>
       </div>
     </>

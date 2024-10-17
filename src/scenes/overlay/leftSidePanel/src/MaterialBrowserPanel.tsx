@@ -12,11 +12,12 @@ import {
   setVisibility,
 } from "../../../../utilities/BuildingElementUtilities";
 import { TreeUtils } from "../../../../utilities/treeUtils";
+import { ViewableTree } from "../../../../bim-components/modelViewer/src/viewableTree";
 
 const treeID = "MaterialTree";
 
 export const MaterialBrowserPanel: React.FC = () => {
-  const [nodes, setNodes] = useState<TreeNode<BuildingElement>[]>();
+  const [nodes, setNodes] = useState<TreeNode<IfcElement>[]>();
   const components = useComponentsContext();
 
   const modelViewManager = useMemo(() => components?.get(ModelViewManager), [components]);
@@ -36,9 +37,8 @@ export const MaterialBrowserPanel: React.FC = () => {
   function handleNewElements(elements: BuildingElement[]): void {
     if (!elements) return;
     const tree = setUpTreeFromProperties(treeID, elements, [knownProperties.Material]);
-    const _ = modelViewManager.addOrReplaceTree(tree.id, tree);
-
-    setNodes([...tree.root.children.values()]);
+    const _ = modelViewManager.setTree(new ViewableTree(tree.id,tree,undefined));
+    setNodes([...tree?.root?.children?.values()]);
   }
 
 
