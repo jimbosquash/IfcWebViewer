@@ -78,12 +78,12 @@ export class ModelViewManager extends OBC.Component {
     }
 
     readonly onTreeChanged = new OBC.Event<ViewableTree<IfcElement> | undefined>(); // when the main tree is changed
-    readonly onBuildingElementsChanged = new OBC.Event<BuildingElement[]>(); 
-    readonly onGroupVisibilitySet = new OBC.Event<{ treeID: string }>(); //
+    readonly onBuildingElementsChanged = new OBC.Event<BuildingElement[]>();
+    // readonly afterTreeVisibilityUpdated = new OBC.Event<{ treeID: string }>(); //
     readonly onSelectedGroupChanged = new OBC.Event<SelectionGroup>(); // when the selection group is changed
     readonly onVisibilityModeChanged = new OBC.Event<VisibilityMode>();
-    readonly onVisibilityUpdated = new OBC.Event<BuildingElement[]>(); // the new elements that are visible after visibility change
-    readonly onVisibilityMapUpdated = new OBC.Event<{ treeID: string }>(); // when a map of a tree is changed trigger event so ui can render change
+    readonly onVisibilityUpdated = new OBC.Event<{ elements: BuildingElement[], treeID: string }>(); // the new elements that are visible after visibility change
+    // readonly onVisibilityMapUpdated = new OBC.Event<{ treeID: string }>(); // when a map of a tree is changed trigger event so ui can render change
 
 
 
@@ -235,9 +235,7 @@ export class ModelViewManager extends OBC.Component {
 
         this._tree = newMainTree;
         this.onTreeChanged.trigger(this._tree);
-        if (!this._tree) return false;
-        this.onGroupVisibilitySet.trigger({ treeID: this._tree.id });
-        return true;
+        return this._tree !== undefined;
     }
 
     /**
@@ -257,7 +255,7 @@ export class ModelViewManager extends OBC.Component {
 
         if (!tree) return;
         this.setNodeVisibilityState(nodeID, treeID, newVisState, false);
-        this.onGroupVisibilitySet.trigger({ treeID: treeID });
+        // this.afterTreeVisibilityUpdated.trigger({ treeID: treeID });
     };
 
 
@@ -392,38 +390,11 @@ export class ModelViewManager extends OBC.Component {
         switch (visibilityMode) {
             case VisibilityMode.Isolate:
                 // every other node except its parent and its self are hidden
-                // this.isolate(group, treeID)
-                // const node = tree?.tree.getNode(group.id);
                 if (!node) {
                     console.log('failed to find node in tree to isolate')
                     return;
                 }
-                this.isolate(node.id,treeID)
-                // hide every node and then unhide the node branch of the group
-
-                // tree.visibilityMap.forEach((_, key) => {
-                //     tree.setVisibility(key, VisibilityState.Hidden);
-                // });
-
-                // tree.visibilityMap.set(node.id, VisibilityState.Visible)
-
-
-                // // get all children nodes
-                // const parents = tree.getParents(node, () => true);
-                // parents.forEach(child => {
-                //     tree.visibilityMap.set(child.id, VisibilityState.Visible)
-                // })
-
-
-                // // get all children nodes
-                // const children = TreeUtils.getChildren(node, () => true);
-                // children.forEach(child => {
-                //     tree.visibilityMap.set(child.id, VisibilityState.Visible)
-                // })
-
-                // console.log('visibile children', children)
-                // console.log('visibile parents', parents)
-                // console.log('visibility map', tree.visibilityMap)
+                this.isolate(node.id, treeID)
                 break;
             case VisibilityMode.selectGroup:
                 // do nothing but select and make sure there visible
@@ -438,12 +409,6 @@ export class ModelViewManager extends OBC.Component {
                 break;
         }
 
-        // now go and make sure all children of vis are vis and that all parents are visible
-        // make each node, their parent and children are visible
-
-        console.log('visibility mode updating', tree.id)
-        this.onGroupVisibilitySet.trigger({ treeID: tree.id });
-        // this.onVisibilityMapUpdated
         this.updateVisibility(tree.id);
     }
 
@@ -556,12 +521,12 @@ export class ModelViewManager extends OBC.Component {
         })
 
 
-        console.log(`Isolating ${nodeID}`)
-        console.log(`Isolating ${nodeID} - children ${children.length}`)
+        // console.log(`Isolating ${nodeID}`)
+        // console.log(`Isolating ${nodeID} - children ${children.length}`)
 
 
-        this.onGroupVisibilitySet.trigger({ treeID: treeID });
         this.updateVisibility(treeID);
+        // this.afterTreeVisibilityUpdated.trigger({ treeID: treeID });
     }
 
     /**
@@ -609,7 +574,7 @@ export class ModelViewManager extends OBC.Component {
                     // allFragments.forEach((ids, frag) => frag.resetColor(ids));
                 }
                 else {
-                    console.log('hidden',allFragments)
+                    console.log('hidden', allFragments)
 
                     allFragments.forEach((ids, frag) => frag.setVisibility(false, ids));
                     // allFragments.forEach((ids, frag) => frag.setColor(transWhite, ids));
@@ -657,26 +622,21 @@ export class ModelViewManager extends OBC.Component {
 
         // if no visibility map found then make everything visible
         if (!tree?.visibilityMap) {
-            const allElements = this.getBuildingElements(tree?.root.id ?? '', this._tree);
-            this.SetVisibility(fragments, allElements, VisibilityState.Visible);
+            const elements = this.getBuildingElements(tree?.root.id ?? '', this._tree);
+            if (!elements) return;
+            this.SetVisibility(fragments, elements, VisibilityState.Visible);
             console.log("hide elements fails, showing all instead")
-            this.onVisibilityUpdated.trigger(allElements);
+            this.onVisibilityUpdated.trigger({ elements, treeID });
             return;
         }
 
         // get all nodes with visible state and convert to building elements
-        const visibleNodes = convertToBuildingElement(tree.getNodesByVisibility(VisibilityState.Visible).map(node => node.data)
+        const visibleElements = convertToBuildingElement(tree.getNodesByVisibility(VisibilityState.Visible).map(node => node.data)
             .filter((data): data is NonNullable<typeof data> => data !== null));
 
         // get all nodes with hidden state and convert to building elements
         const hiddenNodes = convertToBuildingElement(tree.getNodesByVisibility(VisibilityState.Hidden).map(node => node.data)
             .filter((data): data is NonNullable<typeof data> => data !== null));
-
-            const hiddenOG = tree.getNodesByVisibility(VisibilityState.Hidden).map(node => node.data)
-            .filter((data): data is NonNullable<typeof data> => data !== null);
-
-        // const visibleNodes = tree.getNodesByVisibility(VisibilityState.ghost).map(node => node.data)
-        // .filter((data): data is NonNullable<typeof data> => data !== null);
 
         //remove hidden from visible group and add to hidden
         // const filterredVisibles = visibilityTypes?.get(VisibilityState.Visible)?.filter(element => !this._additionalHiddenElements.has(element))
@@ -685,12 +645,11 @@ export class ModelViewManager extends OBC.Component {
         // const newHidden = visibilityTypes?.get(VisibilityState.Hidden)?.filter(element => !this._additionalHiddenElements.has(element))
         // if (newHidden)
         //     visibilityTypes?.get(VisibilityState.Hidden)?.push(...newHidden)
-        console.log("Visibility Update - visible", visibleNodes)
+        // console.log("Visibility Update - visible", visibleNodes)
         // console.log("Visibility Update - hidden", hiddenNodes)
-        console.log("Visibility Update - hidden", hiddenOG)
-        this.SetVisibility(fragments, visibleNodes, VisibilityState.Visible);
+        // console.log("Visibility Update - hidden", hiddenOG)
+        this.SetVisibility(fragments, visibleElements, VisibilityState.Visible);
         this.SetVisibility(fragments, hiddenNodes, VisibilityState.Hidden);
-        // this.SetVisibility(fragments, convertToBuildingElement(visibilityTypes.get(VisibilityState.Ghost) ?? []), VisibilityState.Ghost);
-        this.onVisibilityUpdated.trigger(visibleNodes);
+        this.onVisibilityUpdated.trigger({ elements: visibleElements, treeID });
     };
 }

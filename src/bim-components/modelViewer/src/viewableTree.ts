@@ -6,9 +6,9 @@ export class ViewableTree<T> {
     private tree: Tree<T>;
     private _visibilityMap: Map<string, VisibilityState>; // key = every nodeID, value = visibility mode
 
-    get visibilityMap() {return this._visibilityMap;}
+    get visibilityMap() { return this._visibilityMap; }
     get id() { return this._id; }
-    get root() {return this.tree.root}
+    get root() { return this.tree.root }
 
     /**
      * 
@@ -21,7 +21,7 @@ export class ViewableTree<T> {
         this._id = id;
         this.tree = tree;
         this._visibilityMap = visibilityMap ?? this.createVisibilityMap(tree); // todo: should create full map not empty
-        console.log('viewable tree vis map created', this._visibilityMap)
+        // console.log('viewable tree vis map created', this._visibilityMap)
 
         // By default, set the root node's visibility to Visible
         this._visibilityMap.set(tree.root.id, VisibilityState.Visible);
@@ -88,7 +88,7 @@ export class ViewableTree<T> {
      * @returns Array of parent nodes that match the condition.
      */
     getParents(node: TreeNode<T>, condition: (node: TreeNode<T>) => boolean): TreeNode<T>[] {
-        return this.tree.getParents(node,condition)
+        return this.tree.getParents(node, condition)
     }
 
 

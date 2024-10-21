@@ -12,6 +12,7 @@ import * as OBF from "@thatopen/components-front";
 import { ModelViewManager } from "../bim-components/modelViewer";
 import { TreeUtils } from "../utilities/treeUtils";
 import { convertToBuildingElement } from "../utilities/BuildingElementUtilities";
+import { getColorManagement } from "@react-three/fiber/dist/declarations/src/core/utils";
 
 export interface TreeTableRowProps {
   name: string;
@@ -46,14 +47,14 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         getVisibilityState(data.treeID);
       const handleSelectionChange = (data: SelectionGroup) => getSelectionState(data);
 
-      modelViewManager.onGroupVisibilitySet.add(handleGroupVisibility);
+      modelViewManager.onVisibilityUpdated.add(handleGroupVisibility);
       modelViewManager.onSelectedGroupChanged.add(handleSelectionChange);
 
       getVisibilityState(treeID);
       getSelectionState(modelViewManager.SelectedGroup);
 
       return () => {
-        modelViewManager.onGroupVisibilitySet.remove(handleGroupVisibility);
+        modelViewManager.onVisibilityUpdated.remove(handleGroupVisibility);
         modelViewManager.onSelectedGroupChanged.remove(handleSelectionChange);
       };
     }, [modelViewManager, treeID]);
@@ -65,18 +66,15 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
       [node?.id]
     );
 
-    const getVisibilityState = useCallback(
-      (tID: string) => {
+    const getVisibilityState = (tID: string) => {
         if (treeID !== tID || !node?.id || !modelViewManager) return;
 
         const visState = modelViewManager.getTree(treeID)?.getVisibility(node.id);
+        console.log('getting vis state', node.id, visState)
 
         setVisibility(visState);
         if (visState === undefined || visState === visibilityState) return;
-        // modelViewManager.updateVisibility(treeID)
-      },
-      [treeID, node?.id, modelViewManager, visibilityState]
-    );
+      };
 
     // Function to get dynamic MUI Chips based on conditions
     const getChips = useMemo(() => {
@@ -189,7 +187,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         sx={{
           width: "100%",
           height: "100%",
-          ...getParentBoxTheme(isHovered, isExpanded, variant, colors)
+          ...getParentBoxTheme(isHovered, isExpanded, variant)
         }}
       >
         <Box
@@ -201,20 +199,13 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
           }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          sx={{ ...getRowTheme(isHovered, isExpanded, variant, colors) }}
+          sx={{ ...getRowTheme(getColor('background'),isHovered, isExpanded, variant, colors) }}
         >
-          {/* <VisibilityToggle
-            visibilityState={visibilityState}
-            onClick={(e) => {
-              if (!node) return;
-              handleToggleVisibility(node);
-              modelViewManager.updateVisibility(treeID);
-            }}
-            color={getColor("text")}
-          /> */}
+
           {/* Visibility Toggle */}
           <IconButton
             size="small"
+            sx={{color: getColor("text")}}
             onClick={(e) => {
               if (node){
                  handleToggleVisibility(node);
@@ -292,34 +283,13 @@ export interface RowContentProps {
   chips?: React.ReactNode[]; // An array of chips (optional), passed as React elements
 }
 
-const VisibilityToggle: React.FC<visibilityToggleProps> = React.memo(({ visibilityState, onClick, color }) => (
-  <IconButton size="small" sx={{ flexShrink: 0, marginLeft: "8px", color }} onClick={onClick}>
-    <Icon
-      style={{ fontSize: 15 }}
-      icon={visibilityState === VisibilityState.Visible ? "eva:radio-button-on-fill" : "eva:radio-button-off-outline"}
-    />
-  </IconButton>
-));
-
-const ExpandToggle: React.FC<expandToggleProps> = React.memo(({ isExpanded, onClick, color }) => (
-  <IconButton
-    size="small"
-    sx={{ flexShrink: 0, marginLeft: "8px", color }}
-    onClick={(e) => {
-      e.stopPropagation(); // Stop the click from reaching the row
-      onClick(e);
-    }}
-  >
-    <Icon icon={isExpanded ? "system-uicons:minus" : "system-uicons:plus"} />
-  </IconButton>
-));
-
 // RowContent component to display name, icon, and any chips passed
-const RowContent: React.FC<RowContentProps> = ({ name, icon, node, chips, childrenCount }) => (
-  <Box component="div" display="flex" alignItems="center" sx={{ flexGrow: 1 }}>
+const RowContent: React.FC<RowContentProps> = ({ name, icon, node, chips, childrenCount, getColor }) => (
+  <Box component="div" display="flex" alignItems="center" color={'blue'} sx={{ flexGrow: 1 }}>
     {icon && <Icon icon={icon} style={{ marginLeft: "5px" }} />}
     <Typography
       noWrap
+      color={getColor('text')}
       sx={{
         flexGrow: 1,
         flexShrink: 1,
@@ -348,9 +318,9 @@ const RowContent: React.FC<RowContentProps> = ({ name, icon, node, chips, childr
 );
 
 // Helper function to get box styling for different states
-const getRowTheme = (isHovered: boolean, isExpanded: boolean, variant: "Floating" | "Flat", colors: any) => ({
+const getRowTheme = (background: string,isHovered: boolean, isExpanded: boolean, variant: "Floating" | "Flat", colors: any) => ({
   padding: variant === "Floating" ? "8px" : "0px",
-  backgroundColor: isHovered ? colors.blueAccent[800] : colors.grey[1000],
+  backgroundColor: background,
   transition: "all 0.1s ease",
   borderBottom: variant !== "Floating" ? "0.8px solid #ccc" : "",
   borderTop: variant !== "Floating" ? "0.8px solid #ccc" : "",
@@ -365,12 +335,10 @@ const getRowTheme = (isHovered: boolean, isExpanded: boolean, variant: "Floating
 });
 
 
-const getParentBoxTheme = (isHovered: boolean, isExpanded: boolean, variant: "Floating" | "Flat", colors: any) => ({
+const getParentBoxTheme = (isHovered: boolean, isExpanded: boolean, variant: "Floating" | "Flat") => ({
   boxShadow: variant === "Floating" ? "0 0 10px rgba(0, 0, 0, 0.1)" : "",
-  // padding: variant === "Floating" ? "8px" : "0px",
   borderRadius: variant === "Floating" ? "12px" : '',
   border: variant === "Floating" ? "0.8px solid #ccc" : "",
-  backgroundColor: isHovered ? colors.blueAccent[800] : colors.grey[1000],
   transition: "all 0.1s ease",
   borderBottom: variant !== "Floating" ? "0.8px solid #ccc" : "",
   borderTop: variant !== "Floating" ? "0.8px solid #ccc" : "",
@@ -386,48 +354,5 @@ const getParentBoxTheme = (isHovered: boolean, isExpanded: boolean, variant: "Fl
   minWidth: 0,
 
 });
-
-// const getColor = useCallback(
-//   (element: "text" | "background") => {
-//     if (isSelected) {
-//       return element === "text" ? colors.primary[100] : colors.blueAccent[700];
-//     }
-//     if (visibilityState !== VisibilityState.Visible && !isHovered) {
-//       return element === "text" ? colors.grey[600] : colors.primary[100];
-//     }
-//     if (isHovered) {
-//       return element === "text" ? colors.grey[400] : colors.blueAccent[800];
-//     }
-//     return element === "background" ? colors.grey[1000] : colors.grey[500];
-//   },
-//   [visibilityState, isHovered, colors]
-// );
-
-// const boxTheme = useMemo(
-//   () => ({
-//     ...(variant === "Floating"
-//       ? {
-//           boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-//           padding: isHovered ? "8px" : "10px",
-//           width: isHovered ? "95%" : "92%",
-//           borderRadius: "12px",
-//           margin: "4px 0",
-//           marginLeft: "8px",
-//           border: "0.8px solid #ccc",
-//         }
-//       : {
-//           padding: "0px",
-//           width: "100%",
-//           margin: "0px 0",
-//           borderBottom: "0.8px solid #ccc",
-//           borderTop: "0.8px solid #ccc",
-//         }),
-
-//     borderColor: colors.grey[1000],
-//     backgroundColor: getColor("background"),
-
-//   }),
-//   [variant, isHovered, colors, getColor]
-// );
 
 export default TreeTableRow;

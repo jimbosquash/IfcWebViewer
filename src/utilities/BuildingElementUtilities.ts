@@ -9,6 +9,7 @@ import { FragmentsGroup } from "@thatopen/fragments";
 import { Components } from "@thatopen/components";
 import { TreeUtils } from "./treeUtils";
 import { ViewableTree } from "../bim-components/modelViewer/src/viewableTree";
+import { stringify } from "querystring";
 
 // Type guard to check if an IfcElement is also a BuildingElement
 export function isBuildingElement(element: IfcElement): element is BuildingElement {
@@ -305,7 +306,7 @@ export const isolate = async (elements: BuildingElement[], components: OBC.Compo
     hider.isolate(elementTypeIds)
     const selectedElements = components.get(ModelCache).getElementByFragmentIdMap(elementTypeIds)
     if (!selectedElements) return;
-    components.get(ModelViewManager).onVisibilityUpdated.trigger([...selectedElements])
+    components.get(ModelViewManager).onVisibilityUpdated.trigger({elements: [...selectedElements],treeID: ''})
   });
 
   await Promise.all(highlightPromises);
