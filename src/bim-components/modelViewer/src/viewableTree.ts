@@ -21,6 +21,7 @@ export class ViewableTree<T> {
         this._id = id;
         this.tree = tree;
         this._visibilityMap = visibilityMap ?? this.createVisibilityMap(tree); // todo: should create full map not empty
+        console.log('viewable tree vis map created', this._visibilityMap)
 
         // By default, set the root node's visibility to Visible
         this._visibilityMap.set(tree.root.id, VisibilityState.Visible);
@@ -53,6 +54,7 @@ export class ViewableTree<T> {
      */
     setVisibility(id: string, state: VisibilityState): void {
         if (!this._visibilityMap.has(id)) {
+            console.log('visibility map', this._visibilityMap)
             throw new Error(`Node with id ${id} does not exist in the visibility map`);
         }
         this._visibilityMap.set(id, state);
@@ -132,7 +134,7 @@ export class ViewableTree<T> {
      * @returns 
      */
     private createVisibilityMap(tree: Tree<T>) {
-        return tree.getNodes(node => node.type !== KnownGroupType.BuildingElement).reduce((map, treeNode) => {
+        return tree.getFlatTreeNodes().reduce((map, treeNode) => {
             map.set(treeNode.id, VisibilityState.Visible)
             return map;
         }, new Map<string, VisibilityState>());

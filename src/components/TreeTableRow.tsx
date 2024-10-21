@@ -1,21 +1,17 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Icon } from "@iconify/react";
-import { Box, IconButton, Typography, useTheme } from "@mui/material";
+import { Box, Chip, IconButton, Typography, useTheme } from "@mui/material";
 import { ModelCache } from "../bim-components/modelCache";
 import { useComponentsContext } from "../context/ComponentsContext";
 import { nonSelectableTextStyle } from "../styles";
 import { tokens } from "../theme";
 import { GetFragmentIdMaps } from "../utilities/IfcUtilities";
 import { TreeNode } from "../utilities/Tree";
-import { BuildingElement, IfcElement, SelectionGroup, VisibilityState } from "../utilities/types";
+import { IfcElement, KnownGroupType, SelectionGroup, VisibilityState } from "../utilities/types";
 import * as OBF from "@thatopen/components-front";
-import * as FRAGS from "@thatopen/fragments";
 import { ModelViewManager } from "../bim-components/modelViewer";
 import { TreeUtils } from "../utilities/treeUtils";
 import { convertToBuildingElement } from "../utilities/BuildingElementUtilities";
-
-// todo: need to decide where the selection of elements will happen
-// either here are with an update from the ModelViewManager
 
 export interface TreeTableRowProps {
   name: string;
@@ -41,20 +37,19 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
 
     const modelViewManager = useMemo(() => components?.get(ModelViewManager), [components]);
 
-
     // when ModelVIewManager updates its vismap of parent tree check on visibility state
 
     useEffect(() => {
       if (!modelViewManager) return;
 
-      const handleGroupVisibility = (data: { treeID: string; visibilityMap: Map<string, VisibilityState> }) =>
-        getVisibilityState(data.treeID, data.visibilityMap);
+      const handleGroupVisibility = (data: { treeID: string}) =>
+        getVisibilityState(data.treeID);
       const handleSelectionChange = (data: SelectionGroup) => getSelectionState(data);
 
       modelViewManager.onGroupVisibilitySet.add(handleGroupVisibility);
       modelViewManager.onSelectedGroupChanged.add(handleSelectionChange);
 
-      getVisibilityState(treeID, undefined);
+      getVisibilityState(treeID);
       getSelectionState(modelViewManager.SelectedGroup);
 
       return () => {
@@ -71,12 +66,10 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
     );
 
     const getVisibilityState = useCallback(
-      (tID: string, visibilityMap: Map<string, VisibilityState> | undefined) => {
+      (tID: string) => {
         if (treeID !== tID || !node?.id || !modelViewManager) return;
 
-        const visState = visibilityMap
-          ? visibilityMap.get(node.id)
-          : modelViewManager.getTree(treeID)?.visibilityMap.get(node.id);
+        const visState = modelViewManager.getTree(treeID)?.getVisibility(node.id);
 
         setVisibility(visState);
         if (visState === undefined || visState === visibilityState) return;
@@ -84,6 +77,18 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
       },
       [treeID, node?.id, modelViewManager, visibilityState]
     );
+
+    // Function to get dynamic MUI Chips based on conditions
+    const getChips = useMemo(() => {
+      const chips = [];
+      if (node?.children?.size) {
+        const assemblies = [...node.children.values()].filter(child => child.type === KnownGroupType.Assembly)
+        if(assemblies.length > 0){
+        chips.push(<Chip key="assemblies" label={`${assemblies.length} Assemblies`} size="small" />);}
+      }
+
+      return chips;
+    }, [node]);
 
     // Local double-click handler that delegates to the passed-in function
     const handleDoubleClick = useCallback(() => {
@@ -144,66 +149,35 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
       [visibilityState, isHovered, colors]
     );
 
-    const boxTheme = useMemo(
-      () => ({
-        ...(variant === "Floating"
-          ? {
-              boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-              padding: isHovered ? "8px" : "10px",
-              width: isHovered ? "95%" : "92%",
-              borderRadius: "12px",
-              margin: "4px 0",
-              marginLeft: "8px",
-              border: "0.8px solid #ccc",
-            }
-          : {
-              padding: "0px",
-              width: "100%",
-              margin: "0px 0",
-              borderBottom: "0.8px solid #ccc",
-              borderTop: "0.8px solid #ccc",
-            }),
-        height: "30px",
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        borderColor: colors.grey[1000],
-        backgroundColor: getColor("background"),
-        transition: "all 0.1s ease",
-        justifyContent: "space-between",
-        overflow: "hidden",
-      }),
-      [variant, isHovered, colors, getColor]
-    );
-
     const handleToggleExpand = useCallback((e: React.MouseEvent) => {
       e.stopPropagation();
       setIsExpanded((prev) => !prev);
     }, []);
 
-    const defaultToggleVisibility = useCallback((node: TreeNode<IfcElement>) => {
-      // e.stopPropagation();
-      if (!node) return;
+    const defaultToggleVisibility = useCallback(
+      (node: TreeNode<IfcElement>) => {
+        // e.stopPropagation();
+        if (!node) return;
 
-      modelViewManager.setVisibilityState(
-        treeID,
-        node.id,
-        visibilityState === VisibilityState.Visible ? VisibilityState.Hidden : VisibilityState.Visible
-      );
+        modelViewManager.setVisibilityState(
+          treeID,
+          node.id,
+          visibilityState === VisibilityState.Visible ? VisibilityState.Hidden : VisibilityState.Visible
+        );
 
+        if (node) {
+          const elements = convertToBuildingElement(TreeUtils.getChildrenNonNullData(node));
+          const cache = components.get(ModelCache);
 
-      if (node) {
-        const elements = convertToBuildingElement(TreeUtils.getChildrenNonNullData(node));
-        const cache = components.get(ModelCache);
-
-        elements.forEach((element) => {
-          const frag = cache.getFragmentByElement(element);
-          if (!frag) return;
-          frag.setVisibility(visibilityState === VisibilityState.Hidden, [element.expressID]);
-        });
-      }
-    }, [treeID, visibilityState]);
-
+          elements.forEach((element) => {
+            const frag = cache.getFragmentByElement(element);
+            if (!frag) return;
+            frag.setVisibility(visibilityState === VisibilityState.Hidden, [element.expressID]);
+          });
+        }
+      },
+      [treeID, visibilityState]
+    );
 
     const handleToggleVisibility = onToggleVisibility || defaultToggleVisibility;
     const handleMouseEnter = useCallback(() => setIsHovered(true), []);
@@ -215,11 +189,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         sx={{
           width: "100%",
           height: "100%",
-          minHeight: "30px",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-          minWidth: 0,
+          ...getParentBoxTheme(isHovered, isExpanded, variant, colors)
         }}
       >
         <Box
@@ -231,9 +201,9 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
           }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          sx={boxTheme}
+          sx={{ ...getRowTheme(isHovered, isExpanded, variant, colors) }}
         >
-          <VisibilityToggle
+          {/* <VisibilityToggle
             visibilityState={visibilityState}
             onClick={(e) => {
               if (!node) return;
@@ -241,12 +211,31 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
               modelViewManager.updateVisibility(treeID);
             }}
             color={getColor("text")}
-          />
+          /> */}
+          {/* Visibility Toggle */}
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              if (node){
+                 handleToggleVisibility(node);
+                 modelViewManager.updateVisibility(treeID);
+                }
+            }}
+          >
+            <Icon
+              icon={
+                visibilityState === VisibilityState.Visible
+                  ? "eva:radio-button-on-fill"
+                  : "eva:radio-button-off-outline"
+              }
+            />
+          </IconButton>
           <RowContent
             name={name}
             icon={icon}
             getColor={getColor}
             node={node}
+            chips={getChips}
             childrenCount={node?.children?.size ?? 0}
           />
           {children && (
@@ -276,6 +265,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
             {children}
           </Box>
         )}
+        
       </Box>
     );
   }
@@ -299,6 +289,7 @@ export interface RowContentProps {
   getColor: (element: "text" | "background") => string;
   node: TreeNode<IfcElement> | undefined;
   childrenCount: number;
+  chips?: React.ReactNode[]; // An array of chips (optional), passed as React elements
 }
 
 const VisibilityToggle: React.FC<visibilityToggleProps> = React.memo(({ visibilityState, onClick, color }) => (
@@ -323,17 +314,16 @@ const ExpandToggle: React.FC<expandToggleProps> = React.memo(({ isExpanded, onCl
   </IconButton>
 ));
 
-const RowContent: React.FC<RowContentProps> = React.memo(({ name, icon, getColor, node, childrenCount }) => (
-  <>
-    {icon && <Icon icon={icon} style={{ flexShrink: 0, marginLeft: "5px" }} color={getColor("text")} />}
+// RowContent component to display name, icon, and any chips passed
+const RowContent: React.FC<RowContentProps> = ({ name, icon, node, chips, childrenCount }) => (
+  <Box component="div" display="flex" alignItems="center" sx={{ flexGrow: 1 }}>
+    {icon && <Icon icon={icon} style={{ marginLeft: "5px" }} />}
     <Typography
       noWrap
-      align="left"
       sx={{
         flexGrow: 1,
         flexShrink: 1,
         minWidth: 0,
-        color: getColor("text"),
         ...nonSelectableTextStyle,
         ml: 1,
         whiteSpace: "nowrap",
@@ -343,27 +333,101 @@ const RowContent: React.FC<RowContentProps> = React.memo(({ name, icon, getColor
     >
       {name}
     </Typography>
-    {childrenCount > 0 && (
-      <Typography
-        noWrap
-        variant="body2"
-        sx={{
-          ...nonSelectableTextStyle,
-          flexShrink: 1,
-          minWidth: 0,
-          marginLeft: "10px",
-          color: getColor("text"),
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          marginRight: childrenCount > 0 ? "30px" : "0px",
-          textOverflow: "ellipsis",
-          display: { xs: "none", sm: "block" },
-        }}
-      >
-        Qnt : {childrenCount ?? ""}
-      </Typography>
-    )}
-  </>
-));
+
+    {/* Box for chips: takes full available space and aligns chips to the right */}
+    <Box component="div" display="flex" alignItems="center" justifyContent="flex-end" sx={{ flexGrow: 1 }}>
+      {chips?.map((chip, index) => (
+        <Box component="div" key={index} sx={{ ml: 1 }}>
+          {" "}
+          {/* Optional spacing between chips */}
+          {chip}
+        </Box>
+      ))}
+    </Box>
+  </Box>
+);
+
+// Helper function to get box styling for different states
+const getRowTheme = (isHovered: boolean, isExpanded: boolean, variant: "Floating" | "Flat", colors: any) => ({
+  padding: variant === "Floating" ? "8px" : "0px",
+  backgroundColor: isHovered ? colors.blueAccent[800] : colors.grey[1000],
+  transition: "all 0.1s ease",
+  borderBottom: variant !== "Floating" ? "0.8px solid #ccc" : "",
+  borderTop: variant !== "Floating" ? "0.8px solid #ccc" : "",
+  // margin: variant === "Floating" ? "4px" : "",
+  justifyContent: "space-between",
+  overflow: "hidden",
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  minheight: "30px",
+
+});
+
+
+const getParentBoxTheme = (isHovered: boolean, isExpanded: boolean, variant: "Floating" | "Flat", colors: any) => ({
+  boxShadow: variant === "Floating" ? "0 0 10px rgba(0, 0, 0, 0.1)" : "",
+  // padding: variant === "Floating" ? "8px" : "0px",
+  borderRadius: variant === "Floating" ? "12px" : '',
+  border: variant === "Floating" ? "0.8px solid #ccc" : "",
+  backgroundColor: isHovered ? colors.blueAccent[800] : colors.grey[1000],
+  transition: "all 0.1s ease",
+  borderBottom: variant !== "Floating" ? "0.8px solid #ccc" : "",
+  borderTop: variant !== "Floating" ? "0.8px solid #ccc" : "",
+  // marginRight: variant === "Floating" ? "12px" : "",
+  marginTop: variant === "Floating" ? "4px" : "",
+  justifyContent: "space-between",
+  overflow: "hidden",
+  cursor: "pointer",
+  display: "flex",
+  minHeight: "30px",
+
+  flexDirection: "column",
+  minWidth: 0,
+
+});
+
+// const getColor = useCallback(
+//   (element: "text" | "background") => {
+//     if (isSelected) {
+//       return element === "text" ? colors.primary[100] : colors.blueAccent[700];
+//     }
+//     if (visibilityState !== VisibilityState.Visible && !isHovered) {
+//       return element === "text" ? colors.grey[600] : colors.primary[100];
+//     }
+//     if (isHovered) {
+//       return element === "text" ? colors.grey[400] : colors.blueAccent[800];
+//     }
+//     return element === "background" ? colors.grey[1000] : colors.grey[500];
+//   },
+//   [visibilityState, isHovered, colors]
+// );
+
+// const boxTheme = useMemo(
+//   () => ({
+//     ...(variant === "Floating"
+//       ? {
+//           boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+//           padding: isHovered ? "8px" : "10px",
+//           width: isHovered ? "95%" : "92%",
+//           borderRadius: "12px",
+//           margin: "4px 0",
+//           marginLeft: "8px",
+//           border: "0.8px solid #ccc",
+//         }
+//       : {
+//           padding: "0px",
+//           width: "100%",
+//           margin: "0px 0",
+//           borderBottom: "0.8px solid #ccc",
+//           borderTop: "0.8px solid #ccc",
+//         }),
+
+//     borderColor: colors.grey[1000],
+//     backgroundColor: getColor("background"),
+
+//   }),
+//   [variant, isHovered, colors, getColor]
+// );
 
 export default TreeTableRow;
