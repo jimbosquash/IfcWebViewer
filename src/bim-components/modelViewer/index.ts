@@ -409,6 +409,8 @@ export class ModelViewManager extends OBC.Component {
                 break;
         }
 
+        console.log('visible stations')
+
         this.updateVisibility(tree.id);
     }
 
@@ -507,6 +509,8 @@ export class ModelViewManager extends OBC.Component {
         tree.visibilityMap.forEach((_, key) => {
             tree.setVisibility(key, VisibilityState.Hidden);
         });
+
+        tree.setVisibility(node.id, VisibilityState.Visible)
 
         // get all children nodes
         const parents = tree.getParents(node, () => true);
