@@ -37,10 +37,9 @@ export const MaterialBrowserPanel: React.FC = () => {
   function handleNewElements(elements: BuildingElement[]): void {
     if (!elements) return;
     const tree = setUpTreeFromProperties(treeID, elements, [knownProperties.Material]);
-    const _ = modelViewManager.setTree(new ViewableTree(tree.id,tree,undefined));
+    const _ = modelViewManager.setTree(new ViewableTree(tree.id, tree));
     setNodes([...tree?.root?.children?.values()]);
   }
-
 
   // make visible on double click
   const handleClick = useCallback(
@@ -57,21 +56,20 @@ export const MaterialBrowserPanel: React.FC = () => {
         );
       }
 
-      console.log('new vis state filtered elements', elements)
+      // console.log("new vis state filtered elements", elements);
 
       const visState = modelViewManager.getVisibilityState(treeID, node.id);
-      console.log('current vis state', visState)
+      // console.log("current vis state", visState);
       const newVisState = visState === VisibilityState.Visible ? VisibilityState.Hidden : VisibilityState.Visible;
-      console.log('new vis state', newVisState)
+      console.log("new vis state", newVisState, node.id);
 
-      setVisibility(elements, components, newVisState === VisibilityState.Visible);
+      // setVisibility(elements, components, newVisState === VisibilityState.Visible);
 
-      modelViewManager.setVisibilityState(treeID, node.id,newVisState)
+      modelViewManager.setVisibilityState(treeID, node.id, newVisState,true);
+      modelViewManager.updateVisibility(treeID);
     },
-    [components,modelViewManager]
+    [components, modelViewManager]
   );
-
-
 
   return (
     <>
@@ -90,6 +88,7 @@ export const MaterialBrowserPanel: React.FC = () => {
           {nodes &&
             Array.from(nodes).map((data) => (
               <TreeTableRow
+                onToggleVisibility={handleClick}
                 onDoubleClick={handleClick}
                 onClick={handleClick}
                 name={data.name}

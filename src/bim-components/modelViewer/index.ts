@@ -239,13 +239,14 @@ export class ModelViewManager extends OBC.Component {
     }
 
     /**
-     * Set the visibility state of a tree node based on state input and tree id if found
+     * Set the visibility state of a tree node based on state input and tree id if found. 
      * @param treeID 
      * @param nodeID 
      * @param newVisState 
+     * @param overrideChildren if true then all children will have the same visibility state applied
      * @returns 
      */
-    setVisibilityState = (treeID: string, nodeID: string, newVisState: VisibilityState) => {
+    setVisibilityState = (treeID: string, nodeID: string, newVisState: VisibilityState, overrideChildren: boolean = false) => {
 
         const cacheVisState = this.getVisibilityState(treeID, nodeID)
 
@@ -255,6 +256,16 @@ export class ModelViewManager extends OBC.Component {
 
         if (!tree) return;
         this.setNodeVisibilityState(nodeID, treeID, newVisState, false);
+        if (overrideChildren) {
+            const node = tree.getNode(nodeID);
+            if (!node || node.children.size === 0) return;
+
+            const children = TreeUtils.getChildren(node, () => true);
+            children.forEach(child => {
+                tree.setVisibility(child.id, newVisState)
+            })
+
+        }
         // this.afterTreeVisibilityUpdated.trigger({ treeID: treeID });
     };
 
@@ -376,12 +387,8 @@ export class ModelViewManager extends OBC.Component {
 
         if (!visibilityMode && this._visibilityMode)
             visibilityMode = this._visibilityMode;
-        // console.log('update visibility', visibilityMode, group.id)
 
-
-        // get all nodes of the same type as they will be the equal level in the tree 
-        const sameNodeTypes = tree.getNodes(n => n.type === node?.type)
-        if (!node || !sameNodeTypes) return;
+        if (!node) return;
 
         // make parent visible 
         this.makeParentsVisible(node, tree);
@@ -618,7 +625,7 @@ export class ModelViewManager extends OBC.Component {
      * @returns 
      */
     public updateVisibility = (treeID: string) => {
-        if (!this._enabled || !this.components || !this._trees.has(treeID) || this.Tree?.id !== treeID) return;
+        if (!this._enabled || !this.components || !this._trees.has(treeID)) return;
         // console.log("Update visibility")
 
         const tree = this._trees.get(treeID)
@@ -649,8 +656,8 @@ export class ModelViewManager extends OBC.Component {
         // const newHidden = visibilityTypes?.get(VisibilityState.Hidden)?.filter(element => !this._additionalHiddenElements.has(element))
         // if (newHidden)
         //     visibilityTypes?.get(VisibilityState.Hidden)?.push(...newHidden)
-        // console.log("Visibility Update - visible", visibleNodes)
-        // console.log("Visibility Update - hidden", hiddenNodes)
+        console.log("Visibility Update - visible", visibleElements.length)
+        console.log("Visibility Update - hidden", hiddenNodes.length)
         // console.log("Visibility Update - hidden", hiddenOG)
         this.SetVisibility(fragments, visibleElements, VisibilityState.Visible);
         this.SetVisibility(fragments, hiddenNodes, VisibilityState.Hidden);

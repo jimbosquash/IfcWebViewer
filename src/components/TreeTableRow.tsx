@@ -12,7 +12,6 @@ import * as OBF from "@thatopen/components-front";
 import { ModelViewManager } from "../bim-components/modelViewer";
 import { TreeUtils } from "../utilities/treeUtils";
 import { convertToBuildingElement } from "../utilities/BuildingElementUtilities";
-import { getColorManagement } from "@react-three/fiber/dist/declarations/src/core/utils";
 
 export interface TreeTableRowProps {
   name: string;
@@ -285,7 +284,7 @@ export interface RowContentProps {
 
 // RowContent component to display name, icon, and any chips passed
 const RowContent: React.FC<RowContentProps> = ({ name, icon, node, chips, childrenCount, getColor }) => (
-  <Box component="div" display="flex" alignItems="center" color={'blue'} sx={{ flexGrow: 1 }}>
+  <Box component="div" display="flex" alignItems="center" sx={{ flexGrow: 1 }}>
     {icon && <Icon icon={icon} style={{ marginLeft: "5px" }} />}
     <Typography
       noWrap
