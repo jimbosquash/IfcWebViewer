@@ -442,14 +442,10 @@ export class ModelViewManager extends OBC.Component {
         if (!tree) return false;
         const visibleNodes: TreeNode<IfcElement>[] = [];
         const hiddenNodes: TreeNode<IfcElement>[] = [];
+        
         // every parent node and children before this parents node are hidden
-
         const node = tree?.getNode(nodeID);
         if (!node || !node.parent) return false; // its the root or cant be found
-        // console.log('Show previous Neighbors of:', node)
-
-
-
 
         const sameNodeTypes = tree?.getNodes(n => n.type === node?.type)
         if (!sameNodeTypes) return false;
@@ -466,32 +462,30 @@ export class ModelViewManager extends OBC.Component {
                 hiddenNodes.push(otherNode)
             }
         });
+        // console.log('visibility of neighbors - hidden', hiddenNodes)
+        // console.log('visibility of neighbors - visible', visibleNodes)
+
 
         hiddenNodes.forEach(treeNode => {
-            this.setNodeVisibilityState(treeNode.id, tree.id, VisibilityState.Hidden, false)
+            tree.setVisibility(treeNode.id, VisibilityState.Hidden)
+            const children = TreeUtils.getChildren(treeNode, () => true);
+            children.forEach(child => {
+                tree.setVisibility(child.id, VisibilityState.Hidden)
+            })
         });
-        // console.log('all hidden nodes found:', hiddenNodes)
 
-        // make each node, their parent and children are visible
-        console.log('visible nodes of tree', visibleNodes)
         visibleNodes.forEach(treeNode => {
-
-            this.setNodeVisibilityState(treeNode.id, tree.id, VisibilityState.Visible, false)
-
-            // now set all their children visible
-            treeNode.children.forEach(child => {
-                if (!child.isLeaf) {
-                    this.setNodeVisibilityState(child.id, tree.id, VisibilityState.Visible, false)
-                }
+            tree.setVisibility(treeNode.id, VisibilityState.Visible)
+            const children = TreeUtils.getChildren(treeNode, () => true);
+            children.forEach(child => {
+                tree.setVisibility(child.id, VisibilityState.Visible)
             })
 
-
             if (treeNode.parent)
-                this.setNodeVisibilityState(treeNode.parent.id, tree.id, VisibilityState.Visible, false)
-
-            node?.children.forEach(childNode => { this.setNodeVisibilityState(childNode.id, tree.id, VisibilityState.Visible, false) })
+                this.makeParentsVisible(treeNode.parent, tree)
         });
 
+        this.updateVisibility(tree.id);
         return true;
     }
 
