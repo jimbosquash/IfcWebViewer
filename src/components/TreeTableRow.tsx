@@ -156,11 +156,16 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         // e.stopPropagation();
         if (!node) return;
 
+        const newState = visibilityState === VisibilityState.Visible ? VisibilityState.Hidden : VisibilityState.Visible;
+
+
         modelViewManager.setVisibilityState(
           treeID,
           node.id,
-          visibilityState === VisibilityState.Visible ? VisibilityState.Hidden : VisibilityState.Visible
+          newState,
+          true
         );
+        console.log('treeRow default visibility toggle',node.id)
 
         if (node) {
           const elements = convertToBuildingElement(TreeUtils.getChildrenNonNullData(node));
