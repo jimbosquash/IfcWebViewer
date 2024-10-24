@@ -4,10 +4,9 @@ import AssemblyInfoPanel from "./AssemblyInfoPanel";
 import ElementInfoPanel from "./ElementInfoPanel";
 import CustomTabPanel from "../../../../components/CustomTabPanel";
 import StyledTab from "../../../../components/StyledTab";
-import ModelInfoPanel from "./modelInfoPanel";
 
 export const PropertiesPanel = () => {
-  const [value, setValue] = useState(0);
+  const [value, setValue] = useState(1);
 
   return (
     <>
