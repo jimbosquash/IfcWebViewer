@@ -288,7 +288,7 @@ export class ModelViewManager extends OBC.Component {
         return this._enabled;
     }
 
-    private _visibilityMode: VisibilityMode = VisibilityMode.Isolate;
+    private _visibilityMode: VisibilityMode = VisibilityMode.showPrevious;
 
     get VisibilityMode(): VisibilityMode {
         return this._visibilityMode;
@@ -442,7 +442,7 @@ export class ModelViewManager extends OBC.Component {
         if (!tree) return false;
         const visibleNodes: TreeNode<IfcElement>[] = [];
         const hiddenNodes: TreeNode<IfcElement>[] = [];
-        
+
         // every parent node and children before this parents node are hidden
         const node = tree?.getNode(nodeID);
         if (!node || !node.parent) return false; // its the root or cant be found

@@ -68,8 +68,8 @@ export const FlipButton = () => {
       >
         <Button
           onClick={startFlip}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+          // onMouseEnter={handleMouseEnter} // uncomment this out for enabling y axis flip pop up
+          // onMouseLeave={handleMouseLeave}
           style={{
             color: colors.grey[200],
             border: '0',

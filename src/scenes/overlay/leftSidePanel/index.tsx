@@ -170,7 +170,7 @@ export const LeftSidePanel: React.FC = () => {
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Presentation" placement="right" arrow>
+        {/* <Tooltip title="Presentation" placement="right" arrow>
           <IconButton
             style={{
               backgroundColor: panelContent.name === "Presentations" && panelOpen ? colors.grey[900] : "transparent",
@@ -179,9 +179,9 @@ export const LeftSidePanel: React.FC = () => {
           >
             <Icon icon="ph:video-camera-bold" />
           </IconButton>
-        </Tooltip>
+        </Tooltip> */}
 
-        <Tooltip title="Comments" placement="right" arrow>
+        {/* <Tooltip title="Comments" placement="right" arrow>
           <IconButton
             style={{
               backgroundColor: panelContent.name === "comments" && panelOpen ? colors.grey[900] : "transparent",
@@ -190,7 +190,7 @@ export const LeftSidePanel: React.FC = () => {
           >
             <Icon icon="mdi:chat-add-outline" />
           </IconButton>
-        </Tooltip>
+        </Tooltip> */}
 
         <Tooltip title="Settings" placement="right" arrow>
           <IconButton
