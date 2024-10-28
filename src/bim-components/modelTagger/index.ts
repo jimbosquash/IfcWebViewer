@@ -40,11 +40,6 @@ const markerConfigSchema: ConfigSchema<MarkerConfiguration> = {
     mergeFasteners: { defaultValue: false },
     labelStyle: { defaultValue: "Alias" },
     colorBy: { defaultValue: "Code" },
-
-    // zoomLevel: { 
-    //     defaultValue: 1, 
-    //     validate: (value) => value >= 0.1 && value <= 10 
-    // }
 };
 
 
@@ -57,53 +52,38 @@ const IFCMECHANICALFASTENER: string = "IFCMECHANICALFASTENER";
 export class ModelTagger extends OBC.Component {
 
     static uuid = "d2802b2c-1a26-4ec6-ba2a-79e20a6b65be" as const;
-    readonly onTagAdded = new OBC.Event<markProperties>()
 
     private _enabled = false
-
     private _world: OBC.World | null = null
-    private _previewElement: OBF.Mark | null = null
     private _visible: boolean = false;
     private _colorMap: Map<string, string> = new Map(); // key = name or any string, value = color as hex
     private _aliasMap: Map<string, string> = new Map(); // key = name or any string, value = string of alias name (likely a number)
-    private _tagVisibilityMode: TagVisibilityMode = TagVisibilityMode.TagSelectionGroup;
 
+    private _tagVisibilityMode: TagVisibilityMode = TagVisibilityMode.TagSelectionGroup;
     private _configManager = new ConfigManager<MarkerConfiguration>(markerConfigSchema, 'markerConfig');
 
+    private _markers: Mark[] = []; //Marks currently being used
+    private _markerProps: Map<string, markProperties> = new Map(); //key = buildingElement.GlobalID, value = tag
+    private _lines: Line[] = [];
 
     readonly onConfigurationSet = new OBC.Event<MarkerConfiguration>()
-
-    get Configuration() {
-        return this._configManager;
-    }
-
-    /**
-     * key = buildingElement.GlobalID, value = mark
-     */
-    private _markers: Mark[] = [];
-
-    /**
-     * key = buildingElement.GlobalID, value = tag
-     */
-    private _markerProps: Map<string, markProperties> = new Map();
-
-    private _lines: Line[] = [];
+    readonly onTagAdded = new OBC.Event<markProperties>()
+    private setMarkerPropsListener: () => void; // Store listener function
 
 
     constructor(components: OBC.Components) {
         super(components)
         components.add(ModelTagger.uuid, this)
+        this.setMarkerPropsListener = this.setMarkerProps.bind(this); // Bind the method
         this._configManager.addEventListener('configChanged', (event: Event) => {
             console.log('configChanged', event)
             if (this.enabled)
-                this.setMarkerProps()
-
+                this.enabled = true; // set up listeners
         })
+    }
 
-        // markerConfigManager.addEventListener('configChanged', (event: Event) => {
-        //         const { key, value, configName } = (event as CustomEvent).detail;
-        //         console.log(`Config ${configName} changed: ${String(key)} = ${value}`);
-        //     });
+    get Configuration() {
+        return this._configManager;
     }
 
 
@@ -116,11 +96,40 @@ export class ModelTagger extends OBC.Component {
         return this._world
     }
 
+    get visible() {
+        return this._visible;
+    }
 
-    get visible() { return this._visible }
+    /**
+     * set listeners to buidling element and visibility change for marker updates
+     * @param value 
+     * @returns 
+     */
+    set visible(value: boolean) {
+        if (this._visible === value) return;
+        console.log('tagger visibility', value)
 
+        const viewManager = this.components.get(ModelViewManager);
+        this._visible = value;
 
-    get colorMap() { return this._colorMap }
+        if (value) {
+            // Set listeners
+            viewManager.onVisibilityUpdated.add(this.setMarkerPropsListener);
+
+            this.setMarkerProps();
+        } else {
+            // Remove listeners
+            viewManager.onVisibilityUpdated.remove(this.setMarkerPropsListener);
+
+            this._markers.forEach(mark => {
+                mark.dispose();
+            });
+
+            this.removeLines();
+            this._markers = [];
+        }
+
+    }
 
 
     /**
@@ -130,39 +139,22 @@ export class ModelTagger extends OBC.Component {
     set enabled(value: boolean) {
         this._enabled = value
         console.log('tagger setting', this._enabled)
-        const viewManager = this.components.get(ModelViewManager);
         const cache = this.components.get(ModelCache);
-
-        // todo: remove to other area
-        if (!value && this._previewElement) {
-            this._previewElement.visible = false
-        }
 
         // add or remove listeners to change visibility and marker set
         if (value) {
-            viewManager.onVisibilityUpdated.add(() => this.setMarkerProps())
-            cache.onBuildingElementsChanged.add(() => this.setMarkerProps())
             cache.onBuildingElementsChanged.add(() => this.setup())
-            // set up tags 
-            if (this._colorMap.size === 0 || this._markerProps.size === 0) {
-                this.setup()
-            }
-            this.setMarkerProps()
+            // set up color and alias maps
+            this.setup()
         }
         if (!value) {
-            viewManager.onVisibilityUpdated.remove(() => this.setMarkerProps())
-            cache.onBuildingElementsChanged.remove(() => this.setMarkerProps())
             cache.onBuildingElementsChanged.remove(() => this.setup())
-
             this._markers.forEach(mark => {
                 mark.dispose()
             })
-
             this.removeLines()
-
             this._markers = [];
         }
-
     }
 
     get enabled() {
@@ -175,6 +167,9 @@ export class ModelTagger extends OBC.Component {
      * @returns 
      */
     setMarkerProps = () => {
+        console.log('tagger set mark props', this.visible)
+
+        if (!this._visible) return;
         switch (this._tagVisibilityMode) {
             case TagVisibilityMode.TagVisible:
                 this.createMarkerPropsFromModelVisibility();
@@ -487,7 +482,6 @@ export class ModelTagger extends OBC.Component {
         return groupedElements;
     }
 
-
     mapByName(markProps: markProperties[]) {
         return markProps.reduce((acc, element) => {
             if (!acc.has(element.text)) {
@@ -500,15 +494,19 @@ export class ModelTagger extends OBC.Component {
 
     private _mergeDistance = 0.450; // 1 = 1 meter
 
+    // visible = listen to events and show an dhide tags
+    // enable = start listening to building element change 
+    // construct = set up stuff in enabled inenabled
 
     /**
      * generate cache of material and colors as well as grouping by type for quick look up
      * @returns 
      */
-    setup() {
+    async setup() {
         const cache = this.components.get(ModelCache).buildingElements
+        console.log('tagger setting up maps')
         if (!cache) return;
-        this.setupMaps(true);
+        return await this.setupMaps(true);
         // this.setupMarkerProps(cache)
     }
 
@@ -611,7 +609,7 @@ export class ModelTagger extends OBC.Component {
                     let codeAlias = GetPropertyByName(element, knownProperties.ProductCode)?.value;
                     if (codeAlias && this._aliasMap.has(codeAlias))
                         label = this._aliasMap.get(codeAlias) ?? tag.text;
-                    console.log('use alias',label)
+                    console.log('use alias', label)
 
                     break;
                 case "Name":

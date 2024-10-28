@@ -155,6 +155,7 @@ async function createRow(
   const exportToCsv = () => {
     // Select specific properties for export (e.g., name, material, productCode)
     const exportData = sortedRows().map((row) => ({
+      alias: row.alias,
       quantity: row.quantity,
       productCode: row.productCode,
       material: row.material,
