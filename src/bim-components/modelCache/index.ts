@@ -54,8 +54,13 @@ export class ModelCache extends OBC.Component {
             return this._models.get(modelId);
     }
 
+    private setBuildingElementsAddedListener: () => void;
+
     constructor(components: OBC.Components) {
         super(components);
+        this.setBuildingElementsAddedListener = this.updateIndexedDB.bind(this);
+        this.onBuildingElementsChanged.add(this.setBuildingElementsAddedListener)
+
     }
     /**
      * 
@@ -192,10 +197,10 @@ export class ModelCache extends OBC.Component {
 
             // add or get the alias from the indexedDB
             //  await clearDB();
-            await this.updateIndexedDB(newElements)
-            const test = await getAllKeys();
+            // await this.updateIndexedDB(newElements)
+            // const test = await getAllKeys();
 
-            console.log('aliasDB', test)
+            // console.log('aliasDB', test)
             // now add the alias to each element
 
 
@@ -214,7 +219,9 @@ export class ModelCache extends OBC.Component {
         }
     }
 
-    private async updateIndexedDB(elements: BuildingElement[]) {
+    private async updateIndexedDB() {
+        const elements = this._buildingElements;
+        if (!elements) return;
         await this.addNewEntries(elements.map(element => GetPropertyByName(element, knownProperties.ProductCode)?.value ?? ''))
         //  await clearDB();
         // now add the alias to each element
@@ -278,7 +285,7 @@ export class ModelCache extends OBC.Component {
         return inputElements; // Return the updated input elements
     }
 
-    
+
 
     exists(model: FRAGS.FragmentsGroup): boolean {
         return this._models.has(model.uuid);
@@ -287,6 +294,8 @@ export class ModelCache extends OBC.Component {
     dispose() {
         this._models = new Map<string, FRAGS.FragmentsGroup>();
         this._buildingElements = [];
+        this.onBuildingElementsChanged.remove(this.setBuildingElementsAddedListener)
+
     }
 
     set world(world: OBC.World | null) {
