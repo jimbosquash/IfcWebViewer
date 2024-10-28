@@ -12,7 +12,7 @@ import { Line, Vector3 } from "three";
 import * as THREE from "three";
 import { IFCFLOW } from "../hvacViewer";
 import { ConfigManager, ConfigSchema } from "../../utilities/ConfigManager";
-import { addOrUpdateEntry, getAllKeys, getValueByKey } from "../../utilities/indexedDBUtils";
+import { addOrUpdateEntry, getAllKeys, getValueByKey, getValuesByKeys } from "../../utilities/indexedDBUtils";
 import { generateRandomHexColor } from "../../utilities/utilities";
 
 // key = name of element. first array = an array of matching names with arrays of tags grouped by distance
@@ -77,8 +77,8 @@ export class ModelTagger extends OBC.Component {
         this.setMarkerPropsListener = this.setMarkerProps.bind(this); // Bind the method
         this._configManager.addEventListener('configChanged', (event: Event) => {
             console.log('configChanged', event)
-            if (this.enabled)
-                this.enabled = true; // set up listeners
+            if (this._visible)
+                this.setMarkerProps()
         })
     }
 
@@ -256,10 +256,8 @@ export class ModelTagger extends OBC.Component {
         this._markers = [];
         this.removeLines();
 
-        //filterout tag types
-        const filteredElements = this.filterElements(buildingElements);
-        const markers = this.createMarks(filteredElements.filteredElements);
 
+        let markers: OBF.Mark[] = [];
 
         if (this._configManager.get("showFasteners") && !this._configManager.get('mergeFasteners')) {
             //set them up for just icon
@@ -285,6 +283,10 @@ export class ModelTagger extends OBC.Component {
 
 
         }
+
+        //filterout tag types
+        markers = [...markers, ...this.createMarks(this.filterElements(buildingElements).filteredElements)];
+
 
         this._markers = markers;
     }
@@ -542,21 +544,32 @@ export class ModelTagger extends OBC.Component {
             // Get unique and non-empty product codes
             const uniqueElements = Array.from(new Set(elementCodes.filter((e) => e.trim() !== '')));
 
+            // get values by unique key
+
+            const existingEntries = await getValuesByKeys(uniqueElements)
+            const newEntries = uniqueElements.filter(e => !existingEntries.has(e))
+
+            // then find count and add if needed
+
+            // add existing items
+            existingEntries.forEach((entry, pCode) => {
+                this._colorMap.set(pCode, entry.color); // Set the color in the map
+                this._aliasMap.set(pCode, entry.alias);
+            })
+
+            let count = (await getAllKeys()).length;
+
             // Use `for...of` loop to handle async calls sequentially
-            for (const productCode of uniqueElements) {
+            for (const productCode of newEntries) {
                 if (!this._colorMap.has(productCode)) {
-                    // Try to get the value from IndexedDB
-                    let value = await getValueByKey(productCode);
+                    // If not found, generate a new entry and add it to the DB
+                    const newAlias = (++count).toString();
+                    const newColor = generateRandomHexColor();
 
-                    if (!value) {
-                        // If not found, generate a new entry and add it to the DB
-                        const count = await getAllKeys();
-                        const newAlias = (count.length + 1).toString();
-                        const newColor = generateRandomHexColor();
+                    // add new entry to IndexedDB
+                    await addOrUpdateEntry(productCode, { alias: newAlias, color: newColor });
+                    const value = { alias: newAlias, color: newColor }
 
-                        await addOrUpdateEntry(productCode, { alias: newAlias, color: newColor });
-                        value = { alias: newAlias, color: newColor } // Fetch the newly added entry
-                    }
                     // console.log('setup color', productCode, value?.color)
 
                     if (value) {
