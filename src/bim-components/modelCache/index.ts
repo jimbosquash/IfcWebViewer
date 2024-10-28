@@ -1,9 +1,11 @@
 import * as OBC from "@thatopen/components";
 import * as FRAGS from "@thatopen/fragments";
 import { Fragment, FragmentIdMap, FragmentsGroup } from "@thatopen/fragments";
-import { groupByModelID } from "../../utilities/BuildingElementUtilities";
+import { GetPropertyByName, groupByModelID } from "../../utilities/BuildingElementUtilities";
 import { GetBuildingElements } from "../../utilities/IfcUtilities";
-import { BuildingElement } from "../../utilities/types";
+import { addOrUpdateEntries, clearDB, getAllKeys, getValuesByKeys } from "../../utilities/indexedDBUtils";
+import { BuildingElement, knownProperties } from "../../utilities/types";
+import { generateRandomHexColor } from "../../utilities/utilities";
 import { ModelViewManager } from "../modelViewer";
 
 export class ModelCache extends OBC.Component {
@@ -181,11 +183,21 @@ export class ModelCache extends OBC.Component {
             }
 
             newElements.forEach(e => {
+                // add the fragment by elements id
                 const frag = model.items.find(f => f.id === e.FragmentID)
                 if (!frag) return;
 
                 this._fragmentsBybuildingElementIDs.set(e.GlobalID, frag);
             })
+
+            // add or get the alias from the indexedDB
+            //  await clearDB();
+            await this.updateIndexedDB(newElements)
+            const test = await getAllKeys();
+
+            console.log('aliasDB', test)
+            // now add the alias to each element
+
 
             // console.log('ModelCache: building elements changed', this._buildingElements)
             this.onBuildingElementsChanged.trigger(this._buildingElements);
@@ -200,9 +212,73 @@ export class ModelCache extends OBC.Component {
             console.error('Error fetching building elements:', error);
             return false;
         }
-
     }
 
+    private async updateIndexedDB(elements: BuildingElement[]) {
+        await this.addNewEntries(elements.map(element => GetPropertyByName(element, knownProperties.ProductCode)?.value ?? ''))
+        //  await clearDB();
+        // now add the alias to each element
+        await this.assignCacheValues(elements)
+    }
+
+
+    // Add multiple entries in one transaction (only if they don't exist)
+    async addNewEntries(elementCodes: string[]) {
+        const existingKeys = await getAllKeys(); // Get all existing keys
+
+        // Step 1: Remove duplicates from input, keeping the first occurrence only
+        const uniqueElements = Array.from(new Set(elementCodes.filter((e) => e.trim() !== '')));
+
+        // Step 2: Filter out elements that already exist in the database
+        const newElements = uniqueElements.filter((element) => !existingKeys.includes(element));
+
+        // with these new elements we need to generate new colors and number
+        let startingValue: number = existingKeys.length;
+
+        const newEntries = newElements.map(element => ({
+            key: element,
+            value: {
+                alias: (++startingValue).toString(),
+                color: generateRandomHexColor()
+            }
+        }))
+
+        console.log('adding new entries', newEntries);
+
+        await addOrUpdateEntries(newEntries);
+    }
+
+    /**
+     * adds the alias from index db to the building element. assuming it already exists in IndexedDB
+     */
+    private async assignCacheValues(
+        inputElements: BuildingElement[]
+    ): Promise<BuildingElement[]> {
+        // Step 1: Group elements by their code
+        const groupedByCode = inputElements.reduce<Map<string, BuildingElement[]>>((acc, element) => {
+            const code = GetPropertyByName(element, knownProperties.ProductCode)?.value ?? ''
+            const elementsWithSameCode = acc.get(code) || [];
+            elementsWithSameCode.push(element);
+            acc.set(code, elementsWithSameCode);
+            return acc;
+        }, new Map());
+
+        // Step 2: Get all unique codes
+        const uniqueCodes = Array.from(groupedByCode.keys());
+
+        // Step 3: Fetch values from IndexedDB in one batch
+        const cachedValues = await getValuesByKeys(uniqueCodes);
+
+        // Step 4: Assign the cached value to all matching elements
+        for (const [code, elements] of groupedByCode.entries()) {
+            const value = cachedValues.get(code);
+            elements.forEach((element) => (element.alias = value?.alias)); // Assign value to all matching elements
+        }
+
+        return inputElements; // Return the updated input elements
+    }
+
+    
 
     exists(model: FRAGS.FragmentsGroup): boolean {
         return this._models.has(model.uuid);

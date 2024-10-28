@@ -88,8 +88,11 @@ const SettingsPanel: React.FC = () => {
   const [showFasteners, setShowFasteners] = useState<boolean>(true);
   const [mergeFasteners, setMergeFasteners] = useState<boolean>(true);
   const [showInstallations, setShowInstallations] = useState<boolean>(false);
-  const [labelStyle, setLabelStyle] = useState<"Code" | "Name">("Code");
+  const [labelStyle, setLabelStyle] = useState<"Code" | "Name" | "Alias">("Code");
   const [showGrid, setShowGrid] = useState<boolean>(false);
+
+  const labelOptions = ["Code", "Name", "Alias"]; // List of possible label styles
+
 
   useEffect(() => {
     // get all settings that are state
@@ -122,12 +125,14 @@ const SettingsPanel: React.FC = () => {
     });
   };
 
-  const handleLabelStyleToggle = (checked: boolean) => {
-    const labelStyle = checked ? "Code" : "Name";
-    setLabelStyle(labelStyle);
-    components.get(ModelTagger).Configuration.set("labelStyle", labelStyle);
-  };
+  const handleLabelStyleChange = (newValue: string) => {
+    console.log(`Label style changed to: ${newValue}`);
+    if(!(newValue === 'Name' || newValue === 'Code' || newValue === 'Alias')) return;
+    setLabelStyle(newValue);
+    console.log(`Label style changed to: ${newValue}`);
+    components.get(ModelTagger).Configuration.set("labelStyle", newValue);
 
+  };
 
   const handleShowFastenersToggle = (checked: boolean) => {
     setShowFasteners(checked);
@@ -177,11 +182,18 @@ const SettingsPanel: React.FC = () => {
       <Typography variant="h6" gutterBottom>
         Tag Settings
       </Typography>
-
+{/* 
       <ToggleSetting
-        label={`Show label as ${labelStyle}` }
+        label={`Show label as ${labelStyle}`}
         value={labelStyle === "Code"}
         onChange={(e) => handleLabelStyleToggle(e)}
+      />
+       */}
+            <DropdownSetting
+        label={`Show label as ${labelStyle}`}
+        options={labelOptions}
+        value={labelStyle}
+        onChange={handleLabelStyleChange}
       />
 
       <ToggleSetting
@@ -204,7 +216,7 @@ const SettingsPanel: React.FC = () => {
       <ButtonSetting
         label="Change Tag Colors"
         onClick={() => {
-          components.get(ModelTagger).setupColors(false);
+          components.get(ModelTagger).setupMaps(false);
           if (components.get(ModelTagger).enabled) {
             components.get(ModelTagger).setup();
             components.get(ModelTagger).setMarkerProps();
@@ -215,10 +227,16 @@ const SettingsPanel: React.FC = () => {
       <Divider />
 
       <Box component="div" py={1}>
-    <Button variant="contained" fullWidth onClick={() => {localStorage.clear()}}>
-      Clear local storage
-    </Button>
-  </Box>
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={() => {
+            localStorage.clear();
+          }}
+        >
+          Clear local storage
+        </Button>
+      </Box>
 
       {/* 
 
@@ -235,6 +253,38 @@ const SettingsPanel: React.FC = () => {
 
       {/* Add more settings here */}
     </Box>
+  );
+};
+
+interface DropdownSettingProps {
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (newValue: string) => void;
+}
+
+const DropdownSetting: React.FC<DropdownSettingProps> = ({ label, options, value, onChange }) => {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <label>{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          padding: "8px",
+          borderRadius: "4px",
+          border: "1px solid #ccc",
+          backgroundColor: "#fff",
+          cursor: "pointer",
+        }}
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 };
 

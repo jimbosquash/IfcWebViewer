@@ -485,6 +485,7 @@ async function findParentRecursively(
                     name: parentElement.Name?.value,
                     type: IfcElements[parentElement.type],
                     GlobalID: parentElement.GlobalId?.value,
+                    properties: parentElement.properties,
                 };
                 tree.addNode(tree.root.id, parentEntity.expressID.toString(), parentEntity.name || `Element_${parentEntity.expressID}`, parentEntity.type, parentEntity, false);
                 parentNode = tree.getNode(parents[0].toString());
@@ -664,7 +665,7 @@ async function GetAllDefinedBy(model: FRAGS.FragmentsGroup, indexer: OBC.IfcRela
             );
         }
     }
-    console.log("properties",props);
+    // console.log("properties",props);
 
     return props;
 

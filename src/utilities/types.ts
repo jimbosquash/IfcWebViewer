@@ -77,7 +77,12 @@ export interface BuildingElement extends IfcElement {
    * The Id of the FragmentGroup which represents the ifc model file
    */
   modelID: string; // the fraggroup id
-  // properties: BasicProperty[]
+
+  /**
+   * An Alias can be a user assigned arbitrary number set from a local database or other means
+   */
+  alias?: string;
+
 }
 
 export interface BasicProperty {

@@ -26,6 +26,7 @@ import { select } from "../../../../utilities/BuildingElementUtilities";
 import Papa from "papaparse";
 import saveAs from "file-saver";
 import { ModelCache } from "../../../../bim-components/modelCache";
+import { getValueByKey } from "../../../../utilities/indexedDBUtils";
 
 // listen to selected assembly and set its data when changed
 const AssemblyInfoPanel = () => {
@@ -54,12 +55,21 @@ const AssemblyInfoPanel = () => {
     };
   }, [components]);
 
-  const setupTable = useCallback((elements: BuildingElement[]) => {
+  const setupTable = useCallback(async (elements: BuildingElement[]) => {
     console.log("start setting up table", elements);
-    const newRows = elements.map((element, index) => createRow(element, index));
+
+    // Use Promise.all to wait for all createRow calls to resolve
+    const newRows = await Promise.all(
+      elements.map((element, index) => createRow(element, index))
+    );
+  
+    // Group the rows by product code after all rows are created
     const groupedRows = groupByProductCode(newRows);
+  
+    // Set the rows state
     setRows(groupedRows);
   }, []);
+  
 
   const groupByProductCode = (rows: RowData[]) => {
     const grouped = rows.reduce((acc, row) => {
@@ -74,16 +84,38 @@ const AssemblyInfoPanel = () => {
     return Object.values(grouped);
   };
 
-  const createRow = (element: BuildingElement, index: number): RowData => {
-    return {
-      key: index,
-      name: element.name,
-      material: findProperty(element, knownProperties.Material)?.value || "",
-      productCode: findProperty(element, knownProperties.ProductCode)?.value || "",
-      expressID: element.expressID,
-      quantity: 1, // default quantity 1
-    };
+  // const createRow = (element: BuildingElement, index: number): RowData => {
+  //   return {
+  //     key: index,
+  //     name: element.name,
+  //     alias: element.alias ?? "",
+  //     material: findProperty(element, knownProperties.Material)?.value || "",
+  //     productCode: findProperty(element, knownProperties.ProductCode)?.value || "",
+  //     expressID: element.expressID,
+  //     quantity: 1, // default quantity 1
+  //     color: await getValueByKey(findProperty(element, knownProperties.ProductCode)?.value || "")
+  //   };
+  // };
+
+  // Create an asynchronous version of createRow
+async function createRow(
+  element: BuildingElement,
+  index: number
+): Promise<RowData> {
+  const productCode = findProperty(element, knownProperties.ProductCode)?.value || "";
+  const color = await getValueByKey(productCode);
+
+  return {
+    key: index,
+    name: element.name,
+    alias: element.alias ?? "",
+    material: findProperty(element, knownProperties.Material)?.value || "",
+    productCode,
+    expressID: element.expressID,
+    quantity: 1, // default quantity 1
+    color: color?.color, // color object fetched from IndexedDB
   };
+}
 
   const findProperty = (element: BuildingElement, propertyName: knownProperties) => {
     return element.properties.find((prop) => prop.name === propertyName);
@@ -132,7 +164,10 @@ const AssemblyInfoPanel = () => {
     // Convert the data to CSV format using PapaParse
     const csv = Papa.unparse(exportData);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, `${components.get(ModelCache).models()[0].name}_${selected?.groupType}_${selected?.groupName}_BOM.csv`);
+    saveAs(
+      blob,
+      `${components.get(ModelCache).models()[0].name}_${selected?.groupType}_${selected?.groupName}_BOM.csv`
+    );
   };
 
   return (
@@ -200,10 +235,12 @@ const AssemblyInfoPanel = () => {
 interface RowData {
   key: number;
   name: string;
+  alias: string;
   material: string;
   productCode: string;
   expressID: number;
   quantity: number;
+  color?: string;
 }
 
 interface dataTableProps {
@@ -256,19 +293,19 @@ const BasicDataTable: React.FC<dataTableProps> = ({
           <TableRow>
             {columns.map((column) => (
               <Tooltip title={column.id}>
-              <TableCell
-                key={column.id}
-                align={column.align}
-                style={{ maxWidth: column.maxWidth, minWidth: column.minWidth }}
-              >
-                <TableSortLabel
-                  active={orderBy === column.id}
-                  direction={orderBy === column.id ? order : "asc"}
-                  onClick={() => onRequestSort(column.id as keyof RowData)}
+                <TableCell
+                  key={column.id}
+                  align={column.align}
+                  style={{ maxWidth: column.maxWidth, minWidth: column.minWidth }}
                 >
-                  {column.label}
-                </TableSortLabel>
-              </TableCell>
+                  <TableSortLabel
+                    active={orderBy === column.id}
+                    direction={orderBy === column.id ? order : "asc"}
+                    onClick={() => onRequestSort(column.id as keyof RowData)}
+                  >
+                    {column.label}
+                  </TableSortLabel>
+                </TableCell>
               </Tooltip>
             ))}
           </TableRow>
@@ -299,6 +336,23 @@ const BasicDataTable: React.FC<dataTableProps> = ({
                     />
                   </TableCell>
                   <TableCell component="th" align="center" scope="row">
+                    <div
+                      style={{
+                        backgroundColor: row.color, // Use the color from the row
+                        borderRadius: "50%",
+                        width: "30px",
+                        height: "30px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fff", // White text inside the circle
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {row.alias}
+                    </div>
+                  </TableCell>
+                  <TableCell component="th" align="center" scope="row">
                     {row.quantity}
                   </TableCell>
                   <Tooltip title={row.name}>
@@ -314,7 +368,10 @@ const BasicDataTable: React.FC<dataTableProps> = ({
                   <TableCell align="left" sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
                     {row.productCode}
                   </TableCell>
-                  <TableCell align="left" sx={{ paddingLeft: "0px",overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
+                  <TableCell
+                    align="left"
+                    sx={{ paddingLeft: "0px", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}
+                  >
                     {row.name}
                   </TableCell>
                 </TableRow>
@@ -327,7 +384,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({
 };
 
 interface Column {
-  id: "select" | "quantity" | "name" | "productCode" | "material";
+  id: "select" | "quantity" | "name" | "productCode" | "material" | "alias";
   label: string;
   minWidth?: number;
   maxWidth?: number;
@@ -337,6 +394,7 @@ interface Column {
 
 const columns: Column[] = [
   { id: "select", label: "Select", minWidth: 20, maxWidth: 20 },
+  { id: "alias", label: "Alias", minWidth: 10, maxWidth: 20 },
   { id: "quantity", label: "Qty", minWidth: 10, maxWidth: 20 },
   {
     id: "material",

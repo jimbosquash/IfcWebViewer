@@ -69,7 +69,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         if (treeID !== tID || !node?.id || !modelViewManager) return;
 
         const visState = modelViewManager.getTree(treeID)?.getVisibility(node.id);
-        console.log('getting vis state', node.id, visState)
+        // console.log('getting vis state', node.id, visState)
 
         setVisibility(visState);
         if (visState === undefined || visState === visibilityState) return;
