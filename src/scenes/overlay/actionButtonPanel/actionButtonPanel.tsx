@@ -14,6 +14,7 @@ import GroupTypeButton from "./src/groupTypeButton";
 import NavigationButtonGroup from "./src/navigationButtonGroup";
 import { ZoomToVisibleButton } from "./src/zoomToVisibleButton";
 import FlipButton from "./src/FlipButton";
+import LengthDimensionButton from "./src/lengthDimensionButton";
 
 const ActionButtonPanel = () => {
   const theme = useTheme();
@@ -66,6 +67,7 @@ const ActionButtonPanel = () => {
 
 
             <ShowTagsButton variant="panel" />
+            <LengthDimensionButton/>
             <IsolateButton />
 
             <Tooltip title="Show all">

@@ -19,7 +19,7 @@ export class ConfigManager<T extends Record<ConfigKey, ConfigValue>> extends Eve
         this.schema = schema;
         this.storageKey = storageKey;
         this.initializeConfig();
-        console.log('config man created',storageKey)
+        // console.log('config man created',storageKey)
     }
 
     private initializeConfig(): void {
@@ -32,20 +32,20 @@ export class ConfigManager<T extends Record<ConfigKey, ConfigValue>> extends Eve
                     const value = parsedConfig[key];
                     if (this.validateValue(typedKey, value)) {
                         this.config.set(typedKey, value);
-                        console.log('config key found and set',typedKey,value)
+                        // console.log('config key found and set',typedKey,value)
                     } else {
                         this.config.set(typedKey, this.schema[typedKey].defaultValue);
-                        console.log('config key not found',typedKey,value)
+                        // console.log('config key not found',typedKey,value)
 
                     }
                 } else {
                     this.config.set(typedKey, this.schema[typedKey].defaultValue);
-                    console.log('config key not found to have prop',typedKey)
+                    // console.log('config key not found to have prop',typedKey)
 
                 }
             });
         } else {
-            console.log('config not found by key',storedConfig)
+            // console.log('config not found by key',storedConfig)
 
             Object.keys(this.schema).forEach((key) => {
                 const typedKey = key as keyof T;
@@ -68,7 +68,7 @@ export class ConfigManager<T extends Record<ConfigKey, ConfigValue>> extends Eve
     }
 
     get<K extends keyof T>(key: K): T[K] {
-        console.log('config manager get',key, this.schema)
+        // console.log('config manager get',key, this.schema)
         return this.config.get(key) ?? this.schema[key].defaultValue;
     }
 
