@@ -1,7 +1,8 @@
-import { Tooltip, Button, colors, IconButton } from "@mui/material";
+import { Tooltip, Button, colors, IconButton, Popover, Box, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { ModelCache } from "../../../../bim-components/modelCache";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
+import CloseIcon from '@mui/icons-material/Close'; // Import Close icon
 
 import * as OBCF from "@thatopen/components-front";
 import * as OBC from "@thatopen/components";
@@ -11,8 +12,11 @@ export const LengthDimensionButton = () => {
   const components = useComponentsContext();
   const [world, setWorld] = useState<OBC.World>();
   const [enabled, setEnabled] = useState<boolean>(false);
+  const [showInstructions, setShowInstructions] = useState<boolean>(false); // Control visibility of the overlay
+
   const marksRef = useRef<HTMLElement[]>([]); // Store references to the floating marks
   const drwStarted = useRef<boolean>(false); // Store references to the floating marks
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null); // For Popover control
 
   // add listeners for changing world
   useEffect(() => {
@@ -37,7 +41,7 @@ export const LengthDimensionButton = () => {
     }
 
     dimensions.world = world;
-    dimensions.enabled = true;
+    dimensions.enabled = false;
     dimensions.snapDistance = 1;
   }, [world]);
 
@@ -47,6 +51,8 @@ export const LengthDimensionButton = () => {
       addEventListenersToMarks();
       window.addEventListener("keydown", handleKeyDown);
     }
+    setShowInstructions(enabled)
+
 
     return () => {
       // Clean up keydown listener when disabled or on unmount
@@ -75,20 +81,29 @@ export const LengthDimensionButton = () => {
     }
   };
 
-  const toggleDimensions = async () => {
+  //   const toggleDimensions = async () => {
+  //     if (!components) return;
+
+  //     components.get(OBCF.LengthMeasurement).enabled = !enabled;
+  //     setEnabled(!enabled);
+
+  //     components.get(OBCF.LengthMeasurement).visible = !enabled;
+
+  //     if (enabled) {
+  //       components.get(OBCF.LengthMeasurement).cancelCreation();
+  //       removeEventListenersFromMarks();
+
+  //       // components.get(OBCF.LengthMeasurement).list[0].label.three.element
+  //     }
+  //   };
+
+  const toggleDimensions = async (event: React.MouseEvent<HTMLButtonElement>) => {
     if (!components) return;
 
     components.get(OBCF.LengthMeasurement).enabled = !enabled;
     setEnabled(!enabled);
 
     components.get(OBCF.LengthMeasurement).visible = !enabled;
-
-    if (enabled) {
-      components.get(OBCF.LengthMeasurement).cancelCreation();
-      removeEventListenersFromMarks();
-
-      // components.get(OBCF.LengthMeasurement).list[0].label.three.element
-    }
   };
 
   const handleMouseOver = (event: MouseEvent, mark: HTMLElement) => {
@@ -107,10 +122,10 @@ export const LengthDimensionButton = () => {
   const handleDoubleClickMark = async (dim: OBCF.SimpleDimensionLine) => {
     try {
       console.log("Double-click on mark detected, deleting...");
-      
+
       // Await the deletion process
       await components.get(OBCF.LengthMeasurement).deleteMeasurement(dim);
-  
+
       console.log("Measurement deleted successfully.");
     } catch (error) {
       console.error("Failed to delete measurement:", error);
@@ -138,7 +153,7 @@ export const LengthDimensionButton = () => {
 
   const removeEventListenersFromMarks = () => {
     const lengthMeasurement = components?.get(OBCF.LengthMeasurement);
-    if(!lengthMeasurement) return;
+    if (!lengthMeasurement) return;
     lengthMeasurement.list?.forEach((dim) => {
       const element = dim.label.three.element;
       if (element) {
@@ -147,7 +162,6 @@ export const LengthDimensionButton = () => {
         element.removeEventListener("dblclick", () => handleDoubleClickMark(dim));
         element.removeEventListener("mouseover", (event) => handleMouseOver(event, element));
         element.addEventListener("mouseout", (event) => handleMouseOut(event, element));
-
       }
     });
   };
@@ -158,14 +172,59 @@ export const LengthDimensionButton = () => {
         title={enabled ? "Click Space to start and stop a measurement." : "Click to enable or remove measurements."}
       >
         <Button
-          sx={{ backgroundColor: "transparent", color: enabled ? colors.grey[400] : colors.grey[700], border: "0" }}
-          onClick={() => toggleDimensions()}
+          sx={{ backgroundColor: "transparent", color: enabled ? colors.grey[700] : colors.grey[400], border: "0" }}
+          onClick={toggleDimensions}
           //   onDoubleClick={handleDoubleClick}
           style={{ border: "0" }}
         >
           <Icon icon="tabler:ruler-measure" />
         </Button>
       </Tooltip>
+
+      {/* Popover for instructions */}
+
+      {/* Instructions Overlay */}
+      {showInstructions && (
+        <Box
+          component="div"
+          sx={{
+            position: "absolute",
+            bottom: "150%",
+            left: "50%",
+            transform: "translateX(-50%)",
+            mt: -2,
+            p: 2,
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            color: "white",
+            borderRadius: 2,
+            pointerEvents: "auto", // Allow pointer events for the close button
+            zIndex: 1,
+            maxWidth: 400,
+            textAlign: "center",
+            boxShadow: 3, // Add shadow for better visibility
+          }}
+        >
+          <Box component='div' sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Box component='div' sx={{ display: "flex", flexDirection: 'row',  justifyContent: "flex-end" }}>
+          <Typography variant="h6" gutterBottom>
+            Dimension Tool Instructions
+          </Typography>
+            <Icon fontSize={'small'} onClick={() => setShowInstructions(false)} icon="material-symbols:close" />
+          </Box>
+          
+          </Box>
+            
+          <Typography variant="body1">
+            - Press <b>Space</b> to start or stop a dimension.
+          </Typography>
+          <Typography variant="body1">
+            - Press <b>Esc</b> to cancel the current dimension.
+          </Typography>
+          <Typography variant="body1">
+            - Double-click a dimension to <b>delete</b> it.
+          </Typography>
+        </Box>
+      )}
     </>
   );
 };
