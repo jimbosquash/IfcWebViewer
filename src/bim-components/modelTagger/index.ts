@@ -38,7 +38,7 @@ const markerConfigSchema: ConfigSchema<MarkerConfiguration> = {
     showFasteners: { defaultValue: true },
     showInstallations: { defaultValue: true },
     mergeFasteners: { defaultValue: false },
-    labelStyle: { defaultValue: "Alias" },
+    labelStyle: { defaultValue: "Code" },
     colorBy: { defaultValue: "Code" },
 };
 
