@@ -521,7 +521,7 @@ export class ModelTagger extends OBC.Component {
             this._markerProps = new Map();
         }
 
-        const tags = this.createMarkProperties(this.components, buildingElements);
+        const tags = ModelTagger.createMarkProperties(this.components, buildingElements);
         this._markerProps = tags;
         return this._markerProps;
     }
@@ -699,7 +699,7 @@ export class ModelTagger extends OBC.Component {
 * @param buildingElements 
 * @returns key = buildingElement.GlobalID , value = Tag
 */
-    createMarkProperties(components: OBC.Components, buildingElements: BuildingElement[]): Map<string, markProperties> {
+    static createMarkProperties(components: OBC.Components, buildingElements: BuildingElement[]): Map<string, markProperties> {
 
         const tags = new Map<string, markProperties>();
 
@@ -728,22 +728,21 @@ export class ModelTagger extends OBC.Component {
                     console.log('Get Center failed: no center point found', element)
                     return;
                 }
-                tags.set(element.GlobalID, new markProperties(element.GlobalID, element.name, pt, this.getColor(element), element.type));
+                tags.set(element.GlobalID, new markProperties(element.GlobalID, element.name, pt, ModelTagger.getColor(element, components), element.type));
             })
         })
         return tags;
     }
 
-    private getColor(element: BuildingElement) {
+    static getColor(element: BuildingElement, components: OBC.Components) {
         // console.log('get color',this._colorMap.get(GetPropertyByName(element, knownProperties.ProductCode)?.value ?? ""))
+        const tagger = components.get(ModelTagger);
+        if (tagger._configManager.get('colorBy') === "Code") {
 
-        if (this._configManager.get('colorBy') === "Code") {
-            //value = await getValueByKey(productCode); // Fetch the newly added entry
-
-            console.log('get color', this._colorMap.get(GetPropertyByName(element, knownProperties.ProductCode)?.value ?? ""))
-            return this._colorMap.get(GetPropertyByName(element, knownProperties.ProductCode)?.value ?? "");
+            console.log('get color', tagger._colorMap.get(GetPropertyByName(element, knownProperties.ProductCode)?.value ?? ""))
+            return tagger._colorMap.get(GetPropertyByName(element, knownProperties.ProductCode)?.value ?? "");
         } else {
-            return this._colorMap.get(GetPropertyByName(element, knownProperties.Material)?.value ?? "");
+            return tagger._colorMap.get(GetPropertyByName(element, knownProperties.Material)?.value ?? "");
         }
 
     }

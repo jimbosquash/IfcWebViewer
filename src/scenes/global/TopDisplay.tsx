@@ -95,7 +95,7 @@ export const TopDisplay = () => {
                   alignSelf: "bottom", // Align the text vertically with the logo
                 }}
               >
-                .iva
+                .ifc
               </Typography>
             </Box>
 
