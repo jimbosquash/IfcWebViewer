@@ -61,6 +61,14 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
     const getSelectionState = useCallback(
       (selectionGroup: SelectionGroup | undefined) => {
         setIsSelected(selectionGroup?.id === node?.id);
+
+        // if any children are selected then expand
+        if(selectionGroup && node?.children.has(selectionGroup?.id)) {
+          setIsExpanded(true)
+        } else {
+          // setIsExpanded(false)
+        }
+
       },
       [node?.id]
     );
