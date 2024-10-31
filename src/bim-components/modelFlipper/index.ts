@@ -15,7 +15,10 @@ export class ModelFlipper extends OBC.Component {
     get xAxisIsFlipped() { return this._xAxisIsFlipped }
     get yAxisIsFlipped() { return this._yAxisIsFlipped }
 
-    readonly onModelFlipEnd = new OBC.Event<any[]>(); // trigger when the model flip ends
+    /**
+     * true if the model is considered flipped from origional axis
+     */
+    readonly onModelFlipEnd = new OBC.Event<boolean>(); // trigger when the model flip ends
     readonly onModelFlipStart = new OBC.Event<any[]>(); // trigger when the model flip ends
     constructor(components: OBC.Components) {
         super(components);
@@ -153,6 +156,7 @@ export class ModelFlipper extends OBC.Component {
                 if (this.onUpdateListener) {
                     this.components.get(ModelCache).world?.renderer?.onBeforeUpdate.remove(this.onUpdateListener);
                     this.onUpdateListener = null; // Clear the reference
+                    this.onModelFlipEnd.trigger(this._xAxisIsFlipped || this._yAxisIsFlipped) // true if the model is considered flipped from origional axis
                 }
             }
         }

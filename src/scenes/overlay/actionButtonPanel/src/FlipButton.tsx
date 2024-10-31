@@ -77,11 +77,13 @@ export const FlipButton = () => {
           }}
           variant="outlined"
         >
+                    <Icon icon="icon-park-outline:rotate" />
+{/* 
           {!isFlipped ? (
             <Icon icon="vaadin:flip-v" />
           ) : (
             <Icon color="red" icon="vaadin:flip-v" />
-          )}
+          )} */}
         </Button>
       </Tooltip>
 

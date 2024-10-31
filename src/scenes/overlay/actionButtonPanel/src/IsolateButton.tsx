@@ -7,6 +7,7 @@ import { Icon } from "@iconify/react";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import { ModelCache } from "../../../../bim-components/modelCache";
 import { isolate, select } from "../../../../utilities/BuildingElementUtilities";
+import { ReactJSXElement } from "@emotion/react/types/jsx-namespace";
 
 export const IsolateButton = () => {
   const components = useComponentsContext();
@@ -42,16 +43,37 @@ export const IsolateButton = () => {
   }
 
   return (
-    <>
-      <Tooltip title="Isolate Selected">
-        <Button
-          sx={{ backgroundColor: "transparent" }}
-          onClick={() => IsolateSelected()}
-          style={{ color: colors.grey[400], border: "0" }}
-        >
-          <Icon icon="mdi:eye-off-outline" />{" "}
-        </Button>
-      </Tooltip>
-    </>
+    <ToolBarButton
+      toolTip="Isolate Selected"
+      onClick={IsolateSelected}
+      content={<Icon icon="mdi:eye-off-outline" />}
+    />
+  );
+};
+
+
+interface ToolBarButtonProps {
+  onClick: () => void;
+  content: React.ReactNode | string; // Changed from ReactJSXElement to React.ReactNode for compatibility.
+  toolTip?: string;
+}
+
+export const ToolBarButton: React.FC<ToolBarButtonProps> = ({ onClick, content: icon, toolTip }) => {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
+
+  return (
+    <Tooltip title={toolTip || ''}>
+      <Button
+        sx={{ 
+          backgroundColor: 'transparent', 
+          color: colors.grey[400], 
+          border: 0 
+        }}
+        onClick={onClick}
+      >
+        {icon}
+      </Button>
+    </Tooltip>
   );
 };

@@ -1,6 +1,7 @@
 import * as OBC from "@thatopen/components";
 import { GetPropertyByName } from "../../utilities/BuildingElementUtilities";
 import { BuildingElement, knownProperties, SelectionGroup } from "../../utilities/types";
+import { ModelTagger } from "../modelTagger";
 import { markProperties } from "../modelTagger/src/Tag";
 import { ModelViewManager } from "../modelViewer";
 
@@ -72,6 +73,6 @@ export class HVACViewer extends OBC.Component {
         this._tags.forEach(t => t.dispose())
         this._tags = new Map();
     }
-    this._tags = markProperties.create(this.components,buildingElements);
+    this._tags = ModelTagger.createMarkProperties(this.components,buildingElements);
 }
 }

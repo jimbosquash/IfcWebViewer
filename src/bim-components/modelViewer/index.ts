@@ -8,7 +8,15 @@ import { _roots } from "@react-three/fiber";
 import { ModelCache } from "../modelCache";
 import { TreeUtils } from "../../utilities/treeUtils";
 import { ViewableTree } from "./src/viewableTree";
+import { ConfigManager, ConfigSchema } from "../../utilities/ConfigManager";
 
+export interface ModelViewerConfiguration {
+    treeNavigation: "stepInto" | "stepOver";
+}
+
+const ModelViewerConfigSchema: ConfigSchema<ModelViewerConfiguration> = {
+    treeNavigation: { defaultValue: "stepInto" },
+};
 
 export class ModelViewManager extends OBC.Component {
     private _enabled = false;
@@ -16,6 +24,9 @@ export class ModelViewManager extends OBC.Component {
     static uuid = "0f5e514e-5c1c-4097-a9cc-6620c2e28378" as const;
     static assemblyTreeName = "AssemblyTree";
     static stationTreeName = "StationTree";
+
+    private _configManager = new ConfigManager<ModelViewerConfiguration>(ModelViewerConfigSchema, 'modelViewerConfig');
+
 
     /**
      * Tree is a data structure we create similar to the file strucutre of an .ifc file though typicially we use element properties for robustness to determine groupings such as building steps and assembly
@@ -85,6 +96,12 @@ export class ModelViewManager extends OBC.Component {
     readonly onVisibilityUpdated = new OBC.Event<{ elements: BuildingElement[], treeID: string }>(); // the new elements that are visible after visibility change
     // readonly onVisibilityMapUpdated = new OBC.Event<{ treeID: string }>(); // when a map of a tree is changed trigger event so ui can render change
 
+    readonly onConfigurationChanged = new OBC.Event<ConfigManager<ModelViewerConfiguration>>()
+
+    
+    get configuration() {
+        return this._configManager;
+    }
 
 
     get SelectedGroup(): SelectionGroup | undefined {
@@ -148,6 +165,10 @@ export class ModelViewManager extends OBC.Component {
 
         const frag = components.get(OBC.FragmentsManager)
         frag.onFragmentsDisposed.add((data) => this.cleanUp(data.groupID, data.fragmentIDs))
+        this._configManager.addEventListener('configChanged', (event: Event) => {
+            console.log('configChanged', event)
+            this.onConfigurationChanged.trigger(this._configManager)
+        })
     }
 
     cleanUp = (groupID: string, fragmentIDs: string[]) => {

@@ -92,13 +92,15 @@ export const WelcomePanel = () => {
                   marginBottom: "18px",
                 }}
               >
-                .iva
+                .ifc
               </Typography>
             </Box>
 
             {loadedModel === undefined && (
               <Box component="div">
-                <Typography variant="h6">The Smart IFC Viewing Assistant</Typography>
+                <Typography variant="h6">The Smart IFC Assistant</Typography>
+                {/* <Typography variant="body2">View Sustainer .ifc files for production and assembly</Typography> */}
+                <Typography variant="body2">Suitable for .ifc files structured for Sustainer data</Typography>
                 <Box component="div" sx={{ alignSelf: "bottom", margin: "0px", padding: 4, height: "100%" }}>
                   <IfcDropZone onFileUpload={handleFileUpload} />
                 </Box>

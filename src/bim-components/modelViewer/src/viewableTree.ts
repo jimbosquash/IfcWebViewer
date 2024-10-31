@@ -1,5 +1,5 @@
 import { Tree, TreeNode } from "../../../utilities/Tree";
-import { VisibilityState, KnownGroupType } from "../../../utilities/types";
+import { VisibilityState } from "../../../utilities/types";
 
 export class ViewableTree<T> {
     private _id: string; // name of tree
