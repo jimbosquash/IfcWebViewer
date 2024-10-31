@@ -10,6 +10,7 @@ export const NavigationButtonGroup = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
+  
 
   const setAdjacentGroup = async (adjacency: "previous" | "next") => {
     console.log();
@@ -23,7 +24,8 @@ export const NavigationButtonGroup = () => {
     }
     // console.log("Setting adjacent",current);
     console.log("GetAdjacentGroup to", current?.id,viewManager.Tree);
-    const newGroup = GetAdjacentGroup(current, viewManager.Tree, adjacency);
+    const config = viewManager.configuration.get("treeNavigation")
+    const newGroup = GetAdjacentGroup(current, viewManager.Tree, adjacency,config);
     console.log("next group", newGroup?.id);
 
     if (newGroup) {

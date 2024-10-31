@@ -1,4 +1,4 @@
-import { Box, Button, ButtonGroup } from "@mui/material";
+import { Box, Button, ButtonGroup, Divider, useTheme } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { TreeNode } from "../../../../utilities/Tree";
@@ -19,13 +19,19 @@ import {
   groupElementsByPropertyName,
 } from "../../../../utilities/BuildingElementUtilities";
 import { ViewableTree } from "../../../../bim-components/modelViewer/src/viewableTree";
+import { IsolateButton, ToolBarButton } from "../../actionButtonPanel/src/IsolateButton";
+import { tokens } from "../../../../theme";
+import { Icon } from "@iconify/react";
 
 const treeName = ModelViewManager.stationTreeName;
 
 export const StationBrowserPanel: React.FC = React.memo(() => {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
   const [nodes, setNodes] = useState<TreeNode<IfcElement>[]>();
   const [treeWithAssemblies, setTreeWithAssemblies] = useState<boolean>(false);
   const components = useComponentsContext();
+  const [treeNavigation, setTreeNavigation] = useState<"stepOver" | "stepInto">("stepInto");
 
   const modelViewManager = useMemo(() => components?.get(ModelViewManager), [components]);
 
@@ -188,6 +194,14 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
     "Binnenwand - Beplating - Afwerking en Tegelwerk",
   ];
 
+  const toggleTreeNavigation = () => {
+    const currentNavigation = components.get(ModelViewManager).configuration.get("treeNavigation");
+
+    const newNavigation = currentNavigation === "stepOver" ? "stepInto" : "stepOver";
+    components.get(ModelViewManager).configuration.set("treeNavigation", newNavigation);
+    setTreeNavigation(newNavigation);
+  };
+
   const createStationTree = () => {
     const newTree = removeAssemblyNodes(modelViewManager.getTree(treeName));
     if (!newTree) {
@@ -283,21 +297,42 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
         {/* fixed panel section */}
 
         <ButtonGroup
+          variant="text"
           style={{
             flexShrink: 0,
-            marginLeft: "8px",
-            marginTop: "18px",
-            marginBottom: "10px",
+            // marginLeft: "8px",
+            // marginTop: "18px",
+            // marginBottom: "10px",
             justifyContent: "center",
           }}
         >
-          <Button
+          <ToolBarButton
             onClick={() => (treeWithAssemblies ? createStationTree() : createRelevantAssemblyTree())}
-            color="secondary"
-            variant="contained"
-          >
-            {treeWithAssemblies ? "Remove Assemblies" : "Add Assemblies"}
-          </Button>
+            content={treeWithAssemblies ? "Remove Assemblies" : "Add Assemblies"}
+            toolTip={"add or remove grouping by relevant assemblies"}
+          />
+          {/* <ToolBarButton
+            onClick={() => (treeWithAssemblies ? createStationTree() : createRelevantAssemblyTree())}
+            content={<Icon icon="material-symbols:step-over" />}
+            toolTip={'Step over - navigate across tree structure'}
+          /> */}
+          <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
+
+          <ToolBarButton
+            onClick={() => toggleTreeNavigation()}
+            content={
+              treeNavigation === "stepOver" ? (
+                <Icon icon="material-symbols:step-over" />
+              ) : (
+                <Icon icon="material-symbols:step-into" />
+              )
+            }
+            toolTip={
+              treeNavigation === "stepOver"
+                ? "Step over - navigate tree with same type"
+                : "Step in - navigate into tree structure"
+            }
+          />
         </ButtonGroup>
 
         <Box component="div" m="0px" maxHeight="100%" overflow="hidden" width="100%">

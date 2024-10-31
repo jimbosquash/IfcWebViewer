@@ -51,7 +51,7 @@ export const InfoPanel = () => {
   const handleHvacFound = (data: BuildingElement[]) => {
     setShowHVACWarning(data.length > 0);
     setShowTip(data.length > 0);
-    console.log("havac found", data.length);
+    // console.log("havac found", data.length);
   };
   const handleFlip = (data: boolean) => {
     setShowFlipWarning(data);

@@ -9,6 +9,7 @@ interface IfcDropZoneProps {
 const IfcDropZone: React.FC<IfcDropZoneProps> = ({ onFileUpload }) => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [prompt, setPrompt] = useState('Drag & Drop IFC files here or click to select');
 
   const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -40,8 +41,10 @@ const IfcDropZone: React.FC<IfcDropZoneProps> = ({ onFileUpload }) => {
   const handleFiles = (files: FileList) => {
     Array.from(files).forEach((file) => {
       if (file.name.endsWith('.ifc')) {
+        setPrompt("Please wait, file loading")
         onFileUpload(file);
       } else {
+        setPrompt('Please upload .ifc files only')
         console.warn('Skipping non-IFC file:', file.name);
       }
     });
@@ -85,7 +88,8 @@ const IfcDropZone: React.FC<IfcDropZoneProps> = ({ onFileUpload }) => {
  {/* <Icon
               icon={isDragging ? "system-uicons:box" : "system-uicons:boxes"}
             /> */}
-                  {isDragging ? 'Drop IFC files here' : 'Drag & Drop IFC files here or click to select'}
+                  {/* {isDragging ? 'Drop IFC files here' : 'Drag & Drop IFC files here or click to select'} */}
+                  {prompt}
     </div>
   );
 };

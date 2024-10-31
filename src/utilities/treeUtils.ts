@@ -1,6 +1,12 @@
+import { convertToBuildingElement } from "./BuildingElementUtilities";
 import { TreeNode } from "./Tree";
+import { IfcElement } from "./types";
 
 export class TreeUtils {
+
+    static getBuildingElements = (node: TreeNode<IfcElement>) => {
+        return convertToBuildingElement(TreeUtils.getChildrenNonNullData(node))
+    }
 
     /**
      * Recursively search children for nodes that meet the condition
