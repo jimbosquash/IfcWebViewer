@@ -169,7 +169,8 @@ export const LengthDimensionButton = () => {
   return (
     <>
       <Tooltip
-        title={enabled ? "Click Space to start and stop a measurement." : "Click to enable or remove measurements."}
+        // title={enabled ? "Click Space to start and stop a measurement." : "Click to enable or remove measurements."}
+        title={enabled ? "Disable measurement." : "Enable measurements."}
       >
         <Button
           sx={{ backgroundColor: "transparent", color: enabled ? colors.grey[700] : colors.grey[400], border: "0" }}
@@ -205,15 +206,15 @@ export const LengthDimensionButton = () => {
           }}
         >
           <Box component='div' sx={{ display: "flex", justifyContent: "flex-end" }}>
-          <Box component='div' sx={{ display: "flex", flexDirection: 'row',  justifyContent: "flex-end" }}>
-          <Typography variant="h6" gutterBottom>
-            Dimension Tool Instructions
-          </Typography>
-            <Icon fontSize={'small'} onClick={() => setShowInstructions(false)} icon="material-symbols:close" />
+            <Box component='div' sx={{ display: "flex", flexDirection: 'row', justifyContent: "flex-end" }}>
+              <Typography variant="h6" gutterBottom>
+                Dimension Tool Instructions
+              </Typography>
+              <Icon fontSize={'small'} onClick={() => setShowInstructions(false)} icon="material-symbols:close" />
+            </Box>
+
           </Box>
-          
-          </Box>
-            
+
           <Typography variant="body1">
             - Press <b>Space</b> to start or stop a dimension.
           </Typography>

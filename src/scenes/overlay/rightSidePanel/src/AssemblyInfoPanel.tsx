@@ -62,14 +62,14 @@ const AssemblyInfoPanel = () => {
     const newRows = await Promise.all(
       elements.map((element, index) => createRow(element, index))
     );
-  
+
     // Group the rows by product code after all rows are created
     const groupedRows = groupByProductCode(newRows);
-  
+
     // Set the rows state
     setRows(groupedRows);
   }, []);
-  
+
 
   const groupByProductCode = (rows: RowData[]) => {
     const grouped = rows.reduce((acc, row) => {
@@ -98,24 +98,24 @@ const AssemblyInfoPanel = () => {
   // };
 
   // Create an asynchronous version of createRow
-async function createRow(
-  element: BuildingElement,
-  index: number
-): Promise<RowData> {
-  const productCode = findProperty(element, knownProperties.ProductCode)?.value || "";
-  const color = await getValueByKey(productCode);
+  async function createRow(
+    element: BuildingElement,
+    index: number
+  ): Promise<RowData> {
+    const productCode = findProperty(element, knownProperties.ProductCode)?.value || "";
+    const color = await getValueByKey(productCode);
 
-  return {
-    key: index,
-    name: element.name,
-    alias: element.alias ?? "",
-    material: findProperty(element, knownProperties.Material)?.value || "",
-    productCode,
-    expressID: element.expressID,
-    quantity: 1, // default quantity 1
-    color: color?.color, // color object fetched from IndexedDB
-  };
-}
+    return {
+      key: index,
+      name: element.name,
+      alias: element.alias ?? "",
+      material: findProperty(element, knownProperties.Material)?.value || "",
+      productCode,
+      expressID: element.expressID,
+      quantity: 1, // default quantity 1
+      color: color?.color, // color object fetched from IndexedDB
+    };
+  }
 
   const findProperty = (element: BuildingElement, propertyName: knownProperties) => {
     return element.properties.find((prop) => prop.name === propertyName);
@@ -327,7 +327,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({
                   selected={isItemSelected}
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 >
-                  <TableCell onDragOver={(event) => handleClick(event, row.key)} padding="checkbox">
+                  {/* <TableCell onDragOver={(event) => handleClick(event, row.key)} padding="checkbox">
                     <Checkbox
                       color="secondary"
                       checked={isItemSelected}
@@ -335,8 +335,8 @@ const BasicDataTable: React.FC<dataTableProps> = ({
                         "aria-labelledby": labelId,
                       }}
                     />
-                  </TableCell>
-                  <TableCell component="th" align="center" scope="row">
+                  </TableCell> */}
+                  {/* <TableCell component="th" align="center" scope="row">
                     <div
                       style={{
                         backgroundColor: row.color, // Use the color from the row
@@ -352,6 +352,23 @@ const BasicDataTable: React.FC<dataTableProps> = ({
                     >
                       {row.alias}
                     </div>
+                  </TableCell> */}
+                  <TableCell align="left" sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
+                    <div
+                      style={{
+                        backgroundColor: row.color, // Use the color from the row
+                        // borderRadius: "20%",
+                        width: "100px",
+                        height: "25px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fff", // White text inside the circle
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {row.productCode}
+                    </div>
                   </TableCell>
                   <TableCell component="th" align="center" scope="row">
                     {row.quantity}
@@ -366,9 +383,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({
                       {row.material}
                     </TableCell>
                   </Tooltip>
-                  <TableCell align="left" sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
-                    {row.productCode}
-                  </TableCell>
+
                   <TableCell
                     align="left"
                     sx={{ paddingLeft: "0px", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}
@@ -394,8 +409,9 @@ interface Column {
 }
 
 const columns: Column[] = [
-  { id: "select", label: "Select", minWidth: 20, maxWidth: 20 },
-  { id: "alias", label: "Alias", minWidth: 10, maxWidth: 20 },
+  // { id: "select", label: "Select", minWidth: 20, maxWidth: 20 },
+  // { id: "alias", label: "Alias", minWidth: 10, maxWidth: 20 },
+  { id: "productCode", label: "Product\u00a0Code", minWidth: 105, maxWidth: 100 },
   { id: "quantity", label: "Qty", minWidth: 10, maxWidth: 20 },
   {
     id: "material",
@@ -404,7 +420,6 @@ const columns: Column[] = [
     align: "right",
     maxWidth: 50,
   },
-  { id: "productCode", label: "Product\u00a0Code", minWidth: 105, maxWidth: 100 },
   { id: "name", label: "Name", minWidth: 70, maxWidth: 100 },
 ];
 

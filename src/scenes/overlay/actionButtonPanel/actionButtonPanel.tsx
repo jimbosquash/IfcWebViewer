@@ -15,6 +15,7 @@ import NavigationButtonGroup from "./src/navigationButtonGroup";
 import { ZoomToVisibleButton } from "./src/zoomToVisibleButton";
 import FlipButton from "./src/FlipButton";
 import LengthDimensionButton from "./src/lengthDimensionButton";
+import HideButton from "./src/hideButton";
 
 const ActionButtonPanel = () => {
   const theme = useTheme();
@@ -33,9 +34,16 @@ const ActionButtonPanel = () => {
   };
 
   const showAll = () => {
-    const hider = components.get(OBC.Hider);
+    const viewer = components.get(ModelViewManager);
 
-    hider.set(true);
+    if (viewer.SelectedGroup?.id === undefined) {
+      const hider = components.get(OBC.Hider);
+      hider.set(true);
+
+    } else {
+      viewer.isolate(viewer.SelectedGroup?.id, viewer.Tree?.id ?? "")
+    }
+
   };
 
   return (
@@ -56,30 +64,36 @@ const ActionButtonPanel = () => {
           }}
         >
           <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "40px" }}>
-            <FlipButton />
-            <GroupTypeButton />
-            <VisibilityModeButton />
-            <ZoomToVisibleButton/>
-
-            <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
-            <NavigationButtonGroup />
-            <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
-
-
-            <ShowTagsButton variant="panel" />
-            <LengthDimensionButton/>
-            <IsolateButton />
 
             <Tooltip title="Show all">
               <Button
                 sx={{ backgroundColor: "transparent" }}
                 onClick={() => showAll()}
                 style={{ color: colors.grey[400], border: "0" }}
-                //   variant={open ? "contained" : "outlined"}
+              //   variant={open ? "contained" : "outlined"}
               >
                 <Icon icon="mdi:eye" />
               </Button>
             </Tooltip>
+            <IsolateButton />
+            <HideButton />
+
+            {/* <GroupTypeButton /> */}
+            <VisibilityModeButton />
+
+            <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
+            <NavigationButtonGroup />
+            <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
+            <ZoomToVisibleButton />
+
+
+            <ShowTagsButton variant="panel" />
+            <FlipButton />
+
+            <LengthDimensionButton />
+
+
+
             {/* <Tooltip title="Add comment">
               <CommentIconButton />
             </Tooltip> */}

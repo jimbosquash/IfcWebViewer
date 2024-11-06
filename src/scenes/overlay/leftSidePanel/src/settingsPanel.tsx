@@ -91,7 +91,7 @@ const SettingsPanel: React.FC = () => {
   const [labelStyle, setLabelStyle] = useState<"Code" | "Name" | "Alias">("Code");
   const [showGrid, setShowGrid] = useState<boolean>(false);
 
-  const labelOptions = ["Code", "Name", "Alias"]; // List of possible label styles
+  const labelOptions = ["Code", "Name"]; // List of possible label styles
 
 
   useEffect(() => {
@@ -127,7 +127,7 @@ const SettingsPanel: React.FC = () => {
 
   const handleLabelStyleChange = (newValue: string) => {
     console.log(`Label style changed to: ${newValue}`);
-    if(!(newValue === 'Name' || newValue === 'Code' || newValue === 'Alias')) return;
+    if (!(newValue === 'Name' || newValue === 'Code' || newValue === 'Alias')) return;
     setLabelStyle(newValue);
     console.log(`Label style changed to: ${newValue}`);
     components.get(ModelTagger).Configuration.set("labelStyle", newValue);
@@ -182,14 +182,14 @@ const SettingsPanel: React.FC = () => {
       <Typography variant="h6" gutterBottom>
         Tag Settings
       </Typography>
-{/* 
+      {/* 
       <ToggleSetting
         label={`Show label as ${labelStyle}`}
         value={labelStyle === "Code"}
         onChange={(e) => handleLabelStyleToggle(e)}
       />
        */}
-            <DropdownSetting
+      <DropdownSetting
         label={`Show label as ${labelStyle}`}
         options={labelOptions}
         value={labelStyle}

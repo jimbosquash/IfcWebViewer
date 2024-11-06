@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Box, BoxProps, Typography } from "@mui/material";
+import { Box, BoxProps, SpeedDial, SpeedDialAction, Typography } from "@mui/material";
 import { Icon } from "@iconify/react";
 import IconPanel from "./src/IconPanel";
 import { useComponentsContext } from "../../../context/ComponentsContext";
@@ -14,6 +14,7 @@ import * as OBC from "@thatopen/components";
 import { ModelCache } from "../../../bim-components/modelCache";
 import { IconButtonConfig } from "../../../components/floatingIconButton";
 import { ConfigurationManager } from "../../../bim-components/configManager";
+import SpeedDialIconButton from "./src/SpeedDialIconButton";
 
 const FloatingCameraPanel: React.FC<BoxProps> = ({ ...props }) => {
   const components = useComponentsContext();
@@ -28,7 +29,7 @@ const FloatingCameraPanel: React.FC<BoxProps> = ({ ...props }) => {
 
     if (cache.world) {
       console.log('camConfig world and cam found')
-      let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
+      const cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
       if (cam) setCameraLock(cam.controls.enabled);
     }
 
@@ -45,15 +46,15 @@ const FloatingCameraPanel: React.FC<BoxProps> = ({ ...props }) => {
   const handleConfigChange = (event: Event) => {
     const { key, value, configName } = (event as CustomEvent).detail;
     console.log(`Config ${configName} changed: ${String(key)} = ${value}`);
-    switch (key){
+    switch (key) {
       case 'projection':
         console.log('setting projection icon to', value)
         setProjectionMode(value);
-      break;
+        break;
       case 'navMode':
         console.log('setting navMode icon to', value)
         setNavMode(value);
-      break;
+        break;
     }
   }
 
@@ -65,12 +66,12 @@ const FloatingCameraPanel: React.FC<BoxProps> = ({ ...props }) => {
   const toggleNavigationMode = useCallback(() => {
     const newNavMode = navMode === "Orbit" ? "Plan" : "Orbit";
     setCameraNavigation(components, newNavMode, true);
-  }, [components, projectionMode,navMode]);
+  }, [components, projectionMode, navMode]);
 
   const toggleCameraLock = useCallback(() => {
     const cache = components?.get(ModelCache);
     if (!cache?.world) return;
-    let cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
+    const cam = cache.world.camera as OBC.OrthoPerspectiveCamera;
     if (!cam) return;
     const newSet = !cam.controls.enabled;
     cam.controls.enabled = newSet;
@@ -97,15 +98,15 @@ const FloatingCameraPanel: React.FC<BoxProps> = ({ ...props }) => {
         size: "small",
         onClick: () => toggleNavigationMode(),
       },
-      {
-        icon: projectionMode === "Perspective" ? <Icon icon="iconoir:face-3d-draft" /> : <Icon icon="gis:cube-3d" />,
-        color: "primary",
-        ariaLabel: projectionMode === "Perspective" ? "Switch to Orthographic" : "Switch to Perspective",
-        size: "small",
-        disabled: !isCameraUnlocked,
-        tooltip: projectionMode === "Perspective" ? "Switch to Orthographic" : "Switch to Perspective",
-        onClick: () => toggleProjectionMode(),
-      },
+      // {
+      //   icon: projectionMode === "Perspective" ? <Icon icon="iconoir:face-3d-draft" /> : <Icon icon="gis:cube-3d" />,
+      //   color: "primary",
+      //   ariaLabel: projectionMode === "Perspective" ? "Switch to Orthographic" : "Switch to Perspective",
+      //   size: "small",
+      //   disabled: !isCameraUnlocked,
+      //   tooltip: projectionMode === "Perspective" ? "Switch to Orthographic" : "Switch to Perspective",
+      //   onClick: () => toggleProjectionMode(),
+      // },
       {
         icon: <Icon icon="solar:box-minimalistic-outline" />,
         color: "primary",
@@ -117,6 +118,13 @@ const FloatingCameraPanel: React.FC<BoxProps> = ({ ...props }) => {
           setOrthogonalView(components, undefined, undefined);
         },
       },
+
+    ],
+    [isCameraUnlocked, projectionMode, navMode, components]
+  );
+
+  const cameraViews = useMemo<IconButtonConfig[]>(
+    () => [
       {
         icon: <Icon icon="mdi:floor-plan" />,
         color: "primary",
@@ -128,12 +136,6 @@ const FloatingCameraPanel: React.FC<BoxProps> = ({ ...props }) => {
           setPlanView(components);
         },
       },
-    ],
-    [isCameraUnlocked, projectionMode, navMode, components]
-  );
-
-  const cameraViews = useMemo<IconButtonConfig[]>(
-    () => [
       {
         icon: <Typography>Left</Typography>,
         tooltip: "Left View",
@@ -181,10 +183,33 @@ const FloatingCameraPanel: React.FC<BoxProps> = ({ ...props }) => {
         ...props.sx,
         display: "flex",
         flexDirection: "column",
+        alignContent: 'center'
       }}
     >
       <IconPanel buttons={cameraControlButtons} />
-      <IconPanel buttons={cameraViews} />
+      {/* <SpeedDialIconButton mainIcon={<Icon icon="material-symbols:photo-camera-outline" />} buttons={cameraViews} /> */}
+      <SpeedDial
+        ariaLabel="Speed Dial"
+        icon={<Icon icon="material-symbols:photo-camera-outline" />}
+        direction="down" // Adjust the direction as needed
+        sx={{ position: "absolute", bottom: "40%", right: -6 }}
+      >
+        {cameraViews.map((button, index) => (
+          <SpeedDialAction
+            key={index}
+            icon={button.icon}
+            // tooltipTitle={button.tooltip}
+            // tooltipOpen
+            onClick={button.onClick}
+            FabProps={{
+              color: button.color,
+              disabled: button.disabled,
+              size: button.size,
+              sx: button.sx,
+            }}
+          />
+        ))}
+      </SpeedDial>
     </Box>
   );
 };
