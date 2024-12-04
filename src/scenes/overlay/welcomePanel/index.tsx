@@ -1,7 +1,7 @@
 import { Icon } from "@iconify/react";
 import { Box, Paper, Typography, useTheme } from "@mui/material";
 import { FragmentsGroup } from "@thatopen/fragments";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ModelCache } from "../../../bim-components/modelCache";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 import IfcDropZone from "../../../components/ifcDropZone";
@@ -9,6 +9,9 @@ import { useComponentsContext } from "../../../context/ComponentsContext";
 import { tokens } from "../../../theme";
 import { uploadFile } from "../../../utilities/IfcFileLoader";
 import { knownProperties } from "../../../utilities/types";
+import PublicFilesComponent from "./src/recentFilesTable";
+import { uploadFragment } from "../../../utilities/supabaseUtilities";
+import * as OBC from "@thatopen/components";
 
 export const WelcomePanel = () => {
   const components = useComponentsContext();
@@ -16,15 +19,33 @@ export const WelcomePanel = () => {
   const [loadedModel, setLoadedModel] = useState<FragmentsGroup>();
   const [enableView, setEnableView] = useState<boolean>(true);
 
+  useEffect(() => {
+    if (!components) return;
+
+    const fragments = components.get(OBC.FragmentsManager);
+    const listenForModelLoad = () => {
+      console.log('loaded model')
+      setEnableView(false)
+    }
+    fragments.onFragmentsLoaded.add(listenForModelLoad)
+
+    return (
+      fragments.onFragmentsLoaded.remove(listenForModelLoad)
+    )
+  }, [])
+
+
+
   const handleFileUpload = async (data: File) => {
     console.log("Opening Ifc file please wait.");
     const newModel = await uploadFile(data, components, false);
     if (newModel) {
       // use to give user settings preference in window (uploading configs or ignoring configs)
-      setLoadedModel(newModel);
-      const modelViewManager = components.get(ModelViewManager);
-      await components.get(ModelCache).add(newModel, new Uint8Array());
-      setEnableView(false)
+      // setLoadedModel(newModel);
+      uploadFragment(newModel, components)
+      // const modelViewManager = components.get(ModelViewManager);
+      // await components.get(ModelCache).add(newModel, new Uint8Array());
+      // setEnableView(false)
     }
   };
 
@@ -50,17 +71,49 @@ export const WelcomePanel = () => {
           <Paper
             elevation={3}
             sx={{
-              // padding: 4,
               maxWidth: "500px",
               width: "40%",
-
-              // height: "20%",
               maxHeight: "1000px",
               textAlign: "center",
               display: "flex",
               flexDirection: "column",
+              position: "relative", // Needed for the close button
             }}
           >
+            {/* Close Button */}
+            <Box
+              component="div"
+              sx={{
+                position: "absolute",
+                top: "8px",
+                right: "8px",
+                width: "24px",
+                height: "24px",
+                backgroundColor: "#f0f0f0",
+                borderRadius: "50%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                cursor: "pointer",
+                boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.2)",
+                zIndex: 10000, // Ensure it's above everything else
+              }}
+              onClick={() => setEnableView(false)} // Close action
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "gray",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                  lineHeight: "1",
+                  textAlign: "center",
+                }}
+              >
+                X
+              </Typography>
+            </Box>
+
             <Box
               component="div"
               sx={{
@@ -99,23 +152,24 @@ export const WelcomePanel = () => {
             {loadedModel === undefined && (
               <Box component="div">
                 <Typography variant="h6">The Smart IFC Assistant</Typography>
-                {/* <Typography variant="body2">View Sustainer .ifc files for production and assembly</Typography> */}
                 <Typography variant="body2">Suitable for .ifc files structured for Sustainer data</Typography>
                 <Box component="div" sx={{ alignSelf: "bottom", margin: "0px", padding: 4, height: "100%" }}>
                   <IfcDropZone onFileUpload={handleFileUpload} />
                 </Box>
               </Box>
             )}
+            {<PublicFilesComponent />}
 
-            {/* users selects how to format model */}
+            {/* User selects how to format model */}
             {/* {loadedModel !== undefined && (
-              <GroupSelector loadedModel={loadedModel} setEnabled={(data) => setEnableView(data)}/>
+              <GroupSelector loadedModel={loadedModel} setEnabled={(data) => setEnableView(data)} />
             )} */}
           </Paper>
         </Box>
       )}
     </>
   );
+
 };
 
 interface groupSelectorProps {
@@ -210,3 +264,4 @@ const GroupSelector: React.FC<groupSelectorProps> = ({ loadedModel, setEnabled }
 };
 
 export default WelcomePanel;
+

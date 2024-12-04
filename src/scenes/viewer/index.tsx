@@ -5,7 +5,7 @@ import { ModelCache } from "../../bim-components/modelCache";
 import { useComponentsContext } from "../../context/ComponentsContext";
 import LeftSidePanel from "../overlay/leftSidePanel";
 import RightSidePanel from "../overlay/rightSidePanel";
-import WelcomePanel from "../overlay/src/WelcomePanel";
+import WelcomePanel from "../overlay/welcomePanel";
 import { Scene } from "./src/scene";
 
 export const Viewer = () => {

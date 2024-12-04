@@ -20,6 +20,7 @@
     "@nivo/pie": "^0.86.0",
     "@react-three/drei": "^9.105.5",
     "@react-three/fiber": "^8.16.2",
+    "@supabase/supabase-js": "^2.46.1",
     "@thatopen/components": "^2.2.11",
     "@thatopen/components-front": "^2.2.2",
     "@thatopen/fragments": "^2.2.0",
