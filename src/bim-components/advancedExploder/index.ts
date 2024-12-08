@@ -13,7 +13,7 @@ export class AdvancedExploder extends OBC.Component {
     static uuid = "bf3a5df6-e975-4c5e-8597-a3a6607f6858" as const;
     readonly list: Comment[] = []
     readonly onCommentAdded = new OBC.Event<Comment>()
-    
+
     private _enabled = false
     private _world: OBC.World | null = null
 
@@ -22,10 +22,10 @@ export class AdvancedExploder extends OBC.Component {
         super(components)
     }
 
-    
+
     set world(world: OBC.World | null) {
         this._world = world
-        if(world){
+        if (world) {
         }
     }
 
@@ -40,5 +40,24 @@ export class AdvancedExploder extends OBC.Component {
     get enabled() {
         return this._enabled
     }
+
+    // get the selected group
+    // with the group, group by material
+    // make a map for the heights and group
+
+    // map key = material, value = fragMap
+    // mpa key = material, value = amount
+
+    // explode = () => {
+    //     const indexer = this.components.get(OBC.IfcRelationsIndexer);
+    //     const relationsFile = await fetch(
+    //         "https://thatopen.github.io/engine_components/resources/small-relations.json",
+    //     );
+    //     const relations = indexer.getRelationsMapFromJSON(await relationsFile.text());
+    //     indexer.setRelationMap(model, relations);
+    //     indexer.process(model);
+    //     const exploded = this.components.get(OBC.Exploder);
+    //     exploded.groupName = 
+    // }
 
 }
