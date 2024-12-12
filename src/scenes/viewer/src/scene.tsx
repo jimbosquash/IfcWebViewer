@@ -31,7 +31,7 @@ export const Scene = () => {
     }
 
     console.log("view port, setting up");
-    
+
 
     const fragments = components?.get(OBC.FragmentsManager);
     const highlightExtension = components.get(HighlightExtension);

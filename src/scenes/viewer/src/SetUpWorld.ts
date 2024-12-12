@@ -23,7 +23,8 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
   const { postproduction } = world.renderer;
 
   world.camera = new OBC.OrthoPerspectiveCamera(components)
-  components.get(ConfigurationManager).camConfig.get('projection')
+  // components.get(ConfigurationManager).camConfig.get('projection')
+  const configManager = components.get(ConfigurationManager)
 
   world.camera.projection.set(components.get(ConfigurationManager).camConfig.get('projection'));
   world.camera.enabled = true;
@@ -45,7 +46,6 @@ export function SetUpWorld(components: OBC.Components, containerRef: HTMLElement
   postproduction.setPasses({ custom: true, ao: true, gamma: true })
   postproduction.customEffects.lineColor = 0x17191c
 
-  const configManager = components.get(ConfigurationManager)
 
   worldGrid.visible = configManager.sceneConfig.get('showGrid');
 

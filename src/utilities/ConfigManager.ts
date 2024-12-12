@@ -61,7 +61,7 @@ export class ConfigManager<T extends Record<ConfigKey, ConfigValue>> extends Eve
             const res = this.dispatchEvent(new CustomEvent('configChanged', {
                 detail: { key, value, configName: this.storageKey }
             }));
-            console.log('event sent for setting val',res);
+            console.log('event sent for setting val', res);
         } else {
             throw new Error(`Invalid value for key: ${String(key)}`);
         }
@@ -79,20 +79,8 @@ export class ConfigManager<T extends Record<ConfigKey, ConfigValue>> extends Eve
 
     private saveToLocalStorage(): void {
         const configObject = Object.fromEntries(this.config);
-        console.log('config manager save local',this.storageKey, configObject)
+        console.log('config manager save local', this.storageKey, configObject)
 
         localStorage.setItem(this.storageKey, JSON.stringify(configObject));
     }
 }
-
-// const markerConfigManager = new ConfigManager<MarkerConfiguration>(markerConfigSchema, 'markerConfig');
-
-// // Listen for configuration changes
-// markerConfigManager.addEventListener('configChanged', (event: Event) => {
-//     const { key, value, configName } = (event as CustomEvent).detail;
-//     console.log(`Config ${configName} changed: ${String(key)} = ${value}`);
-// });
-
-// // Usage
-// markerConfigManager.set('showFasteners', false);
-// markerConfigManager.set('zoomLevel', 2);
