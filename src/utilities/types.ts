@@ -94,7 +94,7 @@ export interface BasicProperty {
 // names of properties that we commonly use for ifc export
 // export type knownProperties = "Aantal" |"Bouwnummer"| "Productcode" | "Materiaal"
 
-export enum knownProperties {
+export enum sustainerProperties {
   Count = "Aantal",
   BuildingNumber = "Bouwnummer",
   ProductCode = "Productcode",
@@ -102,6 +102,7 @@ export enum knownProperties {
   Station = 'Station',
   Assembly = 'Assembly',
   BuildingStep = "BuildingStep",
+  PrefabNumber = "PrefabNumber", // used by installation companies to group elements together like cables and endings
 }
 
 

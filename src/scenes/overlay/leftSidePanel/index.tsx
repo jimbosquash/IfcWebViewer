@@ -12,6 +12,7 @@ import { sidebarWidth } from "../rightSidePanel";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 import { ViewPresenterPanel } from "../../../components/ViewPresenterPanel";
 import { PanelBase } from "../../../components/PanelBase";
+import InstallationHelperPanel from "./src/installationHelperPanel";
 
 const minWidth = 220;
 
@@ -211,6 +212,24 @@ export const LeftSidePanel: React.FC = () => {
           </IconButton>
         </Tooltip>
 
+        <Tooltip title="Installations" placement="right" arrow>
+          <IconButton
+            style={{
+              backgroundColor: panelContent.name === "Installations" && panelOpen ? colors.grey[900] : "transparent",
+            }}
+            onClick={() =>
+              handleIconClick(
+                <>
+                  <InstallationHelperPanel />
+                </>,
+                "Installations"
+              )
+            }
+          >
+            <Icon icon="mdi:pipe-disconnected" />
+          </IconButton>
+        </Tooltip>
+
         {process.env.NODE_ENV === "development" && (
           <IconButton
             onClick={() =>
@@ -279,7 +298,7 @@ export const LeftSidePanel: React.FC = () => {
             component="div"
             style={{
               flexGrow: 1,
-              height:'100%',
+              height: '100%',
             }}
           >
             {panelContent.content}

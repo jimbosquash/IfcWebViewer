@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { BuildingElement, knownProperties } from "../../../../utilities/types";
+import { BuildingElement, sustainerProperties } from "../../../../utilities/types";
 import { Icon } from "@iconify/react";
 import * as OBF from "@thatopen/components-front";
 import { tokens } from "../../../../theme";
@@ -89,7 +89,7 @@ const ElementInfoPanel = () => {
 
   const findProperty = (
     element: BuildingElement,
-    propertyName: knownProperties
+    propertyName: sustainerProperties
   ): { name: string; value: string; pSet: string } | undefined => {
     return element.properties.find((prop) => prop.name === propertyName);
   };
@@ -135,7 +135,7 @@ const ElementInfoPanel = () => {
           </Box>
           <Grid container direction="column">
             <Typography variant="h6">
-              {!selected ? "Selected element" : findProperty(selected, knownProperties.ProductCode)?.value}
+              {!selected ? "Selected element" : findProperty(selected, sustainerProperties.ProductCode)?.value}
             </Typography>
             <Typography variant="body2">{!selected ? "Selected element" : selected.name}</Typography>
           </Grid>
@@ -198,7 +198,7 @@ const BasicDataTable: React.FC<dataTableProps> = ({ data, columns, onSelectChang
   const isSelected = useCallback((key: number) => selected.indexOf(key) !== -1, [selected]);
 
   return (
-    <TableContainer component={Paper} sx={{ ...sx}}>
+    <TableContainer component={Paper} sx={{ ...sx }}>
       <Table stickyHeader sx={{ width: "100%" }} size={"small"} aria-label="simple table">
         <TableHead>
           <TableRow>

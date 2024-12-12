@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { BuildingElement, knownProperties } from "../../../utilities/types";
+import { BuildingElement, sustainerProperties } from "../../../utilities/types";
 import * as OBC from '@thatopen/components';
 import { GetCenterPoint } from "../../../utilities/IfcUtilities";
 import { GetPropertyByName } from "../../../utilities/BuildingElementUtilities";

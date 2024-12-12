@@ -23,7 +23,7 @@ export const InfoPanel = () => {
   const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
   const [infoPanelData, setPanelData] = useState<InfoPanelProps>();
-  const [isVisible, setVsibility] = useState<boolean>(false);
+  const [isVisible, setVisibility] = useState<boolean>(false);
   const [showToolTip, setShowToolTip] = useState<boolean>(false);
   const [showHVACWarning, setShowHVACWarning] = useState<boolean>(false);
   const [showFlipWarning, setShowFlipWarning] = useState<boolean>(false);
@@ -51,6 +51,9 @@ export const InfoPanel = () => {
   const handleHvacFound = (data: BuildingElement[]) => {
     setShowHVACWarning(data.length > 0);
     setShowTip(data.length > 0);
+    const hvacViewer = components.get(HVACViewer);
+    // hvacViewer.showTags(data.length > 0);
+
     // console.log("havac found", data.length);
   };
   const handleFlip = (data: boolean) => {
@@ -67,8 +70,8 @@ export const InfoPanel = () => {
       groupName: data.groupName,
     };
     setPanelData(infoPanelData);
-    if (data.groupName) setVsibility(true);
-    else setVsibility(false);
+    if (data.groupName) setVisibility(true);
+    else setVisibility(false);
 
     // get that group data
   };
@@ -77,19 +80,19 @@ export const InfoPanel = () => {
 
   const resetFlip = () => {
     const modelFlipper = components.get(ModelFlipper);
-    if(modelFlipper.xAxisIsFlipped || modelFlipper.yAxisIsFlipped) {
+    if (modelFlipper.xAxisIsFlipped || modelFlipper.yAxisIsFlipped) {
       modelFlipper.flip(modelFlipper.xAxisIsFlipped ? "xAxis" : 'zAxis');
     }
   }
 
   const selectHVAC = async () => {
     const hvacViewer = components.get(HVACViewer);
-    if(hvacViewer.foundElements.length <= 0) return;
-    await select(hvacViewer.foundElements,components,true);
-    if(!hvacIsolated){
-      await isolate(hvacViewer.foundElements,components)
+    if (hvacViewer.foundElements.length <= 0) return;
+    await select(hvacViewer.foundElements, components, true);
+    if (!hvacIsolated) {
+      await isolate(hvacViewer.foundElements, components)
 
-      zoomAllorSelected(components,true,true)
+      zoomAllorSelected(components, true, true)
 
     } else {
       //show all
@@ -126,9 +129,9 @@ export const InfoPanel = () => {
 
   const getTipColor = (): string => {
 
-    if(showFlipWarning) return `4px solid #ed6c02`;
-    
-    if(showHVACWarning) return `4px solid #0288d1`;
+    if (showFlipWarning) return `4px solid #ed6c02`;
+
+    if (showHVACWarning) return `4px solid #0288d1`;
 
     return '';
   }
@@ -221,7 +224,7 @@ export const InfoPanel = () => {
               disabled={false}
               color={"info"}
               tooltip="TIP: HVAC elements found in this group!"
-              onClick={() => {selectHVAC()}}
+              onClick={() => { selectHVAC() }}
             />
           )}
           {showFlipWarning && (
@@ -231,7 +234,7 @@ export const InfoPanel = () => {
               disabled={false}
               color={"warning"}
               tooltip="Model flipped: click to flip back"
-              onClick={() => {resetFlip()}}
+              onClick={() => { resetFlip() }}
             />
           )}
 

@@ -19,7 +19,7 @@ export interface TreeTableRowProps {
   treeID: string;
   node: TreeNode<IfcElement> | undefined;
   children?: React.ReactNode;
-  onDoubleClick: (node: TreeNode<IfcElement>) => void; // The double-click handler
+  onDoubleClick?: (node: TreeNode<IfcElement>) => void; // The double-click handler
   onClick?: (node: TreeNode<IfcElement>) => void; // The double-click handler
   onToggleVisibility?: (node: TreeNode<IfcElement>) => void; // the toggle vis handler
   variant: "Floating" | "Flat";
@@ -42,7 +42,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
     useEffect(() => {
       if (!modelViewManager) return;
 
-      const handleGroupVisibility = (data: { treeID: string}) =>
+      const handleGroupVisibility = (data: { treeID: string }) =>
         getVisibilityState(data.treeID);
       const handleSelectionChange = (data: SelectionGroup) => getSelectionState(data);
 
@@ -63,7 +63,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         setIsSelected(selectionGroup?.id === node?.id);
 
         // if any children are selected then expand
-        if(selectionGroup && node?.children.has(selectionGroup?.id)) {
+        if (selectionGroup && node?.children.has(selectionGroup?.id)) {
           setIsExpanded(true)
         } else {
           // setIsExpanded(false)
@@ -74,22 +74,23 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
     );
 
     const getVisibilityState = (tID: string) => {
-        if (treeID !== tID || !node?.id || !modelViewManager) return;
+      if (treeID !== tID || !node?.id || !modelViewManager) return;
 
-        const visState = modelViewManager.getTree(treeID)?.getVisibility(node.id);
-        // console.log('getting vis state', node.id, visState)
+      const visState = modelViewManager.getTree(treeID)?.getVisibility(node.id);
+      console.log('getting vis state', node.id, visState)
 
-        setVisibility(visState);
-        if (visState === undefined || visState === visibilityState) return;
-      };
+      setVisibility(visState);
+      if (visState === undefined || visState === visibilityState) return;
+    };
 
     // Function to get dynamic MUI Chips based on conditions
     const getChips = useMemo(() => {
       const chips = [];
       if (node?.children?.size) {
         const assemblies = [...node.children.values()].filter(child => child.type === KnownGroupType.Assembly)
-        if(assemblies.length > 0){
-        chips.push(<Chip key="assemblies" label={`${assemblies.length} Assemblies`} size="small" />);}
+        if (assemblies.length > 0) {
+          chips.push(<Chip key="assemblies" label={`${assemblies.length} Assemblies`} size="small" />);
+        }
       }
 
       return chips;
@@ -103,7 +104,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
       console.log("Double-clicked on node", node);
 
       // Call the function passed through props
-      onDoubleClick(node);
+      if (onDoubleClick) onDoubleClick(node);
     }, [node, components, onDoubleClick]);
 
     // Local click handler that delegates to the passed-in function
@@ -173,7 +174,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
           newState,
           true
         );
-        console.log('treeRow default visibility toggle',node.id)
+        console.log('treeRow default visibility toggle', node.id)
 
         if (node) {
           const elements = convertToBuildingElement(TreeUtils.getChildrenNonNullData(node));
@@ -198,7 +199,6 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         component="div"
         sx={{
           width: "100%",
-          height: "100%",
           ...getParentBoxTheme(isHovered, isExpanded, variant)
         }}
       >
@@ -211,18 +211,18 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
           }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          sx={{ ...getRowTheme(getColor('background'),isHovered, isExpanded, variant, colors) }}
+          sx={{ ...getRowTheme(getColor('background'), isHovered, isExpanded, variant, colors) }}
         >
 
           {/* Visibility Toggle */}
           <IconButton
             size="small"
-            sx={{color: getColor("text")}}
+            sx={{ color: getColor("text") }}
             onClick={(e) => {
-              if (node){
-                 handleToggleVisibility(node);
-                 modelViewManager.updateVisibility(treeID);
-                }
+              if (node) {
+                handleToggleVisibility(node);
+                modelViewManager.updateVisibility(treeID);
+              }
             }}
           >
             <Icon
@@ -268,7 +268,6 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
             {children}
           </Box>
         )}
-        
       </Box>
     );
   }
@@ -330,7 +329,7 @@ const RowContent: React.FC<RowContentProps> = ({ name, icon, node, chips, childr
 );
 
 // Helper function to get box styling for different states
-const getRowTheme = (background: string,isHovered: boolean, isExpanded: boolean, variant: "Floating" | "Flat", colors: any) => ({
+const getRowTheme = (background: string, isHovered: boolean, isExpanded: boolean, variant: "Floating" | "Flat", colors: any) => ({
   padding: variant === "Floating" ? "8px" : "0px",
   backgroundColor: background,
   transition: "all 0.1s ease",

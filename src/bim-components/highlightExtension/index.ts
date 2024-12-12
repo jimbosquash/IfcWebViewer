@@ -3,7 +3,7 @@ import { FragmentsManager } from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
 import * as THREE from "three";
 import { GetPropertyByName } from "../../utilities/BuildingElementUtilities";
-import { BuildingElement, knownProperties } from "../../utilities/types";
+import { BuildingElement, sustainerProperties } from "../../utilities/types";
 import { ModelCache } from "../modelCache";
 import { ModelTagger } from "../modelTagger";
 import { ModelViewManager } from "../modelViewer";
@@ -157,8 +157,8 @@ export class HighlightExtension extends OBC.Component {
         const labelStyle = config.get('labelStyle')
         let label = element.name;
         if (labelStyle === `Code`) {
-            let code = GetPropertyByName(element, knownProperties.ProductCode)?.value
-            const mat = GetPropertyByName(element, knownProperties.Material)?.value ?? "";
+            let code = GetPropertyByName(element, sustainerProperties.ProductCode)?.value
+            const mat = GetPropertyByName(element, sustainerProperties.Material)?.value ?? "";
             if (mat && code) code = `${mat}_${code}`
             if (code) label = code;
         }
