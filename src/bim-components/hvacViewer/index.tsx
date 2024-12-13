@@ -83,6 +83,7 @@ export class HVACViewer extends OBC.Component {
 
     const tree = setUpTreeFromProperties(treeID, this._foundElements, [sustainerProperties.PrefabNumber], { allowUnspecifedasNodeName: true });
     this._prefabGroups = tree;
+    console.log('prefab tree', tree)
     this.onFoundElementsChanged.trigger(this._foundElements);
   }
 

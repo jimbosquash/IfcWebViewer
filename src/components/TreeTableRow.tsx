@@ -217,7 +217,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
           sx={{
             ...getRowTheme(variant),
             backgroundColor: getColor('background'),
-            color: getColor('text')
+            color: getColor('text'),
           }}
         >
 
