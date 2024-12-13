@@ -10,7 +10,6 @@ import TaskBrowserPanel from "./src/TaskBrowserPanel";
 import SettingsPanel from "./src/settingsPanel";
 import { sidebarWidth } from "../rightSidePanel";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
-import { ViewPresenterPanel } from "../../../components/ViewPresenterPanel";
 import { PanelBase } from "../../../components/PanelBase";
 import InstallationHelperPanel from "./src/installationHelperPanel";
 

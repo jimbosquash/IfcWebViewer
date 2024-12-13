@@ -73,17 +73,18 @@ export class HVACViewer extends OBC.Component {
       ...managedTypeElements,
       ...buildingElements.filter((el) => GetPropertyByName(el, sustainerProperties.ProductCode)?.value.includes("TE")),
     ];
+    const uniqueElements = Array.from(new Set(managedTypeElements.map(el => JSON.stringify(el)))).map(el => JSON.parse(el) as BuildingElement);
 
-    if (!managedTypeElements) {
+
+    if (!uniqueElements) {
       if (this._foundElements.length !== 0) this.onFoundElementsChanged.trigger([]); // this means that the group had hvac elements
       return; // no managed hvac elements found
     }
-    this._foundElements = managedTypeElements;
+    this._foundElements = uniqueElements;
     this.setupTags(this._foundElements)
 
     const tree = setUpTreeFromProperties(treeID, this._foundElements, [sustainerProperties.PrefabNumber], { allowUnspecifedasNodeName: true });
     this._prefabGroups = tree;
-    console.log('prefab tree', tree)
     this.onFoundElementsChanged.trigger(this._foundElements);
   }
 

@@ -1,5 +1,5 @@
 import { Tree, TreeNode } from "./Tree";
-import { SelectionGroup, BuildingElement, KnownGroupType, sustainerProperties, IfcElement } from "./types";
+import { SelectionGroup, BuildingElement, KnownGroupType, sustainerProperties, IfcElement, BasicProperty } from "./types";
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
 import { ModelCache } from "../bim-components/modelCache";
@@ -512,8 +512,9 @@ export const setUpTreeFromProperties = (id: string, elements: BuildingElement[],
   function createSortedSubTree(tree: Tree<IfcElement>, parentNode: TreeNode<IfcElement>, currentElements: any[], currentLevel: number) {
     if (currentLevel >= propertyNames.length) {
       // We've reached the leaf level, add elements as leaf nodes
+      console.log('adding nodes to tree', parentNode.id, currentElements.map(e => e.name))
+
       currentElements.forEach((element, index) => {
-        console.log('adding node to tree', parentNode.id, element.name)
         tree.addNode(parentNode.id, `${parentNode.id}_${index}`, element.name, KnownGroupType.BuildingElement, element, true);
       });
       return;
@@ -522,7 +523,6 @@ export const setUpTreeFromProperties = (id: string, elements: BuildingElement[],
     const currentNodeType = propertyNames[currentLevel];
     const groupedElements = groupElementsByPropertyName(currentElements, currentNodeType);
     const sortedGroups = sortGroupedElements(groupedElements);
-    console.log('sorted groups', groupedElements)
 
     sortedGroups.forEach(([groupValue, groupElements]) => {
       if (groupValue === "Unspecified") {
@@ -595,12 +595,14 @@ function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[
 
 export const groupElementsByPropertyName = (elements: BuildingElement[], property: string): Map<string, BuildingElement[]> => {
   const grouped = new Map<string, BuildingElement[]>();
+  // const uniqueElements = Array.from(new Set(elements.map(el => JSON.stringify(el)))).map(el => JSON.parse(el));
+
   elements.forEach(element => {
     if (!element.properties) {
       console.log('element failed to find property', element, elements)
       return;
     }
-    const value = element.properties.find(prop => prop.name === property)?.value || 'Unspecified';
+    const value = element.properties.find((prop: BasicProperty) => prop.name === property)?.value || 'Unspecified';
     // if(value === "Unknown")
     //   console.log("unknown data found",property,element.properties )
     if (!grouped.has(value)) {
