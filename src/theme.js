@@ -28,6 +28,10 @@ export const tokens = (mode) => ({
         700: "#0c101b",
         800: "#080b12",
         900: "#040509",
+        contrastText: "#e0e0e0",
+        hover: "#db4f4a",
+        selected: "#0d47a1",
+        doubleClicked: "#004ba0",
       },
       greenAccent: {
         100: "#dbf5ee",
@@ -90,6 +94,10 @@ export const tokens = (mode) => ({
         700: "#727681",
         800: "#a1a4ab",
         900: "#d0d1d5",
+        contrastText: "#e0e0e0",
+        hover: "#db4f4a", // red 300
+        selected: "#0d47a1",
+        doubleClicked: "#004ba0",
       },
       greenAccent: {
         100: "#0f2922",
@@ -139,14 +147,19 @@ export const themeSettings = (mode) => {
           // palette values for dark mode
           primary: {
             main: colors.primary[500],
+            hover: colors.primary.hover, // Reference hover color
+            selected: colors.primary.selected, // Reference selected color
           },
           secondary: {
             main: colors.greenAccent[500],
+            hover: colors.greenAccent[300], // Example secondary hover
+
           },
           neutral: {
-            dark: colors.grey[700],
             main: colors.grey[500],
             light: colors.grey[100],
+            dark: colors.grey[700],
+            hover: colors.grey[300],
           },
           background: {
             //default: colors.primary[500],
@@ -157,19 +170,34 @@ export const themeSettings = (mode) => {
           // palette values for light mode
           primary: {
             main: colors.primary[400],
+            hover: colors.primary.hover,
+            selected: colors.primary.selected,
+            doubleClicked: colors.primary.doubleClicked,
           },
           secondary: {
             main: colors.greenAccent[500],
+            hover: colors.greenAccent[300],
           },
           neutral: {
-            dark: colors.grey[700],
             main: colors.grey[500],
             light: colors.grey[100],
+            dark: colors.grey[700],
+            hover: colors.grey[300],
           },
           background: {
             default: "#fcfcfc",
           },
         }),
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          "&:focus": {
+            outline: "none",
+            boxShadow: "none",
+          },
+        },
+      },
     },
     typography: {
       fontFamily: ["Source Sans Pro", "sans-serif"].join(","),

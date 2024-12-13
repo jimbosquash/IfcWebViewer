@@ -3,7 +3,6 @@ import { Icon } from "@iconify/react";
 import { Box, Chip, IconButton, Typography, useTheme } from "@mui/material";
 import { ModelCache } from "../bim-components/modelCache";
 import { useComponentsContext } from "../context/ComponentsContext";
-import { nonSelectableTextStyle } from "../styles";
 import { tokens } from "../theme";
 import { GetFragmentIdMaps } from "../utilities/IfcUtilities";
 import { TreeNode } from "../utilities/Tree";
@@ -12,6 +11,7 @@ import * as OBF from "@thatopen/components-front";
 import { ModelViewManager } from "../bim-components/modelViewer";
 import { TreeUtils } from "../utilities/treeUtils";
 import { convertToBuildingElement } from "../utilities/BuildingElementUtilities";
+import { RowContent } from "./RowContent";
 
 export interface TreeTableRowProps {
   name: string;
@@ -19,6 +19,7 @@ export interface TreeTableRowProps {
   treeID: string;
   node: TreeNode<IfcElement> | undefined;
   children?: React.ReactNode;
+  customRowContent?: React.ReactNode;
   onDoubleClick?: (node: TreeNode<IfcElement>) => void; // The double-click handler
   onClick?: (node: TreeNode<IfcElement>) => void; // The double-click handler
   onToggleVisibility?: (node: TreeNode<IfcElement>) => void; // the toggle vis handler
@@ -26,7 +27,7 @@ export interface TreeTableRowProps {
 }
 
 export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
-  ({ name, node, icon, treeID, onToggleVisibility, variant, onDoubleClick, onClick, children }) => {
+  ({ name, node, icon, treeID, onToggleVisibility, variant, onDoubleClick, onClick, children, customRowContent }) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const components = useComponentsContext();
@@ -139,6 +140,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
       };
     }, [isHovered, node, components]);
 
+
     const getColor = useCallback(
       (element: "text" | "background") => {
         if (isSelected) {
@@ -199,7 +201,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         component="div"
         sx={{
           width: "100%",
-          ...getParentBoxTheme(isHovered, isExpanded, variant)
+          ...getParentBoxTheme(variant)
         }}
       >
         <Box
@@ -211,13 +213,18 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
           }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          sx={{ ...getRowTheme(getColor('background'), isHovered, isExpanded, variant, colors) }}
+
+          sx={{
+            ...getRowTheme(variant),
+            backgroundColor: getColor('background'),
+            color: getColor('text')
+          }}
         >
 
           {/* Visibility Toggle */}
           <IconButton
             size="small"
-            sx={{ color: getColor("text") }}
+            sx={{ color: "inherit" }}
             onClick={(e) => {
               if (node) {
                 handleToggleVisibility(node);
@@ -233,18 +240,18 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
               }
             />
           </IconButton>
-          <RowContent
+
+          {customRowContent ? customRowContent : <RowContent
             name={name}
             icon={icon}
-            getColor={getColor}
             node={node}
             chips={getChips}
-            childrenCount={node?.children?.size ?? 0}
-          />
+          />}
+
           {children && (
             <IconButton
               size="small"
-              sx={{ flexShrink: 0, marginLeft: "8px", color: getColor("text") }}
+              sx={{ flexShrink: 0, marginLeft: "8px", color: "inherit" }}
               onClick={(e) => {
                 e.stopPropagation(); // Stop the click from reaching the row
                 handleToggleExpand(e);
@@ -285,68 +292,22 @@ export interface expandToggleProps {
   color: string;
 }
 
-export interface RowContentProps {
-  name: string;
-  icon: string;
-  getColor: (element: "text" | "background") => string;
-  node: TreeNode<IfcElement> | undefined;
-  childrenCount: number;
-  chips?: React.ReactNode[]; // An array of chips (optional), passed as React elements
-}
-
-// RowContent component to display name, icon, and any chips passed
-const RowContent: React.FC<RowContentProps> = ({ name, icon, node, chips, childrenCount, getColor }) => (
-  <Box component="div" display="flex" alignItems="center" sx={{ flexGrow: 1 }}>
-    {icon && <Icon icon={icon} style={{ marginLeft: "5px" }} />}
-    <Typography
-      noWrap
-      color={getColor('text')}
-      sx={{
-        flexGrow: 1,
-        flexShrink: 1,
-        minWidth: 0,
-        ...nonSelectableTextStyle,
-        ml: 1,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-      }}
-    >
-      {name}
-    </Typography>
-
-    {/* Box for chips: takes full available space and aligns chips to the right */}
-    <Box component="div" display="flex" alignItems="center" justifyContent="flex-end" sx={{ flexGrow: 1 }}>
-      {chips?.map((chip, index) => (
-        <Box component="div" key={index} sx={{ ml: 1 }}>
-          {" "}
-          {/* Optional spacing between chips */}
-          {chip}
-        </Box>
-      ))}
-    </Box>
-  </Box>
-);
-
 // Helper function to get box styling for different states
-const getRowTheme = (background: string, isHovered: boolean, isExpanded: boolean, variant: "Floating" | "Flat", colors: any) => ({
+const getRowTheme = (variant: "Floating" | "Flat") => ({
   padding: variant === "Floating" ? "8px" : "0px",
-  backgroundColor: background,
   transition: "all 0.1s ease",
   borderBottom: variant !== "Floating" ? "0.8px solid #ccc" : "",
   borderTop: variant !== "Floating" ? "0.8px solid #ccc" : "",
-  // margin: variant === "Floating" ? "4px" : "",
   justifyContent: "space-between",
   overflow: "hidden",
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
   minheight: "30px",
-
 });
 
 
-const getParentBoxTheme = (isHovered: boolean, isExpanded: boolean, variant: "Floating" | "Flat") => ({
+const getParentBoxTheme = (variant: "Floating" | "Flat") => ({
   boxShadow: variant === "Floating" ? "0 0 10px rgba(0, 0, 0, 0.1)" : "",
   borderRadius: variant === "Floating" ? "12px" : '',
   border: variant === "Floating" ? "0.8px solid #ccc" : "",

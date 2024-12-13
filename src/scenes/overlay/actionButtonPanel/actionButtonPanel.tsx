@@ -63,13 +63,31 @@ const ActionButtonPanel = () => {
             display: "inline-block",
           }}
         >
-          <ButtonGroup variant="contained" style={{ backgroundColor: colors.primary[400], height: "40px" }}>
+          {/* // backgroundColor: colors.primary[400], */}
+          <ButtonGroup variant="contained" style={{ height: "40px" }}>
 
             <Tooltip title="Show all">
               <Button
-                sx={{ backgroundColor: "transparent" }}
+                onSelect={() => { console.log('selected') }}
+                sx={{
+                  backgroundColor: theme.palette.primary.main,
+                  "&:hover": {
+                    backgroundColor: theme.palette.primary.hover,
+                  },
+                  "&.Mui-selected": {
+                    backgroundColor: theme.palette.primary.main,
+                  },
+                  "&.Mui-doubleClicked": {
+                    backgroundColor: theme.palette.primary.doubleClicked,
+                  },
+                  // "&:focus": {
+                  //   outline: "none", // Removes the default focus ring
+                  //   boxShadow: "none", // Removes the focus box-shadow if present
+                  // },
+                }}
                 onClick={() => showAll()}
-                style={{ color: colors.grey[400], border: "0" }}
+                style={{ border: "0" }}
+                color="primary"
               //   variant={open ? "contained" : "outlined"}
               >
                 <Icon icon="mdi:eye" />
