@@ -1,15 +1,15 @@
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
 import { convertToBuildingElement, GetPropertyByName, select, setUpTreeFromProperties } from "../../utilities/BuildingElementUtilities";
-import { BuildingElement, IfcElement, sustainerProperties, SelectionGroup } from "../../utilities/types";
+import { BuildingElement, IfcElement, sustainerProperties, SelectionGroup, Unspecified } from "../../utilities/types";
 import { ModelTagger } from "../modelTagger";
-import { markProperties } from "../modelTagger/src/Tag";
+import { markProperties } from "../modelTagger/src/MarkProperties";
 import { ModelViewManager } from "../modelViewer";
 import { Mark } from "@thatopen/components-front";
 import { ModelCache } from "../modelCache";
 import { Tree, TreeNode } from "../../utilities/Tree";
 import { TreeUtils } from "../../utilities/treeUtils";
-import { GetFragmentIdMaps } from "../../utilities/IfcUtilities";
+import { GetCenterPoint, GetFragmentIdMaps } from "../../utilities/IfcUtilities";
 
 //the hvacviewer will support users in displaying Hvac elements in meaningful ways
 // - listen to the active group and check if HVAC exists there
@@ -26,12 +26,35 @@ export class HVACViewer extends OBC.Component {
   private _tags: Map<string, markProperties> = new Map();
   private _markers: Mark[] = []; //Marks currently being used
   readonly onFoundElementsChanged = new OBC.Event<BuildingElement[]>(); // trigger when the selection group cointas elements of type in this._managedTypes collection.
+  readonly onGroupTreeChanged = new OBC.Event<sustainerProperties>(); // trigger when the selection group cointas elements of type in this._managedTypes collection.
+  private _groupingType: sustainerProperties = sustainerProperties.PrefabNumber;
+  private installationGroups: Tree<IfcElement> | undefined; // defined by the installation company through the 'Prefab preoperty'
+  private _tagConfig: "name" | "prefab" = "prefab";
 
-  private _prefabGroups: Tree<IfcElement> | undefined; // defined by the installation company through the 'Prefab preoperty'
-
+  public groupingOptions: sustainerProperties[] = [sustainerProperties.PrefabNumber,
+  sustainerProperties.BuildingStep,
+  sustainerProperties.ProductCode,
+  sustainerProperties.Family
+  ]
 
   constructor(components: OBC.Components) {
     super(components);
+  }
+
+  get groupingType() {
+    return this._groupingType;
+  }
+
+  set groupingType(groupType: sustainerProperties) {
+    if (groupType === this._groupingType) return;
+    this._groupingType = groupType
+
+
+    const tree = setUpTreeFromProperties(treeID, this._foundElements, [this._groupingType], { allowUnspecifedasNodeName: true });
+    this.installationGroups = tree;
+    this.onGroupTreeChanged.trigger(this._groupingType);
+
+    // set up new tree
   }
 
   set enabled(value: boolean) {
@@ -50,7 +73,7 @@ export class HVACViewer extends OBC.Component {
    * The tree representing installatino elements grouped by their Prefab property set by external company
    */
   get prefabGroups() {
-    return this._prefabGroups;
+    return this.installationGroups;
   }
 
   get foundElements() {
@@ -61,6 +84,11 @@ export class HVACViewer extends OBC.Component {
     return this._enabled;
   }
 
+  /**
+   * 
+   * @param data 
+   * @returns 
+   */
   handelSelectedGroupChanged(data: SelectionGroup) {
     if (!data || !data.elements) return;
 
@@ -83,25 +111,25 @@ export class HVACViewer extends OBC.Component {
     this._foundElements = uniqueElements;
     this.setupTags(this._foundElements)
 
-    const tree = setUpTreeFromProperties(treeID, this._foundElements, [sustainerProperties.PrefabNumber], { allowUnspecifedasNodeName: true });
-    this._prefabGroups = tree;
+    const tree = setUpTreeFromProperties(treeID, this._foundElements, [this._groupingType], { allowUnspecifedasNodeName: true });
+    this.installationGroups = tree;
     this.onFoundElementsChanged.trigger(this._foundElements);
   }
 
 
-  handleNewElements(elements: BuildingElement[]): void {
-    if (!elements) return;
-    const tree = setUpTreeFromProperties(treeID, elements, [sustainerProperties.PrefabNumber], { allowUnspecifedasNodeName: true });
-    console.log('installation tree', tree)
-  }
 
+  /**
+   * color elements and set up tag for elements depending on Tag settings
+   * @param nodeId 
+   * @returns 
+   */
   highlightGroup(nodeId: string) {
     // console.log('hvac handler highlighting')
-    if (!this._prefabGroups) return;
+    if (!this.installationGroups) return;
     this.showTags(false)
 
 
-    const node = this._prefabGroups.getFirstOrUndefinedNode(((n) => n.id === nodeId))
+    const node = this.installationGroups.getFirstOrUndefinedNode(((n) => n.id === nodeId))
     if (!node) return;
 
     console.log('hvac handler highlighting', node)
@@ -138,7 +166,7 @@ export class HVACViewer extends OBC.Component {
       if (this._tags) {
         this._tags.forEach(tag => {
           //create marker
-          const mark = ModelTagger.createMarkFromProps(viewManager.world ?? undefined, tag.text, tag.color, tag.position)
+          const mark = ModelTagger.createMarkFromProps(viewManager.world ?? undefined, tag.text, tag.color, tag.position, tag.icon ?? undefined)
           if (mark)
             this._markers.push(mark)
 
@@ -164,6 +192,116 @@ export class HVACViewer extends OBC.Component {
       });
       this._markers = [];
     }
-    this._tags = ModelTagger.createMarkProperties(this.components, buildingElements);
+
+    if (this._tagConfig === "name") {
+      this._tags = ModelTagger.createMarkProperties(this.components, buildingElements);
+    } else {
+      this._tags = this.createMarkPropertiesForInstallation(this.components, this.groupingType, buildingElements);
+
+      // assume this is a group of items. 
+      // group them by grouping type 'prefab'
+      // then add their name based on prefab - male / female / cable
+      // color them based on their grouping
+    }
+  }
+
+  conduitWords = ['conduit'];
+  connectionWords = ['steker', 'stekker']
+  femaleconnectionWords = ['female']
+  maleconnectionWords = ['male']
+
+
+
+  createMarkPropertiesForInstallation(components: OBC.Components, propertyGroup: string, buildingElements: BuildingElement[]): Map<string, markProperties> {
+
+    const tags = new Map<string, markProperties>();
+
+    // group by model
+    const elementsByModel = buildingElements.reduce((acc, element) => {
+      if (!acc.has(element.modelID)) {
+        acc.set(element.modelID, [])
+      }
+      acc.get(element.modelID)?.push(element)
+      return acc;
+    }, new Map<string, BuildingElement[]>)
+
+    // create new mark properties by model group
+    const fragments = components.get(OBC.FragmentsManager);
+    elementsByModel.forEach((elements, modelID) => {
+      const model = fragments.groups.get(modelID);
+
+      if (!model) {
+        console.log("failed to creat tags as no model found for", modelID, elements)
+        return;
+      }
+
+      // I need my elements grouped by prefab
+
+      const elementsByGroup = elements.reduce((acc, element) => {
+
+        const prop = ModelTagger.isSustainerProperty(propertyGroup)
+          ? GetPropertyByName(element, propertyGroup)?.value
+          : Unspecified;
+
+        if (!acc.has(prop ?? Unspecified)) {
+          acc.set(prop ?? Unspecified, [])
+        }
+
+        acc.get(prop ?? Unspecified)?.push(element)
+        return acc;
+      }, new Map<string, BuildingElement[]>)
+
+      elementsByGroup.forEach((elements, name) => {
+        elements.forEach(element => {
+          const pt = GetCenterPoint(element, model, components)
+          if (!pt) {
+            console.log('Get Center failed: no center point found', element)
+            return;
+          }
+
+          // get name test
+
+          const type = this.parseString(element.name)
+
+          const icon = this._icons.get(type)
+          console.log('type', type, 'icon', icon)
+
+          tags.set(element.GlobalID, new markProperties(element.GlobalID, name === Unspecified ? element.name : name, pt, ModelTagger.getColorByProperty(name, components), element.type, icon ?? undefined));
+        })
+      })
+
+    })
+    return tags;
+  }
+
+  private _icons = new Map<string, string>([
+    ['conduit', 'material-symbols:cable'],
+    ['female conection', 'icon-park-outline:round-socket'],
+    ['male connection', 'ic:baseline-power'],
+    ['connection', 'mdi:plug'],
+    ['Unspecified', 'material-symbols:electric-bolt']
+  ])
+
+
+  private parseString(input: string): "conduit" | "female conection" | "male connection" | "connection" | "Unspecifed" {
+
+
+    // Normalize the input string to lowercase for case-insensitive matching
+    const normalizedInput = input.toLowerCase();
+    console.log('string parse', normalizedInput)
+
+    // Check against each category's word list
+    switch (true) {
+      case this.conduitWords.some(word => normalizedInput.includes(word)):
+        return "conduit";
+      case this.femaleconnectionWords.some(word => normalizedInput.includes(word)):
+        return "female conection"
+      case this.maleconnectionWords.some(word => normalizedInput.includes(word)):
+        return "male connection"
+      case this.connectionWords.some(word => normalizedInput.includes(word)):
+        return "connection"
+      default:
+        return Unspecified;
+    }
   }
 }

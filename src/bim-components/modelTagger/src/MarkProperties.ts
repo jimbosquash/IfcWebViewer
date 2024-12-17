@@ -1,10 +1,4 @@
 import * as THREE from "three";
-import { BuildingElement, sustainerProperties } from "../../../utilities/types";
-import * as OBC from '@thatopen/components';
-import { GetCenterPoint } from "../../../utilities/IfcUtilities";
-import { GetPropertyByName } from "../../../utilities/BuildingElementUtilities";
-import { ModelTagger } from "..";
-
 
 export class markProperties {
     text: string;
@@ -16,13 +10,15 @@ export class markProperties {
     type?: string;
 
     globalID: string;
+    icon?: string; // for iconify format
 
-    constructor(globalID: string, text: string, position?: THREE.Vector3, color?: string, type?: string) {
+    constructor(globalID: string, text: string, position?: THREE.Vector3, color?: string, type?: string, icon?: string) {
         this.globalID = globalID;
         this.text = text;
         this.position = position;
         this.color = color;
         this.type = type;
+        this.icon = icon;
     }
 
     dispose() {
@@ -35,5 +31,6 @@ export class markProperties {
         this.text = '';
         this.color = undefined;
         this.type = undefined;
+        this.icon = undefined;
     }
 }

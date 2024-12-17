@@ -23,6 +23,8 @@ export enum VisibilityMode {
 
 }
 
+export const Unspecified = "Unspecifed";
+
 export enum VisibilityState {
   Visible = "Visible",
   Hidden = 'Hidden',
@@ -103,6 +105,7 @@ export enum sustainerProperties {
   Assembly = 'Assembly',
   BuildingStep = "BuildingStep",
   PrefabNumber = "PrefabNumber", // used by installation companies to group elements together like cables and endings
+  Family = "Family",
 }
 
 

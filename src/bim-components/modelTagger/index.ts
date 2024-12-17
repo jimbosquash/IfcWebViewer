@@ -3,10 +3,10 @@ import * as OBF from "@thatopen/components-front";
 import { Mark } from "@thatopen/components-front";
 import { GetPropertyByName } from "../../utilities/BuildingElementUtilities";
 import { GetAllVisibleExpressIDs, GetCenterPoint, GetVisibleExpressIDs } from "../../utilities/IfcUtilities";
-import { BuildingElement, sustainerProperties } from "../../utilities/types";
+import { BuildingElement, sustainerProperties, Unspecified } from "../../utilities/types";
 import { ModelCache } from "../modelCache";
 import { ModelViewManager } from "../modelViewer";
-import { markProperties } from "./src/Tag";
+import { markProperties } from "./src/MarkProperties";
 import { getAveragePoint } from "../../utilities/threeUtils";
 import { Line, Vector3 } from "three";
 import * as THREE from "three";
@@ -14,6 +14,7 @@ import { IFCFLOW } from "../hvacViewer";
 import { ConfigManager, ConfigSchema } from "../../utilities/ConfigManager";
 import { addOrUpdateEntry, getAllKeys, getValueByKey, getValuesByKeys } from "../../utilities/indexedDBUtils";
 import { generateRandomHexColor } from "../../utilities/utilities";
+import { FragmentsGroup } from "@thatopen/fragments";
 
 // key = name of element. first array = an array of matching names with arrays of tags grouped by distance
 interface GroupedElements {
@@ -738,8 +739,69 @@ export class ModelTagger extends OBC.Component {
         return tags;
     }
 
+    static createMarkPropertiesForInstallation(components: OBC.Components, propertyGroup: string, buildingElements: BuildingElement[]): Map<string, markProperties> {
+
+        const tags = new Map<string, markProperties>();
+
+        // group by model
+        const elementsByModel = buildingElements.reduce((acc, element) => {
+            if (!acc.has(element.modelID)) {
+                acc.set(element.modelID, [])
+            }
+            acc.get(element.modelID)?.push(element)
+            return acc;
+        }, new Map<string, BuildingElement[]>)
+
+        // create new mark properties by model group
+        const fragments = components.get(OBC.FragmentsManager);
+        elementsByModel.forEach((elements, modelID) => {
+            const model = fragments.groups.get(modelID);
+
+            if (!model) {
+                console.log("failed to creat tags as no model found for", modelID, elements)
+                return;
+            }
+
+            // I need my elements grouped by prefab
+
+            const elementsByGroup = elements.reduce((acc, element) => {
+
+                const prop = ModelTagger.isSustainerProperty(propertyGroup)
+                    ? GetPropertyByName(element, propertyGroup)?.value
+                    : Unspecified;
+
+                if (!acc.has(prop ?? Unspecified)) {
+                    acc.set(prop ?? Unspecified, [])
+                }
+
+                acc.get(prop ?? Unspecified)?.push(element)
+                return acc;
+            }, new Map<string, BuildingElement[]>)
+
+            elementsByGroup.forEach((elements, name) => {
+                elements.forEach(element => {
+                    const pt = GetCenterPoint(element, model, components)
+                    if (!pt) {
+                        console.log('Get Center failed: no center point found', element)
+                        return;
+                    }
+
+                    // get name test
+
+
+                    tags.set(element.GlobalID, new markProperties(element.GlobalID, name, pt, ModelTagger.getColorByProperty(name, components), element.type));
+                })
+            })
+
+        })
+        return tags;
+    }
+
+    static isSustainerProperty(value: string): value is sustainerProperties {
+        return Object.values(sustainerProperties).includes(value as sustainerProperties);
+    }
+
     static getColor(element: BuildingElement, components: OBC.Components) {
-        // console.log('get color',this._colorMap.get(GetPropertyByName(element, knownProperties.ProductCode)?.value ?? ""))
         const tagger = components.get(ModelTagger);
         if (tagger._configManager.get('colorBy') === "Code") {
 
@@ -748,6 +810,19 @@ export class ModelTagger extends OBC.Component {
         } else {
             return tagger._colorMap.get(GetPropertyByName(element, sustainerProperties.Material)?.value ?? "");
         }
+    }
+
+    static getColorByProperty(propertyValue: string, components: OBC.Components) {
+        const tagger = components.get(ModelTagger);
+        let col = tagger._colorMap.get(propertyValue ?? "");
+        if (col) {
+            console.log('get color', col, 'for:', propertyValue, generateRandomHexColor())
+            return col;
+        }
+        col = generateRandomHexColor();
+        console.log('set color', col, 'for:', propertyValue, generateRandomHexColor())
+
+        tagger._colorMap.set(propertyValue, col);
 
     }
 

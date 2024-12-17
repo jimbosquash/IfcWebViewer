@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { Box, ButtonGroup, Chip, IconButton, Typography } from "@mui/material";
-import { BuildingElement, IfcElement } from "../../../../utilities/types";
+import { Box, Button, ButtonGroup, Chip, IconButton, Typography } from "@mui/material";
+import { BuildingElement, IfcElement, sustainerProperties } from "../../../../utilities/types";
 import { TreeNode } from "../../../../utilities/Tree";
 import { HVACViewer } from "../../../../bim-components/hvacViewer";
 import TreeTableRow from "../../../../components/TreeTableRow";
@@ -17,19 +17,27 @@ export const InstallationHelperPanel = () => {
     const [prefabNodes, setPrefabNodes] = useState<TreeNode<IfcElement>[]>();
     const [otherNodes, setOtherNodes] = useState<TreeNode<IfcElement>[]>();
     const [SelectedNode, setSelectedNode] = useState<TreeNode<IfcElement>>();
+    const [selected, setSelected] = useState<sustainerProperties | null>(null);
+
     const hvacViewer = useMemo(() => components?.get(HVACViewer), [components]);
 
     useEffect(() => {
         if (!components) return;
         if (!hvacViewer.enabled) hvacViewer.enabled = true;
-        hvacViewer.onFoundElementsChanged.add(handleHvacFound)
+        hvacViewer.onFoundElementsChanged.add(handleHvacTreeUpdated)
+        hvacViewer.onGroupTreeChanged.add(handleHvacTreeUpdated)
 
         console.log('hvac panel opened')
         if (hvacViewer.foundElements)
-            handleHvacFound(hvacViewer.foundElements)
+            handleHvacTreeUpdated()
+        hvacViewer.showTags(true)
+
 
         return (() => {
-            hvacViewer.onFoundElementsChanged.remove(handleHvacFound)
+            hvacViewer.onFoundElementsChanged.remove(handleHvacTreeUpdated)
+            hvacViewer.onGroupTreeChanged.remove(handleHvacTreeUpdated)
+            hvacViewer.showTags(false)
+
         })
     }, [components]);
 
@@ -38,8 +46,8 @@ export const InstallationHelperPanel = () => {
         hvacViewer.highlightGroup(SelectedNode?.id);
     }, [SelectedNode])
 
-    const handleHvacFound = (data: BuildingElement[]) => {
-        if (data.length <= 0) return;
+    const handleHvacTreeUpdated = () => {
+        if (hvacViewer.foundElements.length <= 0) return;
         console.log('hvac panel found elements')
         if (hvacViewer.prefabGroups) {
             // setNodes([...hvacViewer.prefabGroups?.root?.children?.values()])
@@ -55,6 +63,11 @@ export const InstallationHelperPanel = () => {
 
 
 
+    function handleButtonClick(type: sustainerProperties): void {
+        setSelected(type);
+        hvacViewer.groupingType = type;
+    }
+
     return (
         <PanelBase
             title="Installation view"
@@ -64,13 +77,30 @@ export const InstallationHelperPanel = () => {
                 This is helpful to know how to prepare cables step-by-step."
         >
             <ButtonGroup style={{ flexShrink: 0, marginTop: "18px", marginBottom: "10px", justifyContent: "center" }}>
-
+                {hvacViewer.groupingOptions.map((type) => (
+                    <Chip
+                        key={type}
+                        label={type}
+                        clickable
+                        onClick={() =>
+                            handleButtonClick(type)
+                        }
+                        color={selected === type ? "primary" : "default"}
+                        variant={selected === type ? "filled" : "outlined"}
+                        sx={{
+                            fontSize: "0.475rem", // Adjust font size to make it smaller
+                            padding: "0 1px", // Add a bit of padding
+                            height: "18px", // Reduce chip height
+                            margin: '0 2px',
+                        }}
+                    />
+                ))}
             </ButtonGroup>
 
             <Box component="div" m="0px"
                 style={{
                     height: '100%',
-                    overflowY: 'auto'
+                    overflowY: 'visible'
                 }}
                 width="100%">
                 {prefabNodes &&
@@ -84,7 +114,7 @@ export const InstallationHelperPanel = () => {
                             }}
                             name={data.name}
                             treeID={treeID}
-                            icon="mdi:pipe-disconnected"
+                            icon="ic:outline-power"
                             node={data}
                             key={data.id}
                             variant="Flat"
@@ -184,7 +214,8 @@ function getRowContent(node: TreeNode<IfcElement>): React.ReactNode {
     return (
         <RowContent
             name={node.name}
-            icon={"mdi:pipe-disconnected"}
+            // icon={"ic:outline-power"}
+            icon={"subway:power"}
             node={node}
             chips={getChips()}
         />

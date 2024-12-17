@@ -16,7 +16,7 @@ export interface RowContentProps {
 export const RowContent: React.FC<RowContentProps> = ({ name, icon, chips }) => {
 
     return (<Box component="div" display="flex" alignItems="center" sx={{ flexGrow: 1 }}>
-        {icon && <Icon icon={icon} style={{ marginLeft: "5px" }} />}
+        {icon && <Icon icon={icon} style={{ marginLeft: "5px", fontSize: '14px' }} />}
         <Typography
             noWrap
             color={'inherit'}

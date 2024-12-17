@@ -11,7 +11,7 @@ import { ModelCache } from "../bim-components/modelCache";
 import * as REACT from "react";
 import { useEffect, useRef, useState } from "react";
 import { ModelTagger } from "../bim-components/modelTagger";
-import { markProperties } from "../bim-components/modelTagger/src/Tag";
+import { markProperties } from "../bim-components/modelTagger/src/MarkProperties";
 
 interface DynamicButtonProp {
   variant: "floating" | "panel";
@@ -41,19 +41,20 @@ export const ShowTagsButton: REACT.FC<DynamicButtonProp> = ({ variant }) => {
 
   // set up model tagger
   useEffect(() => {
-    if (!components) return; 
+    if (!components) return;
 
     const tagger = components.get(ModelTagger);
-    if(!world) {
+    if (!world) {
       tagger.enabled = false;
-      return;}
+      return;
+    }
 
     tagger.world = world;
     tagger.enabled = true;
     // tagger.setVisibleAsync(visibility);
   }, [world]);
 
-  
+
   const toggleComments = async () => {
     // go to components and disable
     if (!components) return;
@@ -62,16 +63,16 @@ export const ShowTagsButton: REACT.FC<DynamicButtonProp> = ({ variant }) => {
     setVisibility(!visibility);
   };
 
-  const TagButtonIcon : React.FC<{ enabled: boolean }> =  ({enabled}) => {
-    return(<>
+  const TagButtonIcon: React.FC<{ enabled: boolean }> = ({ enabled }) => {
+    return (<>
       {!enabled ? <Icon icon="mdi:tag-off-outline" /> : <Icon icon="mdi:tag" />}
-      </>
+    </>
     )
   }
 
   return (
     <>
-      <Tooltip title={ visibility ? "Hide Tags" : "Show Tags"}>
+      <Tooltip title={visibility ? "Hide Tags" : "Show Tags"}>
         {variant === "panel" ? (
           <Button
             sx={{ backgroundColor: "transparent" }}
