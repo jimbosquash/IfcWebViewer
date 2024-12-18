@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { Box, ButtonGroup, Chip, IconButton, Typography } from "@mui/material";
+import { Box, ButtonGroup, Chip, IconButton, Tooltip, Typography, useTheme } from "@mui/material";
 import { IfcElement, sustainerProperties } from "../../../../utilities/types";
 import { TreeNode } from "../../../../utilities/Tree";
 import { HVACViewer } from "../../../../bim-components/hvacViewer";
@@ -11,6 +11,8 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { nonSelectableTextStyle } from "../../../../styles";
 import { ModelCache } from "../../../../bim-components/modelCache";
+import { Icon } from "@iconify/react";
+import { tokens } from "../../../../theme";
 
 const treeID = 'installationTree'
 
@@ -34,8 +36,10 @@ export const InstallationHelperPanel = () => {
             handleHvacTreeUpdated()
         } else {
             //set up from whole file.
-            hvacViewer.setInstallationView(components?.get(ModelCache).buildingElements ?? [])
-            hvacViewer.highlightGroup(hvacViewer.prefabGroups?.getFirstOrUndefinedNode(n => n.id !== undefined)?.id ?? "")
+            const filteredElements = hvacViewer.filterInstallationElements(components?.get(ModelCache).buildingElements ?? [])
+            if (filteredElements.length > 0)
+                hvacViewer.setInstallationView(filteredElements)
+            //hvacViewer.highlightGroup(hvacViewer.prefabGroups?.getFirstOrUndefinedNode(n => n.id !== undefined)?.id ?? "")
         }
         hvacViewer.showTags(true)
         setSelected(hvacViewer.groupingType)
@@ -57,8 +61,10 @@ export const InstallationHelperPanel = () => {
     const handleHvacTreeUpdated = () => {
         if (hvacViewer.foundElements.length <= 0) {
             // look at whole file
-            hvacViewer.setInstallationView(components?.get(ModelCache).buildingElements ?? [])
-            hvacViewer.highlightGroup(hvacViewer.prefabGroups?.getFirstOrUndefinedNode(n => n.id !== undefined)?.id ?? "")
+            const filteredElements = hvacViewer.filterInstallationElements(components?.get(ModelCache).buildingElements ?? [])
+            if (filteredElements.length > 0)
+                hvacViewer.setInstallationView(filteredElements)
+            //hvacViewer.highlightGroup(hvacViewer.prefabGroups?.getFirstOrUndefinedNode(n => n.id !== undefined)?.id ?? "")
 
             return;
         }
@@ -238,7 +244,8 @@ export const HeaderWithDropdown: React.FC<HeaderWithDropdownProps> = ({
 };
 
 function getRowContent(node: TreeNode<IfcElement>): React.ReactNode {
-
+    const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
     const getChips = (): React.ReactNode[] => {
         const chips = [];
         if (node?.children?.size) {
@@ -246,19 +253,63 @@ function getRowContent(node: TreeNode<IfcElement>): React.ReactNode {
 
             const elements = [...node.children.values()];//.filter(child => child.type === KnownGroupType.Assembly)
             if (elements.length > 0) {
-                console.log('children', elements)
+
+                // get connection types but if theres many elements assume its a unspecified container
+                if (elements.length < 10) {
+
+                    const types = elements.map(e => HVACViewer.getElectricalInstallationType(e.name))
+                    console.log('children', types)
+                    if (types.includes("male connection"))
+                        chips.push(<Chip color={'info'} label='male' key="male connection 1" icon={<Icon icon={HVACViewer.getIcon("male connection") ?? ""} />} size="small" variant="outlined" />);
+                    if (types.filter(t => t === 'male connection').length > 1)
+                        chips.push(<Chip color="info" label='male' key="male connection 2" icon={<Icon icon={HVACViewer.getIcon("male connection") ?? ""} />} size="small" variant="outlined" />);
+
+                    if (types.includes("female conection")) {
+                        chips.push(<Chip color="info" label='female' key="female connection 1" icon={<Icon icon={HVACViewer.getIcon("female conection") ?? ""} />} size="small" variant="outlined" />);
+                        if (types.filter(t => t === 'female conection').length > 1)
+                            chips.push(<Chip color="info" label='female' key="female connection 2" icon={<Icon icon={HVACViewer.getIcon("female conection") ?? ""} />} size="small" variant="outlined" />);
+                    }
+
+                    if (chips.length < 2) {
+                        chips.push(<Tooltip title={'Warning: Potential missing connection, only one connect found'}><Chip color="warning" key="missing connection" label={'missing connection'} icon={<Icon icon="material-symbols:warning-outline-rounded" width="12" height="12" />} size="small" /></Tooltip>);
+
+                    }
+                }
+
+                // console.log('children', elements)
                 chips.push(<Chip key="parts" label={`${elements.length} parts`} size="small" />);
+
+
             }
+
+
         }
 
         return chips;
+    }
+
+    const getIcon = (): string | undefined => {
+
+        if (node?.children?.size) {
+            console.log('node', node)
+
+            const elements = [...node.children.values()];//.filter(child => child.type === KnownGroupType.Assembly)
+            if (elements.length > 0) {
+                const types = elements.map(e => HVACViewer.getElectricalInstallationType(e.name))
+                console.log('children', types)
+                if (types.includes("conduit"))
+                    return HVACViewer.getIcon("conduit")
+            }
+        }
+
     }
 
     return (
         <RowContent
             name={node.name}
             // icon={"ic:outline-power"}
-            icon={"subway:power"}
+            // icon={"subway:power"}
+            icon={getIcon() ?? "subway:power"}
             node={node}
             chips={getChips()}
         />
