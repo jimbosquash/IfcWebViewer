@@ -1,5 +1,3 @@
-import { VisibilityState } from "./types";
-
 export interface TreeNode<T> {
     id: string; // uniuqe id for node map
     name: string // name to support container nodes eg "station WS01"
@@ -7,7 +5,7 @@ export interface TreeNode<T> {
     data: T | null; //
     children: Map<string, TreeNode<T>>;
     parent?: TreeNode<T>;
-    isLeaf: boolean;
+    isLeaf: boolean; // used to indicate that a node is intentionally a leaf for example building elements
 }
 
 
@@ -175,7 +173,7 @@ export class Tree<T> {
      * @param condition - A function that takes a TreeNode and returns a boolean indicating if the node should be included.
      * @returns Array of parent nodes that match the condition.
      */
-     getParents(node: TreeNode<T>, condition: (node: TreeNode<T>) => boolean): TreeNode<T>[] {
+    getParents(node: TreeNode<T>, condition: (node: TreeNode<T>) => boolean): TreeNode<T>[] {
         const parents: TreeNode<T>[] = [];
         let currentNode: TreeNode<T> | undefined = node.parent;
 

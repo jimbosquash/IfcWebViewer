@@ -1,12 +1,12 @@
-import { Tooltip, Button, colors, IconButton, Popover, Box, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { ModelCache } from "../../../../bim-components/modelCache";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import CloseIcon from '@mui/icons-material/Close'; // Import Close icon
 
 import * as OBCF from "@thatopen/components-front";
 import * as OBC from "@thatopen/components";
 import { Icon } from "@iconify/react";
+import { ToolBarButton } from "./toolbarButton";
 
 export const LengthDimensionButton = () => {
   const components = useComponentsContext();
@@ -14,9 +14,7 @@ export const LengthDimensionButton = () => {
   const [enabled, setEnabled] = useState<boolean>(false);
   const [showInstructions, setShowInstructions] = useState<boolean>(false); // Control visibility of the overlay
 
-  const marksRef = useRef<HTMLElement[]>([]); // Store references to the floating marks
   const drwStarted = useRef<boolean>(false); // Store references to the floating marks
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null); // For Popover control
 
   // add listeners for changing world
   useEffect(() => {
@@ -81,23 +79,7 @@ export const LengthDimensionButton = () => {
     }
   };
 
-  //   const toggleDimensions = async () => {
-  //     if (!components) return;
-
-  //     components.get(OBCF.LengthMeasurement).enabled = !enabled;
-  //     setEnabled(!enabled);
-
-  //     components.get(OBCF.LengthMeasurement).visible = !enabled;
-
-  //     if (enabled) {
-  //       components.get(OBCF.LengthMeasurement).cancelCreation();
-  //       removeEventListenersFromMarks();
-
-  //       // components.get(OBCF.LengthMeasurement).list[0].label.three.element
-  //     }
-  //   };
-
-  const toggleDimensions = async (event: React.MouseEvent<HTMLButtonElement>) => {
+  const toggleDimensions = async () => {
     if (!components) return;
 
     components.get(OBCF.LengthMeasurement).enabled = !enabled;
@@ -167,22 +149,9 @@ export const LengthDimensionButton = () => {
   };
 
   return (
-    <>
-      <Tooltip
-        // title={enabled ? "Click Space to start and stop a measurement." : "Click to enable or remove measurements."}
-        title={enabled ? "Disable measurement." : "Enable measurements."}
-      >
-        <Button
-          sx={{ backgroundColor: "transparent", color: enabled ? colors.grey[700] : colors.grey[400], border: "0" }}
-          onClick={toggleDimensions}
-          //   onDoubleClick={handleDoubleClick}
-          style={{ border: "0" }}
-        >
-          <Icon icon="tabler:ruler-measure" />
-        </Button>
-      </Tooltip>
-
-      {/* Popover for instructions */}
+    <><ToolBarButton toolTip={enabled ? "Disable measurement" : "Enable measurements"}
+      onClick={() => toggleDimensions()}
+      content={<Icon icon="tabler:ruler-measure" />} />
 
       {/* Instructions Overlay */}
       {showInstructions && (

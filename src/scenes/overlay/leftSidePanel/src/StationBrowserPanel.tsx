@@ -6,7 +6,7 @@ import {
   BuildingElement,
   IfcElement,
   KnownGroupType,
-  knownProperties,
+  sustainerProperties,
   SelectionGroup,
 } from "../../../../utilities/types";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
@@ -19,9 +19,10 @@ import {
   groupElementsByPropertyName,
 } from "../../../../utilities/BuildingElementUtilities";
 import { ViewableTree } from "../../../../bim-components/modelViewer/src/viewableTree";
-import { IsolateButton, ToolBarButton } from "../../actionButtonPanel/src/IsolateButton";
 import { tokens } from "../../../../theme";
 import { Icon } from "@iconify/react";
+import { PanelBase } from "../../../../components/PanelBase";
+import { ToolBarButton } from "../../actionButtonPanel/src/toolbarButton";
 
 const treeName = ModelViewManager.stationTreeName;
 
@@ -87,7 +88,7 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
 
     console.log("duplicated tree", newTree);
 
-    const stationNodes = newTree.getNodes((node) => node.type === knownProperties.Station);
+    const stationNodes = newTree.getNodes((node) => node.type === sustainerProperties.Station);
 
     stationNodes.forEach((station) => {
       // get all building elements
@@ -96,12 +97,12 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
       // remove building step and children nodes from tree
       const existingBuildingsteps = TreeUtils.getChildren(
         station,
-        (node) => node.type === knownProperties.BuildingStep
+        (node) => node.type === sustainerProperties.BuildingStep
       );
       existingBuildingsteps.forEach((node) => newTree.removeNode(node.id));
       console.log("pruned tree", newTree);
 
-      const elementsByAssembly = groupElementsByPropertyName(bElement, knownProperties.Assembly);
+      const elementsByAssembly = groupElementsByPropertyName(bElement, sustainerProperties.Assembly);
 
       const stationSteps = new Map<string, BuildingElement[]>();
       const assemblyNodes: TreeNode<IfcElement>[] = [];
@@ -109,7 +110,7 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
       // check if assembly has any buildingsteps relevant to display and create assemblies if so
       elementsByAssembly.forEach((elements, assemblyName) => {
         //group assembly elements by building step
-        const elementsByStep = groupElementsByPropertyName(elements, knownProperties.BuildingStep);
+        const elementsByStep = groupElementsByPropertyName(elements, sustainerProperties.BuildingStep);
 
         // check if step is in relevant list
         elementsByStep.forEach((stepElements, buildingStepName) => {
@@ -124,14 +125,14 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
             const assemblyID = `${station.id}_${assemblyName}`;
             if (!assemblyNodes.find((assNode) => assNode.id === assemblyID)) {
               console.log(" assembly created", assemblyID);
-              newTree.addNode(station.id, assemblyID, assemblyName, knownProperties.Assembly, null, false);
+              newTree.addNode(station.id, assemblyID, assemblyName, sustainerProperties.Assembly, null, false);
             }
 
             // create new building step
             const stepID = `${assemblyID}_${buildingStepName}`;
             console.log("building step created in assembly", stepID);
 
-            newTree.addNode(assemblyID, stepID, buildingStepName, knownProperties.BuildingStep, null, false);
+            newTree.addNode(assemblyID, stepID, buildingStepName, sustainerProperties.BuildingStep, null, false);
 
             // add all elements as children to building step
             stepElements.forEach((element) => {
@@ -150,7 +151,7 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
       stationSteps.forEach((elements, stepName) => {
         // create new building step
         const stepID = `${station.id}_${stepName}`;
-        newTree.addNode(station.id, stepID, stepName, knownProperties.BuildingStep, null, false);
+        newTree.addNode(station.id, stepID, stepName, sustainerProperties.BuildingStep, null, false);
 
         // add all elements as children to building step
         elements.forEach((element) => {
@@ -222,7 +223,7 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
     const newTree = tree.duplicate();
     // foreach station add building step nondes and children
     newTree
-      .getNodes((node) => node.type === knownProperties.Station)
+      .getNodes((node) => node.type === sustainerProperties.Station)
       .forEach((station) => {
         // get all building elements
         const bElement = convertToBuildingElement(TreeUtils.getChildrenNonNullData(station));
@@ -230,7 +231,7 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
         // remove building step and assembly nodes from tree
         const existingAssemblies = TreeUtils.getChildren(
           station,
-          (node) => node.type === knownProperties.Assembly || node.type === KnownGroupType.BuildingStep
+          (node) => node.type === sustainerProperties.Assembly || node.type === KnownGroupType.BuildingStep
         );
         existingAssemblies.forEach((node) => newTree.removeNode(node.id));
         console.log("pruned tree", newTree);
@@ -238,12 +239,12 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
         const stepNodeIDs: string[] = [];
 
         // check if building step has any buildingsteps relevant to display and create assemblies if so
-        groupElementsByPropertyName(bElement, knownProperties.BuildingStep).forEach((elements, stepName) => {
+        groupElementsByPropertyName(bElement, sustainerProperties.BuildingStep).forEach((elements, stepName) => {
           // create new or find assembly
           const stepID = `${station.id}_${stepName}`;
           if (!stepNodeIDs.find((sNode) => sNode === stepID)) {
             console.log(" step created", stepID);
-            newTree.addNode(station.id, stepID, stepName, knownProperties.BuildingStep, null, false);
+            newTree.addNode(station.id, stepID, stepName, sustainerProperties.BuildingStep, null, false);
             stepNodeIDs.push(stepID);
           }
 
@@ -285,18 +286,11 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
 
   return (
     <>
-      <div
-        style={{
-          alignContent: "center",
-          top: "0%",
-          left: 0,
-          zIndex: 50,
-          width: "100%",
-        }}
-      >
-        {/* fixed panel section */}
-
-        <ButtonGroup
+      <PanelBase
+        title="Work stations"
+        icon="mdi:file-tree-outline"
+        body="Building elements grouped by work station and building steps. Double click to select."
+        buttonBar={<ButtonGroup
           variant="text"
           style={{
             flexShrink: 0,
@@ -312,10 +306,10 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
             toolTip={"add or remove grouping by relevant assemblies"}
           />
           {/* <ToolBarButton
-            onClick={() => (treeWithAssemblies ? createStationTree() : createRelevantAssemblyTree())}
-            content={<Icon icon="material-symbols:step-over" />}
-            toolTip={'Step over - navigate across tree structure'}
-          /> */}
+                  onClick={() => (treeWithAssemblies ? createStationTree() : createRelevantAssemblyTree())}
+                  content={<Icon icon="material-symbols:step-over" />}
+                  toolTip={'Step over - navigate across tree structure'}
+                /> */}
           <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
 
           <ToolBarButton
@@ -334,11 +328,25 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
             }
           />
         </ButtonGroup>
+        }
+      >
+        <div
+          style={{
+            alignContent: "center",
+            top: "0%",
+            left: 0,
+            zIndex: 50,
+            width: "100%",
+          }}
+        >
+          {/* fixed panel section */}
 
-        <Box component="div" m="0px" maxHeight="100%" overflow="hidden" width="100%">
-          <MemoizedTreeTableRows onDoubleClick={handleDoubleClick} nodes={nodes} treeName={treeName} />
-        </Box>
-      </div>
+
+          <Box component="div" m="0px" maxHeight="100%" overflow="hidden" width="100%">
+            <MemoizedTreeTableRows onDoubleClick={handleDoubleClick} nodes={nodes} treeName={treeName} />
+          </Box>
+        </div>
+      </PanelBase>
     </>
   );
 });

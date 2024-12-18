@@ -1,13 +1,11 @@
 import { Icon } from "@iconify/react";
-import { Button, MenuItem, Popover, Tooltip, useTheme } from "@mui/material";
+import { MenuItem, Popover } from "@mui/material";
 import { useState } from "react";
 import ModelFlipper from "../../../../bim-components/modelFlipper";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { tokens } from "../../../../theme";
+import { ToolBarButton } from "./toolbarButton";
 
 export const FlipButton = () => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -62,31 +60,15 @@ export const FlipButton = () => {
 
   return (
     <div>
-      <Tooltip
-        title={isFlipped ? `Flip ${orientation} back` : `Flip ${orientation}`}
-        disableInteractive  // Prevent the tooltip from interfering with hover behavior
-      >
-        <Button
-          onClick={startFlip}
-          // onMouseEnter={handleMouseEnter} // uncomment this out for enabling y axis flip pop up
-          // onMouseLeave={handleMouseLeave}
-          style={{
-            color: colors.grey[200],
-            border: '0',
-            transition: 'all 0.3s ease',  // Add smooth transitions to avoid sudden style changes
-          }}
-          variant="outlined"
-        >
-                    <Icon icon="icon-park-outline:rotate" />
-{/* 
-          {!isFlipped ? (
-            <Icon icon="vaadin:flip-v" />
-          ) : (
-            <Icon color="red" icon="vaadin:flip-v" />
-          )} */}
-        </Button>
-      </Tooltip>
+      <ToolBarButton
+        toolTip={isFlipped ? `Flip ${orientation} back` : `Flip ${orientation}`}
+        onClick={() => startFlip()}
+        content={<Icon icon="icon-park-outline:rotate" />
 
+        }
+      />
+
+      {/* pop over disabled whilst advanced flip feature is to come */}
       {/* Popover that appears above the button */}
       <Popover
         open={popoverOpen}
@@ -106,7 +88,7 @@ export const FlipButton = () => {
         }}
         disableRestoreFocus
       >
-      <MenuItem onClick={() => { setOrientation(orientation === 'xAxis' ? 'zAxis' : 'xAxis')}}>
+        <MenuItem onClick={() => { setOrientation(orientation === 'xAxis' ? 'zAxis' : 'xAxis') }}>
           <Icon icon="mdi:refresh" style={{ marginRight: '8px' }} />
           {orientation === 'xAxis' ? 'Flip y Axis' : 'Flip x Axis'}
         </MenuItem>

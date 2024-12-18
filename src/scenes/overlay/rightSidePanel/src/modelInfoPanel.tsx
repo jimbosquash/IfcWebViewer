@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { BuildingElement, knownProperties } from "../../../../utilities/types";
+import { BuildingElement, sustainerProperties } from "../../../../utilities/types";
 import { Icon } from "@iconify/react";
 import { tokens } from "../../../../theme";
 import { select } from "../../../../utilities/BuildingElementUtilities";
@@ -89,8 +89,8 @@ const ModelInfoPanel = () => {
     return {
       id: index,
       name: element.name,
-      material: findProperty(element, knownProperties.Material)?.value ?? "UNK",
-      productCode: findProperty(element, knownProperties.ProductCode)?.value ?? "UNK",
+      material: findProperty(element, sustainerProperties.Material)?.value ?? "UNK",
+      productCode: findProperty(element, sustainerProperties.ProductCode)?.value ?? "UNK",
       expressID: element.expressID,
       type: element.type,
       quantity: 0
@@ -99,7 +99,7 @@ const ModelInfoPanel = () => {
 
   const findProperty = (
     element: BuildingElement,
-    propertyName: knownProperties
+    propertyName: sustainerProperties
   ): { name: string; value: string; pSet: string } | undefined => {
     return element.properties.find((prop) => prop.name === propertyName);
   };

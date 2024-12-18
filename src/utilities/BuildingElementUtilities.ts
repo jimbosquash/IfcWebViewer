@@ -1,5 +1,5 @@
 import { Tree, TreeNode } from "./Tree";
-import { SelectionGroup, BuildingElement, KnownGroupType, knownProperties, IfcElement } from "./types";
+import { SelectionGroup, BuildingElement, KnownGroupType, sustainerProperties, IfcElement, BasicProperty } from "./types";
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
 import { ModelCache } from "../bim-components/modelCache";
@@ -59,14 +59,14 @@ export function GetAdjacentGroup(
   const currentNode = tree.getNode(current.id);
   if (!currentNode) return getFirstGroup(tree);
 
-  console.log('get neigbor of', current, currentNode,tree)
+  console.log('get neigbor of', current, currentNode, tree)
 
 
-  switch(searchType) {
+  switch (searchType) {
     case "stepOver":
-      return stepOver(currentNode,tree,direction)
+      return stepOver(currentNode, tree, direction)
     case 'stepInto':
-      return stepInto(currentNode,tree,direction);
+      return stepInto(currentNode, tree, direction);
     default:
       return getFirstGroup(tree);
   }
@@ -78,7 +78,7 @@ export function GetAdjacentGroup(
  * @param tree - Viewable tree to traverse.
  * @returns Next valid tree node or undefined if no valid step exists.
  */
- function stepInto(
+function stepInto(
   current: TreeNode<IfcElement>,
   tree: ViewableTree<IfcElement>,
   direction: 'next' | 'previous' = 'next'
@@ -97,38 +97,38 @@ export function GetAdjacentGroup(
     const childrenArray = mapToArray(node.children);
     return childrenArray.filter(child => child.children.size > 0);
   }
-/**
- * Get the next or previous sibling of a node within its parent's children.
- * If there are no more siblings in the given direction, returns undefined.
- */
- function getNeighbor(
-  nodeId: string,
-  parentId: string,
-  direction: 'next' | 'previous'
-): TreeNode<IfcElement> | undefined {
-  const parent = tree.getNode(parentId);
-  if (!parent || !parent.children) return undefined;
+  /**
+   * Get the next or previous sibling of a node within its parent's children.
+   * If there are no more siblings in the given direction, returns undefined.
+   */
+  function getNeighbor(
+    nodeId: string,
+    parentId: string,
+    direction: 'next' | 'previous'
+  ): TreeNode<IfcElement> | undefined {
+    const parent = tree.getNode(parentId);
+    if (!parent || !parent.children) return undefined;
 
-  const siblings = mapToArray(parent.children);
-  const currentIndex = siblings.findIndex(s => s.id === nodeId);
+    const siblings = mapToArray(parent.children);
+    const currentIndex = siblings.findIndex(s => s.id === nodeId);
 
-  console.log('get neighbor', nodeId, currentIndex);
+    console.log('get neighbor', nodeId, currentIndex);
 
-  // If the current node is not found in the siblings, return undefined.
-  if (currentIndex === -1) return undefined;
+    // If the current node is not found in the siblings, return undefined.
+    if (currentIndex === -1) return undefined;
 
-  // Determine the adjacent index based on the direction, but avoid wrapping around.
-  const adjacentIndex =
-    direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+    // Determine the adjacent index based on the direction, but avoid wrapping around.
+    const adjacentIndex =
+      direction === 'next' ? currentIndex + 1 : currentIndex - 1;
 
-  // Return undefined if the adjacent index is out of bounds.
-  if (adjacentIndex < 0 || adjacentIndex >= siblings.length) {
-    return undefined;
+    // Return undefined if the adjacent index is out of bounds.
+    if (adjacentIndex < 0 || adjacentIndex >= siblings.length) {
+      return undefined;
+    }
+
+    // Return the valid sibling node at the adjacent index.
+    return siblings[adjacentIndex];
   }
-
-  // Return the valid sibling node at the adjacent index.
-  return siblings[adjacentIndex];
-}
 
 
   // Recursive function to step into children or navigate neighbors.
@@ -165,14 +165,14 @@ export function GetAdjacentGroup(
         const grandParent = tree.getNode(parentId)?.parent;
         console.log(' get grandparent - parent', grandParent)
         const parentsNeighbor = getNeighbor(parentId, grandParent?.id ?? "", direction);
-        if(parentsNeighbor)
-        return {
-          groupType: parentsNeighbor.type,
-          id: parentsNeighbor.id,
-          groupName: parentsNeighbor.name,
-          elements: TreeUtils.getBuildingElements(parentsNeighbor),
-        };        // return recursiveStep(parentId, grandParent?.id);
-        
+        if (parentsNeighbor)
+          return {
+            groupType: parentsNeighbor.type,
+            id: parentsNeighbor.id,
+            groupName: parentsNeighbor.name,
+            elements: TreeUtils.getBuildingElements(parentsNeighbor),
+          };        // return recursiveStep(parentId, grandParent?.id);
+
       }
     }
     return undefined; // No valid step found.
@@ -199,7 +199,7 @@ function getGroup() {
 function stepOver(current: TreeNode<IfcElement>,
   tree: ViewableTree<IfcElement>,
   direction: 'next' | 'previous' = 'next',) {
-  
+
   const groupOfType = tree.getNodes(n => n.type === current.type).map(n => n.id);
   // console.log("Group of same type",tree,current, groupOfType);
 
@@ -228,11 +228,11 @@ function stepOver(current: TreeNode<IfcElement>,
 
 function getFirstGroup(tree: ViewableTree<IfcElement>): SelectionGroup | undefined {
 
-  if(tree.root.children.size === 0 ) {
+  if (tree.root.children.size === 0) {
     console.log('failed to find next group because root node has no children')
     return;
   }
-  const firstGroup =  tree.getFirstOrUndefinedNode(n => n.type !== "Project");
+  const firstGroup = tree.getFirstOrUndefinedNode(n => n.type !== "Project");
   console.log('getting default group', firstGroup, tree)
 
   if (!firstGroup) return undefined;
@@ -447,7 +447,7 @@ export const isolate = async (elements: BuildingElement[], components: OBC.Compo
     hider.isolate(elementTypeIds)
     const selectedElements = components.get(ModelCache).getElementByFragmentIdMap(elementTypeIds)
     if (!selectedElements) return;
-    components.get(ModelViewManager).onVisibilityUpdated.trigger({elements: [...selectedElements],treeID: ''})
+    components.get(ModelViewManager).onVisibilityUpdated.trigger({ elements: [...selectedElements], treeID: '' })
   });
 
   await Promise.all(highlightPromises);
@@ -494,13 +494,16 @@ export function distanceToCenter(a: BuildingElement, b: BuildingElement, model: 
   return aCenter?.distanceTo(bCenter);
 }
 
+interface treeSetupConfig {
+  allowUnspecifedasNodeName?: boolean,
+}
 
 /**
  * Create a tree structure by using the input node order to group building elements by their property.
  * we assume that grouping is done by property values and that building elements have the properties 
  * in node order.
  */
-export const setUpTreeFromProperties = (id: string, elements: BuildingElement[], propertyNames: string[] | knownProperties[]) => {
+export const setUpTreeFromProperties = (id: string, elements: BuildingElement[], propertyNames: string[] | sustainerProperties[], config?: treeSetupConfig) => {
 
   const tree = new Tree<IfcElement>(id, "Project", "Project");
   const root = tree.getNode("Project")
@@ -509,6 +512,8 @@ export const setUpTreeFromProperties = (id: string, elements: BuildingElement[],
   function createSortedSubTree(tree: Tree<IfcElement>, parentNode: TreeNode<IfcElement>, currentElements: any[], currentLevel: number) {
     if (currentLevel >= propertyNames.length) {
       // We've reached the leaf level, add elements as leaf nodes
+      console.log('adding nodes to tree', parentNode.id, currentElements.map(e => e.name))
+
       currentElements.forEach((element, index) => {
         tree.addNode(parentNode.id, `${parentNode.id}_${index}`, element.name, KnownGroupType.BuildingElement, element, true);
       });
@@ -522,10 +527,20 @@ export const setUpTreeFromProperties = (id: string, elements: BuildingElement[],
     sortedGroups.forEach(([groupValue, groupElements]) => {
       if (groupValue === "Unspecified") {
         // dont add as new node just pass on
-        createSortedSubTree(tree, tree.getNode(parentNode.id)!, groupElements, currentLevel + 1);
+        console.log('created sub tree for unspecified ', parentNode.id, groupElements)
+        let nodeId = parentNode.id;
+        // if config set then make unSpecified a node in the tree, otherwise make it a child of the previous parent
+        if (config?.allowUnspecifedasNodeName) {
+          nodeId = `${parentNode.id}_${currentNodeType}_${groupValue}`;
+          tree.addNode(parentNode.id, nodeId, groupValue, currentNodeType);
+        }
+
+        // const parentNode = config?.allowUnspecifedasNodeName ?
+        createSortedSubTree(tree, tree.getNode(nodeId)!, groupElements, currentLevel + 1);
       } else {
         const nodeId = `${parentNode.id}_${currentNodeType}_${groupValue}`;
         tree.addNode(parentNode.id, nodeId, groupValue, currentNodeType);
+        console.log('created sub tree for sorted nod ', groupValue, groupElements)
         createSortedSubTree(tree, tree.getNode(nodeId)!, groupElements, currentLevel + 1);
       }
 
@@ -534,7 +549,7 @@ export const setUpTreeFromProperties = (id: string, elements: BuildingElement[],
 
   if (root)
     createSortedSubTree(tree, root, elements, 0)
-  //console.log('tree created', id,elements,tree)
+  // console.log('tree created', id, elements, tree)
   return tree;
 }
 
@@ -580,12 +595,14 @@ function sortGroupedElements(groupedElements: Map<string, any[]>): [string, any[
 
 export const groupElementsByPropertyName = (elements: BuildingElement[], property: string): Map<string, BuildingElement[]> => {
   const grouped = new Map<string, BuildingElement[]>();
+  // const uniqueElements = Array.from(new Set(elements.map(el => JSON.stringify(el)))).map(el => JSON.parse(el));
+
   elements.forEach(element => {
     if (!element.properties) {
       console.log('element failed to find property', element, elements)
       return;
     }
-    const value = element.properties.find(prop => prop.name === property)?.value || 'Unspecified';
+    const value = element.properties.find((prop: BasicProperty) => prop.name === property)?.value || 'Unspecified';
     // if(value === "Unknown")
     //   console.log("unknown data found",property,element.properties )
     if (!grouped.has(value)) {
@@ -596,7 +613,7 @@ export const groupElementsByPropertyName = (elements: BuildingElement[], propert
   return grouped;
 };
 
-export const GetPropertyByName = (element: BuildingElement, propertyName: knownProperties) => {
+export const GetPropertyByName = (element: BuildingElement, propertyName: sustainerProperties) => {
   if (!element || !propertyName)
     return;
 

@@ -3,10 +3,10 @@ import * as OBF from "@thatopen/components-front";
 import { Mark } from "@thatopen/components-front";
 import { GetPropertyByName } from "../../utilities/BuildingElementUtilities";
 import { GetAllVisibleExpressIDs, GetCenterPoint, GetVisibleExpressIDs } from "../../utilities/IfcUtilities";
-import { BuildingElement, knownProperties } from "../../utilities/types";
+import { BuildingElement, sustainerProperties, Unspecified } from "../../utilities/types";
 import { ModelCache } from "../modelCache";
 import { ModelViewManager } from "../modelViewer";
-import { markProperties } from "./src/Tag";
+import { markProperties } from "./src/MarkProperties";
 import { getAveragePoint } from "../../utilities/threeUtils";
 import { Line, Vector3 } from "three";
 import * as THREE from "three";
@@ -14,6 +14,7 @@ import { IFCFLOW } from "../hvacViewer";
 import { ConfigManager, ConfigSchema } from "../../utilities/ConfigManager";
 import { addOrUpdateEntry, getAllKeys, getValueByKey, getValuesByKeys } from "../../utilities/indexedDBUtils";
 import { generateRandomHexColor } from "../../utilities/utilities";
+import { FragmentsGroup } from "@thatopen/fragments";
 
 // key = name of element. first array = an array of matching names with arrays of tags grouped by distance
 interface GroupedElements {
@@ -54,7 +55,7 @@ export class ModelTagger extends OBC.Component {
     static uuid = "d2802b2c-1a26-4ec6-ba2a-79e20a6b65be" as const;
 
     private _enabled = false
-    private _world: OBC.World | null = null
+    private _world?: OBC.World = undefined;// | null = null
     private _visible: boolean = false;
     private _colorMap: Map<string, string> = new Map(); // key = name or any string, value = color as hex
     private _aliasMap: Map<string, string> = new Map(); // key = name or any string, value = string of alias name (likely a number)
@@ -88,12 +89,12 @@ export class ModelTagger extends OBC.Component {
 
 
     set world(world: OBC.World | null) {
-        this._world = world
+        this._world = world ?? undefined
     }
 
 
     get world() {
-        return this._world
+        return this._world ?? null
     }
 
     get visible() {
@@ -238,8 +239,8 @@ export class ModelTagger extends OBC.Component {
         // also remove by product code in case of installations
         if (!this._configManager.get("showInstallations")) {
             // console.log("filtering TE elements")
-            filteredElements = filteredElements.filter(el => !GetPropertyByName(el, knownProperties.ProductCode)?.value.includes("TE"))
-            filteredOutElements = filteredElements.filter(el => GetPropertyByName(el, knownProperties.ProductCode)?.value.includes("TE"))
+            filteredElements = filteredElements.filter(el => !GetPropertyByName(el, sustainerProperties.ProductCode)?.value.includes("TE"))
+            filteredOutElements = filteredElements.filter(el => GetPropertyByName(el, sustainerProperties.ProductCode)?.value.includes("TE"))
         }
         return { filteredElements, filteredOutElements };
     }
@@ -343,10 +344,14 @@ export class ModelTagger extends OBC.Component {
     }
 
     getNewMarkerPropsForClusters(tagClustersByName: Map<string, markProperties[][]>) {
+
         const markers: Mark[] = [];
         // make them into a markert
         tagClustersByName.forEach((tagClusters) => {
-
+            if (!this._world || this._world == null) {
+                console.error('failed to create markers due to no world')
+                return;
+            }
             //generate new Tag 
 
             //for each group make a new merged tag with new center
@@ -354,7 +359,7 @@ export class ModelTagger extends OBC.Component {
                 const pt = getAveragePoint(tagCluster.map(element => element.position))
                 if (!pt) {
                     tagCluster.forEach(e => {
-                        const m = this.createMarkFromProps(e.text, e.color, e.position);
+                        const m = ModelTagger.createMarkFromProps(this._world, e.text, e.color, e.position);
                         if (m) markers.push(m)
                     })
                 } else {
@@ -366,14 +371,14 @@ export class ModelTagger extends OBC.Component {
                         newCenter,
                         tagCluster[0].color,
                         tagCluster[0].type)
-                    const mark = this.createMarkFromProps(mergeTag.text, mergeTag.color, mergeTag.position, "material-symbols:tools-power-drill-outline")
+                    const mark = ModelTagger.createMarkFromProps(this._world, mergeTag.text, mergeTag.color, mergeTag.position, "material-symbols:tools-power-drill-outline")
                     if (mark) {
                         markers.push(mark)
                         //this.getMarkerLines(mergeTag, tagCluster)
                     }
 
                     tagCluster.forEach(t => {
-                        const m = this.createMarkFromProps('', t.color, t.position);
+                        const m = ModelTagger.createMarkFromProps(this._world, '', t.color, t.position);
                         if (m)
                             markers.push(m);
 
@@ -538,7 +543,7 @@ export class ModelTagger extends OBC.Component {
         // Handle color mapping by Product Code
         if (this._configManager.get('colorBy') === "Code") {
             const elementCodes = cache.map(
-                (element) => GetPropertyByName(element, knownProperties.ProductCode)?.value ?? ''
+                (element) => GetPropertyByName(element, sustainerProperties.ProductCode)?.value ?? ''
             );
 
             // Get unique and non-empty product codes
@@ -581,7 +586,7 @@ export class ModelTagger extends OBC.Component {
         } else {
             // Handle color mapping by Material
             for (const buildingElement of cache) {
-                const material = GetPropertyByName(buildingElement, knownProperties.Material)?.value ?? '';
+                const material = GetPropertyByName(buildingElement, sustainerProperties.Material)?.value ?? '';
 
                 if (!this._colorMap.has(material)) {
                     // Generate a new color if not already mapped
@@ -611,15 +616,15 @@ export class ModelTagger extends OBC.Component {
             let label = tag.text;
             switch (labelStyle) {
                 case "Code":
-                    let code = GetPropertyByName(element, knownProperties.ProductCode)?.value;
-                    const mat = GetPropertyByName(element, knownProperties.Material)?.value ?? "";
+                    let code = GetPropertyByName(element, sustainerProperties.ProductCode)?.value;
+                    const mat = GetPropertyByName(element, sustainerProperties.Material)?.value ?? "";
                     if (mat && code)
                         code = `${mat}_${code}`
                     if (code)
                         label = code;
                     break;
                 case "Alias":
-                    let codeAlias = GetPropertyByName(element, knownProperties.ProductCode)?.value;
+                    let codeAlias = GetPropertyByName(element, sustainerProperties.ProductCode)?.value;
                     if (codeAlias && this._aliasMap.has(codeAlias))
                         label = this._aliasMap.get(codeAlias) ?? tag.text;
                     console.log('use alias', label)
@@ -630,7 +635,7 @@ export class ModelTagger extends OBC.Component {
                     break;
 
             }
-            const mark = this.createMarkFromProps(label, tag.color, tag.position)
+            const mark = ModelTagger.createMarkFromProps(this._world, label, tag.color, tag.position)
             if (mark) {
                 markers.push(mark)
             }
@@ -654,7 +659,7 @@ export class ModelTagger extends OBC.Component {
         }
 
         this.getMarkProperties(elements).forEach((element, tag) => {
-            const mark = this.createMarkFromProps('', tag.color, tag.position, icon)
+            const mark = ModelTagger.createMarkFromProps(this._world, '', tag.color, tag.position, icon)
             if (mark) {
                 markers.push(mark)
             }
@@ -666,9 +671,9 @@ export class ModelTagger extends OBC.Component {
 
 
 
-    createMarkFromProps(text: string, color?: string, position?: Vector3, icon?: string) {
-        if (this._world && position) {
-            const mark = this.createMark(this._world, text, color, icon);
+    static createMarkFromProps(world: OBC.World | undefined, text: string, color?: string, position?: Vector3, icon?: string) {
+        if (world && position) {
+            const mark = this.createMark(world, text, color, icon);
             mark.three.position.copy(new Vector3(position.x, position.y, position.z))
             mark.three.visible = true;
             return mark;
@@ -734,20 +739,94 @@ export class ModelTagger extends OBC.Component {
         return tags;
     }
 
+    static createMarkPropertiesForInstallation(components: OBC.Components, propertyGroup: string, buildingElements: BuildingElement[]): Map<string, markProperties> {
+
+        const tags = new Map<string, markProperties>();
+
+        // group by model
+        const elementsByModel = buildingElements.reduce((acc, element) => {
+            if (!acc.has(element.modelID)) {
+                acc.set(element.modelID, [])
+            }
+            acc.get(element.modelID)?.push(element)
+            return acc;
+        }, new Map<string, BuildingElement[]>)
+
+        // create new mark properties by model group
+        const fragments = components.get(OBC.FragmentsManager);
+        elementsByModel.forEach((elements, modelID) => {
+            const model = fragments.groups.get(modelID);
+
+            if (!model) {
+                console.log("failed to creat tags as no model found for", modelID, elements)
+                return;
+            }
+
+            // I need my elements grouped by prefab
+
+            const elementsByGroup = elements.reduce((acc, element) => {
+
+                const prop = ModelTagger.isSustainerProperty(propertyGroup)
+                    ? GetPropertyByName(element, propertyGroup)?.value
+                    : Unspecified;
+
+                if (!acc.has(prop ?? Unspecified)) {
+                    acc.set(prop ?? Unspecified, [])
+                }
+
+                acc.get(prop ?? Unspecified)?.push(element)
+                return acc;
+            }, new Map<string, BuildingElement[]>)
+
+            elementsByGroup.forEach((elements, name) => {
+                elements.forEach(element => {
+                    const pt = GetCenterPoint(element, model, components)
+                    if (!pt) {
+                        console.log('Get Center failed: no center point found', element)
+                        return;
+                    }
+
+                    // get name test
+
+
+                    tags.set(element.GlobalID, new markProperties(element.GlobalID, name, pt, ModelTagger.getColorByProperty(name, components), element.type));
+                })
+            })
+
+        })
+        return tags;
+    }
+
+    static isSustainerProperty(value: string): value is sustainerProperties {
+        return Object.values(sustainerProperties).includes(value as sustainerProperties);
+    }
+
     static getColor(element: BuildingElement, components: OBC.Components) {
-        // console.log('get color',this._colorMap.get(GetPropertyByName(element, knownProperties.ProductCode)?.value ?? ""))
         const tagger = components.get(ModelTagger);
         if (tagger._configManager.get('colorBy') === "Code") {
 
-            console.log('get color', tagger._colorMap.get(GetPropertyByName(element, knownProperties.ProductCode)?.value ?? ""))
-            return tagger._colorMap.get(GetPropertyByName(element, knownProperties.ProductCode)?.value ?? "");
+            console.log('get color', tagger._colorMap.get(GetPropertyByName(element, sustainerProperties.ProductCode)?.value ?? ""))
+            return tagger._colorMap.get(GetPropertyByName(element, sustainerProperties.ProductCode)?.value ?? "");
         } else {
-            return tagger._colorMap.get(GetPropertyByName(element, knownProperties.Material)?.value ?? "");
+            return tagger._colorMap.get(GetPropertyByName(element, sustainerProperties.Material)?.value ?? "");
         }
+    }
+
+    static getColorByProperty(propertyValue: string, components: OBC.Components) {
+        const tagger = components.get(ModelTagger);
+        let col = tagger._colorMap.get(propertyValue ?? "");
+        if (col) {
+            console.log('get color', col, 'for:', propertyValue, generateRandomHexColor())
+            return col;
+        }
+        col = generateRandomHexColor();
+        console.log('set color', col, 'for:', propertyValue, generateRandomHexColor())
+
+        tagger._colorMap.set(propertyValue, col);
 
     }
 
-    private createMark = (world: OBC.World, text: string | null, color: string | undefined, icon: string | undefined) => {
+    static createMark = (world: OBC.World, text: string | null, color: string | undefined, icon: string | undefined) => {
         const label = document.createElement("bim-label")
         label.textContent = text;
         if (icon)

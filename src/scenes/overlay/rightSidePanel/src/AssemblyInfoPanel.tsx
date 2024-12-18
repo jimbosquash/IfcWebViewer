@@ -18,7 +18,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { SelectionGroup, KnownGroupType, BuildingElement, knownProperties } from "../../../../utilities/types";
+import { SelectionGroup, KnownGroupType, BuildingElement, sustainerProperties } from "../../../../utilities/types";
 import { Icon } from "@iconify/react";
 import { tokens } from "../../../../theme";
 import { select } from "../../../../utilities/BuildingElementUtilities";
@@ -102,14 +102,14 @@ const AssemblyInfoPanel = () => {
     element: BuildingElement,
     index: number
   ): Promise<RowData> {
-    const productCode = findProperty(element, knownProperties.ProductCode)?.value || "";
+    const productCode = findProperty(element, sustainerProperties.ProductCode)?.value || "";
     const color = await getValueByKey(productCode);
 
     return {
       key: index,
       name: element.name,
       alias: element.alias ?? "",
-      material: findProperty(element, knownProperties.Material)?.value || "",
+      material: findProperty(element, sustainerProperties.Material)?.value || "",
       productCode,
       expressID: element.expressID,
       quantity: 1, // default quantity 1
@@ -117,7 +117,7 @@ const AssemblyInfoPanel = () => {
     };
   }
 
-  const findProperty = (element: BuildingElement, propertyName: knownProperties) => {
+  const findProperty = (element: BuildingElement, propertyName: sustainerProperties) => {
     return element.properties.find((prop) => prop.name === propertyName);
   };
 

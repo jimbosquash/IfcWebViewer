@@ -3,7 +3,6 @@ import { Icon } from "@iconify/react";
 import { Box, Chip, IconButton, Typography, useTheme } from "@mui/material";
 import { ModelCache } from "../bim-components/modelCache";
 import { useComponentsContext } from "../context/ComponentsContext";
-import { nonSelectableTextStyle } from "../styles";
 import { tokens } from "../theme";
 import { GetFragmentIdMaps } from "../utilities/IfcUtilities";
 import { TreeNode } from "../utilities/Tree";
@@ -12,6 +11,7 @@ import * as OBF from "@thatopen/components-front";
 import { ModelViewManager } from "../bim-components/modelViewer";
 import { TreeUtils } from "../utilities/treeUtils";
 import { convertToBuildingElement } from "../utilities/BuildingElementUtilities";
+import { RowContent } from "./RowContent";
 
 export interface TreeTableRowProps {
   name: string;
@@ -19,14 +19,15 @@ export interface TreeTableRowProps {
   treeID: string;
   node: TreeNode<IfcElement> | undefined;
   children?: React.ReactNode;
-  onDoubleClick: (node: TreeNode<IfcElement>) => void; // The double-click handler
+  customRowContent?: React.ReactNode;
+  onDoubleClick?: (node: TreeNode<IfcElement>) => void; // The double-click handler
   onClick?: (node: TreeNode<IfcElement>) => void; // The double-click handler
   onToggleVisibility?: (node: TreeNode<IfcElement>) => void; // the toggle vis handler
   variant: "Floating" | "Flat";
 }
 
 export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
-  ({ name, node, icon, treeID, onToggleVisibility, variant, onDoubleClick, onClick, children }) => {
+  ({ name, node, icon, treeID, onToggleVisibility, variant, onDoubleClick, onClick, children, customRowContent }) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const components = useComponentsContext();
@@ -42,7 +43,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
     useEffect(() => {
       if (!modelViewManager) return;
 
-      const handleGroupVisibility = (data: { treeID: string}) =>
+      const handleGroupVisibility = (data: { treeID: string }) =>
         getVisibilityState(data.treeID);
       const handleSelectionChange = (data: SelectionGroup) => getSelectionState(data);
 
@@ -63,7 +64,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         setIsSelected(selectionGroup?.id === node?.id);
 
         // if any children are selected then expand
-        if(selectionGroup && node?.children.has(selectionGroup?.id)) {
+        if (selectionGroup && node?.children.has(selectionGroup?.id)) {
           setIsExpanded(true)
         } else {
           // setIsExpanded(false)
@@ -74,22 +75,23 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
     );
 
     const getVisibilityState = (tID: string) => {
-        if (treeID !== tID || !node?.id || !modelViewManager) return;
+      if (treeID !== tID || !node?.id || !modelViewManager) return;
 
-        const visState = modelViewManager.getTree(treeID)?.getVisibility(node.id);
-        // console.log('getting vis state', node.id, visState)
+      const visState = modelViewManager.getTree(treeID)?.getVisibility(node.id);
+      console.log('getting vis state', node.id, visState)
 
-        setVisibility(visState);
-        if (visState === undefined || visState === visibilityState) return;
-      };
+      setVisibility(visState);
+      if (visState === undefined || visState === visibilityState) return;
+    };
 
     // Function to get dynamic MUI Chips based on conditions
     const getChips = useMemo(() => {
       const chips = [];
       if (node?.children?.size) {
         const assemblies = [...node.children.values()].filter(child => child.type === KnownGroupType.Assembly)
-        if(assemblies.length > 0){
-        chips.push(<Chip key="assemblies" label={`${assemblies.length} Assemblies`} size="small" />);}
+        if (assemblies.length > 0) {
+          chips.push(<Chip key="assemblies" label={`${assemblies.length} Assemblies`} size="small" />);
+        }
       }
 
       return chips;
@@ -103,7 +105,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
       console.log("Double-clicked on node", node);
 
       // Call the function passed through props
-      onDoubleClick(node);
+      if (onDoubleClick) onDoubleClick(node);
     }, [node, components, onDoubleClick]);
 
     // Local click handler that delegates to the passed-in function
@@ -137,6 +139,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         highlighter.clear("hover");
       };
     }, [isHovered, node, components]);
+
 
     const getColor = useCallback(
       (element: "text" | "background") => {
@@ -173,7 +176,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
           newState,
           true
         );
-        console.log('treeRow default visibility toggle',node.id)
+        console.log('treeRow default visibility toggle', node.id)
 
         if (node) {
           const elements = convertToBuildingElement(TreeUtils.getChildrenNonNullData(node));
@@ -198,8 +201,19 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         component="div"
         sx={{
           width: "100%",
-          height: "100%",
-          ...getParentBoxTheme(isHovered, isExpanded, variant)
+          maxWidth: "100%", // Prevent row from exceeding container width
+
+          justifyContent: "space-between",
+          overflow: "hidden",
+          cursor: "pointer",
+          display: "flex",
+          minHeight: "30px",
+
+          flexDirection: "column",
+          minWidth: 0,
+          boxSizing: "border-box", // Include padding in width
+          ...getParentBoxTheme(variant),
+
         }}
       >
         <Box
@@ -211,18 +225,29 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
           }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          sx={{ ...getRowTheme(getColor('background'),isHovered, isExpanded, variant, colors) }}
+
+          sx={{
+            ...getRowTheme(variant),
+            backgroundColor: getColor('background'),
+            color: getColor('text'),
+            justifyContent: "flex-start",
+            overflow: "hidden",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            minheight: "30px",
+          }}
         >
 
           {/* Visibility Toggle */}
           <IconButton
             size="small"
-            sx={{color: getColor("text")}}
+            sx={{ color: "inherit", flexShrink: 0 }} // Prevent icon from shrinking
             onClick={(e) => {
-              if (node){
-                 handleToggleVisibility(node);
-                 modelViewManager.updateVisibility(treeID);
-                }
+              if (node) {
+                handleToggleVisibility(node);
+                modelViewManager.updateVisibility(treeID);
+              }
             }}
           >
             <Icon
@@ -233,18 +258,18 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
               }
             />
           </IconButton>
-          <RowContent
+
+          {customRowContent ? customRowContent : <RowContent
             name={name}
             icon={icon}
-            getColor={getColor}
             node={node}
             chips={getChips}
-            childrenCount={node?.children?.size ?? 0}
-          />
+          />}
+
           {children && (
             <IconButton
               size="small"
-              sx={{ flexShrink: 0, marginLeft: "8px", color: getColor("text") }}
+              sx={{ flexShrink: 0, marginLeft: "8px", color: "inherit" }}
               onClick={(e) => {
                 e.stopPropagation(); // Stop the click from reaching the row
                 handleToggleExpand(e);
@@ -261,14 +286,13 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
               mt: 2,
               width: "100%",
               flexGrow: 1,
-              overflowY: "auto",
+              overflowY: "hidden",
               overflowX: "hidden",
             }}
           >
             {children}
           </Box>
         )}
-        
       </Box>
     );
   }
@@ -286,68 +310,17 @@ export interface expandToggleProps {
   color: string;
 }
 
-export interface RowContentProps {
-  name: string;
-  icon: string;
-  getColor: (element: "text" | "background") => string;
-  node: TreeNode<IfcElement> | undefined;
-  childrenCount: number;
-  chips?: React.ReactNode[]; // An array of chips (optional), passed as React elements
-}
-
-// RowContent component to display name, icon, and any chips passed
-const RowContent: React.FC<RowContentProps> = ({ name, icon, node, chips, childrenCount, getColor }) => (
-  <Box component="div" display="flex" alignItems="center" sx={{ flexGrow: 1 }}>
-    {icon && <Icon icon={icon} style={{ marginLeft: "5px" }} />}
-    <Typography
-      noWrap
-      color={getColor('text')}
-      sx={{
-        flexGrow: 1,
-        flexShrink: 1,
-        minWidth: 0,
-        ...nonSelectableTextStyle,
-        ml: 1,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-      }}
-    >
-      {name}
-    </Typography>
-
-    {/* Box for chips: takes full available space and aligns chips to the right */}
-    <Box component="div" display="flex" alignItems="center" justifyContent="flex-end" sx={{ flexGrow: 1 }}>
-      {chips?.map((chip, index) => (
-        <Box component="div" key={index} sx={{ ml: 1 }}>
-          {" "}
-          {/* Optional spacing between chips */}
-          {chip}
-        </Box>
-      ))}
-    </Box>
-  </Box>
-);
-
 // Helper function to get box styling for different states
-const getRowTheme = (background: string,isHovered: boolean, isExpanded: boolean, variant: "Floating" | "Flat", colors: any) => ({
+const getRowTheme = (variant: "Floating" | "Flat") => ({
   padding: variant === "Floating" ? "8px" : "0px",
-  backgroundColor: background,
   transition: "all 0.1s ease",
   borderBottom: variant !== "Floating" ? "0.8px solid #ccc" : "",
   borderTop: variant !== "Floating" ? "0.8px solid #ccc" : "",
-  // margin: variant === "Floating" ? "4px" : "",
-  justifyContent: "space-between",
-  overflow: "hidden",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  minheight: "30px",
 
 });
 
 
-const getParentBoxTheme = (isHovered: boolean, isExpanded: boolean, variant: "Floating" | "Flat") => ({
+const getParentBoxTheme = (variant: "Floating" | "Flat") => ({
   boxShadow: variant === "Floating" ? "0 0 10px rgba(0, 0, 0, 0.1)" : "",
   borderRadius: variant === "Floating" ? "12px" : '',
   border: variant === "Floating" ? "0.8px solid #ccc" : "",
@@ -356,14 +329,7 @@ const getParentBoxTheme = (isHovered: boolean, isExpanded: boolean, variant: "Fl
   borderTop: variant !== "Floating" ? "0.8px solid #ccc" : "",
   // marginRight: variant === "Floating" ? "12px" : "",
   marginTop: variant === "Floating" ? "4px" : "",
-  justifyContent: "space-between",
-  overflow: "hidden",
-  cursor: "pointer",
-  display: "flex",
-  minHeight: "30px",
 
-  flexDirection: "column",
-  minWidth: 0,
 
 });
 

@@ -28,24 +28,14 @@ export const ProjectOverviewPanel = () => {
             <StyledTab label="Material" index={1} />
           </Tabs>
         </Box>
-        <Box component={"div"} paddingBottom="20px" height="100%">
+        {/* </Box>paddingBottom="20px" */}
+
+        <Box component={"div"} >
           <CustomTabPanel value={value} index={0}>
-            <PanelBase
-              title="Work stations"
-              icon="mdi:file-tree-outline"
-              body="Building elements grouped by work station and building steps. Double click to select."
-            >
-              <StationBrowserPanel />
-            </PanelBase>
+            <StationBrowserPanel />
           </CustomTabPanel>
           <CustomTabPanel value={value} index={1}>
-            <PanelBase
-              title="Assemblies"
-              icon="mdi:file-tree-outline"
-              body="Building elements grouped by Assembly. Double click to select."
-            >
-              <AssemblyBrowserPanel />
-            </PanelBase>
+            <AssemblyBrowserPanel />
           </CustomTabPanel>
           <CustomTabPanel value={value} index={2}>
             <PanelBase
@@ -54,7 +44,7 @@ export const ProjectOverviewPanel = () => {
               body="Building elements grouped by Material type. Double click to select. You can turn visibility on and off
               whilst using assembly groupings."
             >
-              <MaterialBrowserPanel/>
+              <MaterialBrowserPanel />
             </PanelBase>
           </CustomTabPanel>
         </Box>

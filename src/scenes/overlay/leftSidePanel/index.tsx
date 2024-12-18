@@ -10,8 +10,10 @@ import TaskBrowserPanel from "./src/TaskBrowserPanel";
 import SettingsPanel from "./src/settingsPanel";
 import { sidebarWidth } from "../rightSidePanel";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
-import { ViewPresenterPanel } from "../../../components/ViewPresenterPanel";
 import { PanelBase } from "../../../components/PanelBase";
+import { HVACViewer } from "../../../bim-components/hvacViewer";
+import { NotificationCenter, notificationType } from "../../../bim-components/notificationCenter";
+import { InstallationHelperPanel } from "./src/InstallationHelperPanel";
 
 const minWidth = 220;
 
@@ -39,16 +41,42 @@ export const LeftSidePanel: React.FC = () => {
     if (!components) return;
 
     const viewManager = components.get(ModelViewManager);
+    const hvacViewer = components.get(HVACViewer);
+    const notificationCenter = components.get(NotificationCenter);
     console.log("side panel listening");
+
+    notificationCenter.onNotifcationTriggered.add((data) => checkNotification(data.notification, data.value))
 
     viewManager.onTreeChanged.add(() => listenForTreeChange());
 
     return () => {
       // unlisten
       viewManager.onTreeChanged.remove(() => listenForTreeChange());
+      notificationCenter.onNotifcationTriggered.remove((data) => checkNotification(data.notification, data.value))
+
       console.log("side panel stop listening");
     };
   }, [components]);
+
+  const checkNotification = (notification: notificationType, value: any) => {
+    if (notification === notificationType.installations) {
+      if (value === 'actived') {
+        // go to hvac panel
+        handleIconClick(
+          <>
+            <InstallationHelperPanel />
+          </>,
+          "Installations"
+        )
+      }
+      else if (value === 'deactived') {
+        // go to last panel
+        handleIconClick(<ProjectOverviewPanel />, "overView");
+
+
+      }
+    }
+  }
 
   const listenForTreeChange = () => {
     if (!panelAutoOpen.current) {
@@ -211,6 +239,24 @@ export const LeftSidePanel: React.FC = () => {
           </IconButton>
         </Tooltip>
 
+        <Tooltip title="Installations" placement="right" arrow>
+          <IconButton
+            style={{
+              backgroundColor: panelContent.name === "Installations" && panelOpen ? colors.grey[900] : "transparent",
+            }}
+            onClick={() =>
+              handleIconClick(
+                <>
+                  <InstallationHelperPanel />
+                </>,
+                "Installations"
+              )
+            }
+          >
+            <Icon icon="mdi:pipe-disconnected" />
+          </IconButton>
+        </Tooltip>
+
         {process.env.NODE_ENV === "development" && (
           <IconButton
             onClick={() =>
@@ -279,7 +325,8 @@ export const LeftSidePanel: React.FC = () => {
             component="div"
             style={{
               flexGrow: 1,
-              height:'100%',
+              height: '100%',
+              overflowY: 'hidden'
             }}
           >
             {panelContent.content}

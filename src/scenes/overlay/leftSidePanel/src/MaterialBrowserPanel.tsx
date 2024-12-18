@@ -2,7 +2,7 @@ import { Box } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { TreeNode } from "../../../../utilities/Tree";
-import { BuildingElement, IfcElement, knownProperties, VisibilityState } from "../../../../utilities/types";
+import { BuildingElement, IfcElement, sustainerProperties, VisibilityState } from "../../../../utilities/types";
 import { ModelCache } from "../../../../bim-components/modelCache";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import TreeTableRow from "../../../../components/TreeTableRow";
@@ -36,7 +36,7 @@ export const MaterialBrowserPanel: React.FC = () => {
 
   function handleNewElements(elements: BuildingElement[]): void {
     if (!elements) return;
-    const tree = setUpTreeFromProperties(treeID, elements, [knownProperties.Material]);
+    const tree = setUpTreeFromProperties(treeID, elements, [sustainerProperties.Material]);
     const _ = modelViewManager.setTree(new ViewableTree(tree.id, tree));
     setNodes([...tree?.root?.children?.values()]);
   }
@@ -65,7 +65,7 @@ export const MaterialBrowserPanel: React.FC = () => {
 
       // setVisibility(elements, components, newVisState === VisibilityState.Visible);
 
-      modelViewManager.setVisibilityState(treeID, node.id, newVisState,true);
+      modelViewManager.setVisibilityState(treeID, node.id, newVisState, true);
       modelViewManager.updateVisibility(treeID);
     },
     [components, modelViewManager]

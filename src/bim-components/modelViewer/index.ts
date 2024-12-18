@@ -2,7 +2,7 @@ import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front"
 import { convertToBuildingElement, setUpTreeFromProperties } from "../../utilities/BuildingElementUtilities";
 import { GetFragmentsFromExpressIds } from "../../utilities/IfcUtilities";
-import { BuildingElement, IfcElement, KnownGroupType, knownProperties, SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
+import { BuildingElement, IfcElement, KnownGroupType, sustainerProperties, SelectionGroup, VisibilityMode, VisibilityState } from "../../utilities/types";
 import { TreeNode } from "../../utilities/Tree";
 import { _roots } from "@react-three/fiber";
 import { ModelCache } from "../modelCache";
@@ -48,8 +48,7 @@ export class ModelViewManager extends OBC.Component {
      * @returns 
      */
     setTree(tree: ViewableTree<IfcElement>) {
-        //const viewableTree = new ViewableTree(treeID, tree, visibilityMap ?? this.createVisibilityMap(tree))
-
+        // should also dispose of old tree if any
         console.log('setting view Tree', tree.id, tree)
         if (this._trees.has(tree.id)) {
             const oldTree = this._trees.get(tree.id);
@@ -98,7 +97,7 @@ export class ModelViewManager extends OBC.Component {
 
     readonly onConfigurationChanged = new OBC.Event<ConfigManager<ModelViewerConfiguration>>()
 
-    
+
     get configuration() {
         return this._configManager;
     }
@@ -193,10 +192,10 @@ export class ModelViewManager extends OBC.Component {
 
 
 
-    private _stationTreeStructure = [knownProperties.Station, knownProperties.BuildingStep]
-    private _AssemblyTreeStructure = [knownProperties.Assembly, knownProperties.BuildingStep]
+    private _stationTreeStructure = [sustainerProperties.Station, sustainerProperties.BuildingStep]
+    private _AssemblyTreeStructure = [sustainerProperties.Assembly, sustainerProperties.BuildingStep]
 
-    set stationTreeStructure(propertyOrder: knownProperties[]) {
+    set stationTreeStructure(propertyOrder: sustainerProperties[]) {
         this._stationTreeStructure = propertyOrder;
     }
 

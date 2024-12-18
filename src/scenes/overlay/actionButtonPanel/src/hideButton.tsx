@@ -2,17 +2,14 @@ import { Button, Tooltip, useTheme } from "@mui/material";
 import * as OBC from "@thatopen/components";
 import * as OBF from "@thatopen/components-front";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { tokens } from "../../../../theme";
 import { Icon } from "@iconify/react";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import { ModelCache } from "../../../../bim-components/modelCache";
 import { isolate, select } from "../../../../utilities/BuildingElementUtilities";
-import { ToolBarButton } from "./IsolateButton";
+import { ToolBarButton } from "./toolbarButton";
 
 export const HideButton = () => {
   const components = useComponentsContext();
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
 
   async function hideSelected(): Promise<void> {
     const highlighter = components.get(OBF.Highlighter);
@@ -37,7 +34,7 @@ export const HideButton = () => {
       await hider.set(false, fragmentIdMap);
       const elements = components.get(ModelCache).getElementByFragmentIdMap(fragmentIdMap);
       if (elements) {
-        components.get(ModelViewManager).onVisibilityUpdated.trigger([...elements]);
+        components.get(ModelViewManager).onVisibilityUpdated.trigger({ elements: [...elements], treeID: '' });
       }
     }
   }

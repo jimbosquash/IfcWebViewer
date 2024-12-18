@@ -17,9 +17,10 @@ export const PanelBase: React.FC<PanelBaseProps> = ({ children, title, body, but
       flexDirection="column"
       display="flex"
       width="100%"
+      height='100%'
       marginTop="20px"
       marginLeft="0px"
-      overflow="hidden"
+      overflow="auto"
       gap="2"
     >
       <PanelHeader title={title} body={body} icon={icon} />
@@ -29,17 +30,23 @@ export const PanelBase: React.FC<PanelBaseProps> = ({ children, title, body, but
       {buttonBar && <Divider />}
       {/* <Divider textAlign="left">LEFT</Divider> */}
 
+
       <Box
         component="div"
         sx={{
           flexGrow: 1,
+          flexShrink: 1,
           overflowY: "auto",
           overflowX: "hidden",
           display: "flex",
+          flex: "flex-start",
           flexDirection: "column",
+          // height: '100%',
+          maxHeight: "calc(100vh - 230px)", // Adjust based on layout
+
           gap: 0,
           // Ensure padding at the bottom for better UX when scrolling
-          paddingBottom: "50px",
+          paddingBottom: "20px",
         }}
       >
         {children}

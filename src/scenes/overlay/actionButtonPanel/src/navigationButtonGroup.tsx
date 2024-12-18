@@ -1,16 +1,12 @@
-import { Button, ButtonGroup, ToggleButtonGroup, Tooltip, useTheme } from "@mui/material";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { tokens } from "../../../../theme";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import { GetAdjacentGroup } from "../../../../utilities/BuildingElementUtilities";
+import { ToolBarButton } from "./toolbarButton";
+import { Icon } from "@iconify/react";
 
 export const NavigationButtonGroup = () => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
-  
+
 
   const setAdjacentGroup = async (adjacency: "previous" | "next") => {
     console.log();
@@ -23,15 +19,15 @@ export const NavigationButtonGroup = () => {
       console.log("No group selected, default will be used");
     }
     // console.log("Setting adjacent",current);
-    console.log("GetAdjacentGroup to", current?.id,viewManager.Tree);
+    console.log("GetAdjacentGroup to", current?.id, viewManager.Tree);
     const config = viewManager.configuration.get("treeNavigation")
-    const newGroup = GetAdjacentGroup(current, viewManager.Tree, adjacency,config);
+    const newGroup = GetAdjacentGroup(current, viewManager.Tree, adjacency, config);
     console.log("next group", newGroup?.id);
 
     if (newGroup) {
       try {
         if (!viewManager.Tree) return;
-        viewManager.setSelectionGroup(newGroup, true,viewManager.Tree.id,false);
+        viewManager.setSelectionGroup(newGroup, true, viewManager.Tree.id, false);
         //zoomToSelected(viewManager.getBuildingElements(newGroup.id),components);
       } catch (error) {
         console.error("Error updating visibility:", error);
@@ -41,32 +37,16 @@ export const NavigationButtonGroup = () => {
   };
   return (
     <>
-      <ButtonGroup>
-        <Tooltip title="Previous group">
-          <Button
-            style={{ color: colors.grey[400], border: "0" }}
-            variant="contained"
-            sx={{
-              backgroundColor: "transparent",
-            }}
-            onClick={() => setAdjacentGroup("previous")}
-          >
-            <NavigateBeforeIcon fontSize="large" />
-          </Button>
-        </Tooltip>
-        <Tooltip title="Next group">
-          <Button
-            style={{ color: colors.grey[400], border: "0" }}
-            variant="contained"
-            sx={{
-              backgroundColor: "transparent",
-            }}
-            onClick={() => setAdjacentGroup("next")}
-          >
-            <NavigateNextIcon fontSize="large" />
-          </Button>
-        </Tooltip>
-      </ButtonGroup>
+      <ToolBarButton
+        toolTip="Previous group"
+        onClick={() => setAdjacentGroup("previous")}
+        content={<Icon icon="mdi:navigate-before" width="24" height="24" />}
+      />
+      <ToolBarButton
+        toolTip="Next group"
+        onClick={() => setAdjacentGroup("next")}
+        content={<Icon icon="mdi:navigate-next" width="24" height="24" />}
+      />
     </>
   );
 };

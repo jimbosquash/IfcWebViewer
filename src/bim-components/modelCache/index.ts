@@ -4,7 +4,7 @@ import { Fragment, FragmentIdMap, FragmentsGroup } from "@thatopen/fragments";
 import { GetPropertyByName, groupByModelID } from "../../utilities/BuildingElementUtilities";
 import { GetBuildingElements } from "../../utilities/IfcUtilities";
 import { addOrUpdateEntries, clearDB, getAllKeys, getValuesByKeys } from "../../utilities/indexedDBUtils";
-import { BuildingElement, knownProperties } from "../../utilities/types";
+import { BuildingElement, sustainerProperties } from "../../utilities/types";
 import { generateRandomHexColor } from "../../utilities/utilities";
 import { ModelViewManager } from "../modelViewer";
 
@@ -222,7 +222,7 @@ export class ModelCache extends OBC.Component {
     private async updateIndexedDB() {
         const elements = this._buildingElements;
         if (!elements) return;
-        await this.addNewEntries(elements.map(element => GetPropertyByName(element, knownProperties.ProductCode)?.value ?? ''))
+        await this.addNewEntries(elements.map(element => GetPropertyByName(element, sustainerProperties.ProductCode)?.value ?? ''))
         //  await clearDB();
         // now add the alias to each element
         await this.assignCacheValues(elements)
@@ -263,7 +263,7 @@ export class ModelCache extends OBC.Component {
     ): Promise<BuildingElement[]> {
         // Step 1: Group elements by their code
         const groupedByCode = inputElements.reduce<Map<string, BuildingElement[]>>((acc, element) => {
-            const code = GetPropertyByName(element, knownProperties.ProductCode)?.value ?? ''
+            const code = GetPropertyByName(element, sustainerProperties.ProductCode)?.value ?? ''
             const elementsWithSameCode = acc.get(code) || [];
             elementsWithSameCode.push(element);
             acc.set(code, elementsWithSameCode);

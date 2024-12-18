@@ -8,7 +8,7 @@ import IfcDropZone from "../../../components/ifcDropZone";
 import { useComponentsContext } from "../../../context/ComponentsContext";
 import { tokens } from "../../../theme";
 import { uploadFile } from "../../../utilities/IfcFileLoader";
-import { knownProperties } from "../../../utilities/types";
+import { sustainerProperties } from "../../../utilities/types";
 
 export const WelcomePanel = () => {
   const components = useComponentsContext();
@@ -131,8 +131,8 @@ const GroupSelector: React.FC<groupSelectorProps> = ({ loadedModel, setEnabled }
     const modelViewManager = components.get(ModelViewManager);
     modelViewManager.stationTreeStructure =
       data === "Assembly"
-        ? [knownProperties.Assembly, knownProperties.BuildingStep]
-        : [knownProperties.Station, knownProperties.BuildingStep];
+        ? [sustainerProperties.Assembly, sustainerProperties.BuildingStep]
+        : [sustainerProperties.Station, sustainerProperties.BuildingStep];
     await components.get(ModelCache).add(loadedModel, new Uint8Array());
   };
 
