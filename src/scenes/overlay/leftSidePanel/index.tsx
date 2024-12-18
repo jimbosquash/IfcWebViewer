@@ -11,9 +11,9 @@ import SettingsPanel from "./src/settingsPanel";
 import { sidebarWidth } from "../rightSidePanel";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 import { PanelBase } from "../../../components/PanelBase";
-import InstallationHelperPanel from "./src/installationHelperPanel";
 import { HVACViewer } from "../../../bim-components/hvacViewer";
 import { NotificationCenter, notificationType } from "../../../bim-components/notificationCenter";
+import { InstallationHelperPanel } from "./src/InstallationHelperPanel";
 
 const minWidth = 220;
 

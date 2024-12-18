@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { Box, Button, ButtonGroup, Chip, IconButton, Typography } from "@mui/material";
-import { BuildingElement, IfcElement, sustainerProperties } from "../../../../utilities/types";
+import { Box, ButtonGroup, Chip, IconButton, Typography } from "@mui/material";
+import { IfcElement, sustainerProperties } from "../../../../utilities/types";
 import { TreeNode } from "../../../../utilities/Tree";
 import { HVACViewer } from "../../../../bim-components/hvacViewer";
 import TreeTableRow from "../../../../components/TreeTableRow";
