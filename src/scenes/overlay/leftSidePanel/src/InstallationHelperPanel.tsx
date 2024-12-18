@@ -9,6 +9,7 @@ import { PanelBase } from "../../../../components/PanelBase";
 import RowContent from "../../../../components/RowContent";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import { nonSelectableTextStyle } from "../../../../styles";
 
 const treeID = 'installationTree'
 
@@ -31,6 +32,7 @@ export const InstallationHelperPanel = () => {
         if (hvacViewer.foundElements)
             handleHvacTreeUpdated()
         hvacViewer.showTags(true)
+        setSelected(hvacViewer.groupingType)
 
 
         return (() => {
@@ -51,12 +53,18 @@ export const InstallationHelperPanel = () => {
         console.log('hvac panel found elements')
         if (hvacViewer.prefabGroups) {
             // setNodes([...hvacViewer.prefabGroups?.root?.children?.values()])
-            const prefabGroups = [...hvacViewer.prefabGroups?.root?.children?.values()];
-            const mainNodes = prefabGroups.filter(group => group.children.size > 1 && group.name !== "Unspecified")
-            const otherNodes = prefabGroups.filter(group => group.children.size === 1 || group.name === "Unspecified")
+            const groups = [...hvacViewer.prefabGroups?.root?.children?.values()];
+            if (hvacViewer.groupingType === sustainerProperties.PrefabNumber) {
+                const mainNodes = groups.filter(group => group.children.size > 1 && group.name !== "Unspecified")
+                const otherNodes = groups.filter(group => group.children.size === 1 || group.name === "Unspecified")
 
-            setPrefabNodes(mainNodes)
-            setOtherNodes(otherNodes)
+                setPrefabNodes(mainNodes)
+                setOtherNodes(otherNodes)
+            } else {
+                setPrefabNodes(groups)
+                setOtherNodes(undefined)
+            }
+
             // split it out get nodes with multiple children or not specific
         }
     };
@@ -75,26 +83,36 @@ export const InstallationHelperPanel = () => {
             body="Installation elements grouped by their prefab property value. 
                 A prefab is a collection of elements is typically cables and hardware. 
                 This is helpful to know how to prepare cables step-by-step."
-            buttonBar={<ButtonGroup style={{ flexShrink: 0, }}>
+            buttonBar={<ButtonGroup
+                style={{
+                    display: "flex", // Use flexbox for layout
+                    flexWrap: "wrap", // Enable wrapping when the container is too small
+                    gap: "4px", // Add spacing between chips
+                    justifyContent: "flex-start", // Align chips to the start of the container
+                    alignItems: "center", // Vertically align items
+                    flexShrink: 0, // Prevent the ButtonGroup itself from shrinking
+                    overflow: "hidden", // Prevent overflowing outside the container
+                }}
+                sx={{ m: 0.5, }}
+            >
                 {hvacViewer.groupingOptions.map((type) => (
                     <Chip
                         key={type}
                         label={type}
                         clickable
-                        onClick={() =>
-                            handleButtonClick(type)
-                        }
+                        onClick={() => handleButtonClick(type)}
                         color={selected === type ? "primary" : "default"}
                         variant={selected === type ? "filled" : "outlined"}
                         sx={{
                             fontSize: "0.475rem", // Adjust font size to make it smaller
                             padding: "0 1px", // Add a bit of padding
                             height: "18px", // Reduce chip height
-                            margin: '0 2px',
+                            margin: "2px", // Add spacing around chips
                         }}
                     />
                 ))}
-            </ButtonGroup>}
+            </ButtonGroup>
+            }
         >
             {prefabNodes &&
                 Array.from(prefabNodes).map((data) => (
@@ -146,10 +164,34 @@ export const HeaderWithDropdown: React.FC<HeaderWithDropdownProps> = ({
                 alignItems="center"
                 justifyContent="space-between"
             >
-                <Typography>Other Installations</Typography>
-                <IconButton onClick={toggleDropdown} aria-expanded={isExpanded}>
-                    {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </IconButton>
+                <Typography
+                    sx={{
+                        ...nonSelectableTextStyle,
+                    }}
+                    margin={1} variant="h6">Other Installations</Typography>
+                <Box component={'div'}>
+                    <Chip
+                        key={otherNodes.length + " groups"}
+                        label={otherNodes.length + " groups"}
+
+                        color={"default"}
+                        variant={"outlined"}
+                        sx={{
+                            fontSize: "0.475rem", // Adjust font size to make it smaller
+                            padding: "0 1px", // Add a bit of padding
+                            height: "18px", // Reduce chip height
+                            margin: '0 2px',
+                            ...nonSelectableTextStyle,
+
+                        }}
+                    />
+
+                    <IconButton onClick={toggleDropdown} aria-expanded={isExpanded}>
+                        {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    </IconButton>
+
+                </Box>
+
             </Box>
 
             {/* Dropdown Content */}
