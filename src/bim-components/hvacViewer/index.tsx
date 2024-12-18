@@ -229,10 +229,6 @@ export class HVACViewer extends OBC.Component {
     }
   }
 
-  conduitWords = ['conduit'];
-  connectionWords = ['steker', 'stekker']
-  femaleconnectionWords = ['female']
-  maleconnectionWords = ['male']
 
 
 
@@ -282,15 +278,8 @@ export class HVACViewer extends OBC.Component {
             console.log('Get Center failed: no center point found', element)
             return;
           }
-
-          // get name test
-
-          const type = this.parseString(element.name)
-
-          const icon = this._icons.get(type)
-          console.log('type', type, 'icon', icon)
-
-          tags.set(element.GlobalID, new markProperties(element.GlobalID, name === Unspecified ? element.name : name, pt, ModelTagger.getColorByProperty(name, components), element.type, icon ?? undefined));
+          const icon = HVACViewer.getIcon(element.name)
+          tags.set(element.GlobalID, new markProperties(element.GlobalID, name === Unspecified || propertyGroup === sustainerProperties.PrefabNumber ? element.name : name, pt, ModelTagger.getColorByProperty(name, components), element.type, icon ?? undefined));
         })
       })
 
@@ -298,16 +287,16 @@ export class HVACViewer extends OBC.Component {
     return tags;
   }
 
-  private _icons = new Map<string, string>([
-    ['conduit', 'material-symbols:cable'],
-    ['female conection', 'icon-park-outline:round-socket'],
-    ['male connection', 'ic:baseline-power'],
-    ['connection', 'mdi:plug'],
-    ['Unspecified', 'material-symbols:electric-bolt']
-  ])
 
+  static getIcon(input: string): string | undefined {
+    const type = HVACViewer.getElectricalInstallationType(input)
 
-  private parseString(input: string): "conduit" | "female conection" | "male connection" | "connection" | "Unspecifed" {
+    const icon = icons.get(type)
+    console.log('type', type, 'icon', icon)
+    return icon;
+  }
+
+  static getElectricalInstallationType(input: string): "conduit" | "female conection" | "male connection" | "connection" | "Unspecifed" {
 
 
     // Normalize the input string to lowercase for case-insensitive matching
@@ -316,16 +305,30 @@ export class HVACViewer extends OBC.Component {
 
     // Check against each category's word list
     switch (true) {
-      case this.conduitWords.some(word => normalizedInput.includes(word)):
+      case conduitWords.some(word => normalizedInput.includes(word)):
         return "conduit";
-      case this.femaleconnectionWords.some(word => normalizedInput.includes(word)):
+      case femaleconnectionWords.some(word => normalizedInput.includes(word)):
         return "female conection"
-      case this.maleconnectionWords.some(word => normalizedInput.includes(word)):
+      case maleconnectionWords.some(word => normalizedInput.includes(word)):
         return "male connection"
-      case this.connectionWords.some(word => normalizedInput.includes(word)):
+      case connectionWords.some(word => normalizedInput.includes(word)):
         return "connection"
       default:
         return Unspecified;
     }
   }
 }
+
+const icons = new Map<string, string>([
+  ['conduit', 'material-symbols:cable'],
+  ['female conection', 'icon-park-outline:round-socket'],
+  ['male connection', 'ic:baseline-power'],
+  ['connection', 'mdi:plug'],
+  ['Unspecified', 'material-symbols:electric-bolt']
+])
+
+const conduitWords = ['conduit'];
+const connectionWords = ['steker', 'stekker']
+const femaleconnectionWords = ['female']
+const maleconnectionWords = ['male']
+
