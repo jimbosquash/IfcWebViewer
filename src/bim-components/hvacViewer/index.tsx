@@ -92,7 +92,40 @@ export class HVACViewer extends OBC.Component {
   handelSelectedGroupChanged(data: SelectionGroup) {
     if (!data || !data.elements) return;
 
-    const buildingElements = data.elements;
+    const buildingElements = this.filterInstallationElements(data.elements);
+
+    if (!buildingElements) {
+      if (this._foundElements.length !== 0) this.onFoundElementsChanged.trigger([]); // this means that the group had hvac elements
+      return; // no managed hvac elements found
+    }
+    this._foundElements = buildingElements;
+    this.setupTags(this._foundElements)
+
+    const tree = setUpTreeFromProperties(treeID, this._foundElements, [this._groupingType], { allowUnspecifedasNodeName: true });
+    this.installationGroups = tree;
+    this.onFoundElementsChanged.trigger(this._foundElements);
+  }
+
+  /**
+   * Using the input elements create and set a tree for installation elements filtering out non installation elements and grouping by current groupType
+   * @param buildingElements 
+   */
+  setInstallationView(buildingElements: BuildingElement[]) {
+    const filteredElements = this.filterInstallationElements(buildingElements);
+
+    if (!filteredElements) {
+      if (this._foundElements.length !== 0) this.onFoundElementsChanged.trigger([]); // this means that the group had hvac elements
+      return; // no managed hvac elements found
+    }
+    this._foundElements = filteredElements;
+    this.setupTags(this._foundElements)
+
+    const tree = setUpTreeFromProperties(treeID, this._foundElements, [this._groupingType], { allowUnspecifedasNodeName: true });
+    this.installationGroups = tree;
+    this.onFoundElementsChanged.trigger(this._foundElements);
+  }
+
+  filterInstallationElements(buildingElements: BuildingElement[]): BuildingElement[] {
     console.log("managedTypes", this._managedTypes);
     let managedTypeElements = buildingElements.filter((el) =>
       this._managedTypes.find((partialType) => el.type.includes(partialType))
@@ -102,18 +135,7 @@ export class HVACViewer extends OBC.Component {
       ...buildingElements.filter((el) => GetPropertyByName(el, sustainerProperties.ProductCode)?.value.includes("TE")),
     ];
     const uniqueElements = Array.from(new Set(managedTypeElements.map(el => JSON.stringify(el)))).map(el => JSON.parse(el) as BuildingElement);
-
-
-    if (!uniqueElements) {
-      if (this._foundElements.length !== 0) this.onFoundElementsChanged.trigger([]); // this means that the group had hvac elements
-      return; // no managed hvac elements found
-    }
-    this._foundElements = uniqueElements;
-    this.setupTags(this._foundElements)
-
-    const tree = setUpTreeFromProperties(treeID, this._foundElements, [this._groupingType], { allowUnspecifedasNodeName: true });
-    this.installationGroups = tree;
-    this.onFoundElementsChanged.trigger(this._foundElements);
+    return uniqueElements;
   }
 
 

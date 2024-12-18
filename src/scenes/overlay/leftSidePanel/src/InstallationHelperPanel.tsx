@@ -10,6 +10,7 @@ import RowContent from "../../../../components/RowContent";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { nonSelectableTextStyle } from "../../../../styles";
+import { ModelCache } from "../../../../bim-components/modelCache";
 
 const treeID = 'installationTree'
 
@@ -29,8 +30,13 @@ export const InstallationHelperPanel = () => {
         hvacViewer.onGroupTreeChanged.add(handleHvacTreeUpdated)
 
         console.log('hvac panel opened')
-        if (hvacViewer.foundElements)
+        if (hvacViewer.foundElements) {
             handleHvacTreeUpdated()
+        } else {
+            //set up from whole file.
+            hvacViewer.setInstallationView(components?.get(ModelCache).buildingElements ?? [])
+            hvacViewer.highlightGroup(hvacViewer.prefabGroups?.getFirstOrUndefinedNode(n => n.id !== undefined)?.id ?? "")
+        }
         hvacViewer.showTags(true)
         setSelected(hvacViewer.groupingType)
 
@@ -49,7 +55,13 @@ export const InstallationHelperPanel = () => {
     }, [SelectedNode])
 
     const handleHvacTreeUpdated = () => {
-        if (hvacViewer.foundElements.length <= 0) return;
+        if (hvacViewer.foundElements.length <= 0) {
+            // look at whole file
+            hvacViewer.setInstallationView(components?.get(ModelCache).buildingElements ?? [])
+            hvacViewer.highlightGroup(hvacViewer.prefabGroups?.getFirstOrUndefinedNode(n => n.id !== undefined)?.id ?? "")
+
+            return;
+        }
         console.log('hvac panel found elements')
         if (hvacViewer.prefabGroups) {
             // setNodes([...hvacViewer.prefabGroups?.root?.children?.values()])
@@ -74,6 +86,8 @@ export const InstallationHelperPanel = () => {
     function handleButtonClick(type: sustainerProperties): void {
         setSelected(type);
         hvacViewer.groupingType = type;
+        // hvacViewer.highlightGroup(hvacViewer.prefabGroups?.getFirstOrUndefinedNode(n => n.id !== undefined)?.id ?? "")
+
     }
 
     return (
