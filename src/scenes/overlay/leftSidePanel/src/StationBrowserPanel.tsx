@@ -19,10 +19,10 @@ import {
   groupElementsByPropertyName,
 } from "../../../../utilities/BuildingElementUtilities";
 import { ViewableTree } from "../../../../bim-components/modelViewer/src/viewableTree";
-import { IsolateButton, ToolBarButton } from "../../actionButtonPanel/src/IsolateButton";
 import { tokens } from "../../../../theme";
 import { Icon } from "@iconify/react";
 import { PanelBase } from "../../../../components/PanelBase";
+import { ToolBarButton } from "../../actionButtonPanel/src/toolbarButton";
 
 const treeName = ModelViewManager.stationTreeName;
 

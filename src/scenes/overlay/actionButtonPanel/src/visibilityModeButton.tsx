@@ -1,14 +1,11 @@
 import { Icon } from "@iconify/react";
-import { Tooltip, Button, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import { tokens } from "../../../../theme";
 import { VisibilityMode } from "../../../../utilities/types";
+import { ToolBarButton } from "./toolbarButton";
 
 export const VisibilityModeButton = () => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const components = useComponentsContext();
   const [visibilityMode, setVisibilityMode] = useState<VisibilityMode>();
 
@@ -44,8 +41,8 @@ export const VisibilityModeButton = () => {
 
     setVisibilityMode(viewManager.VisibilityMode);
 
-    if(viewManager?.Tree?.id)
-    viewManager.updateBasedOnVisibilityMode(undefined, undefined,viewManager?.Tree?.id);
+    if (viewManager?.Tree?.id)
+      viewManager.updateBasedOnVisibilityMode(undefined, undefined, viewManager?.Tree?.id);
 
     console.log("Visibility mode", viewManager.VisibilityMode);
   };
@@ -81,11 +78,10 @@ export const VisibilityModeButton = () => {
   };
 
   return (
-    <Tooltip title={visibilityMode && getToolTip(visibilityMode)}>
-      <Button onClick={toggleVisibilityMode} style={{ color: colors.grey[200], border: "0" }} variant={"outlined"}>
-        {visibilityMode && getIcon(visibilityMode)}
-      </Button>
-    </Tooltip>
+    <ToolBarButton
+      toolTip={visibilityMode && getToolTip(visibilityMode)}
+      content={visibilityMode && getIcon(visibilityMode)}
+      onClick={() => toggleVisibilityMode()} />
   );
 };
 

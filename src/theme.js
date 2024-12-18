@@ -1,6 +1,36 @@
 import { createContext, useState, useMemo } from "react";
 import { createTheme } from "@mui/material/styles";
 
+// example of how to use fine grain colors
+{/* <Button
+                onSelect={() => { console.log('selected') }}
+                // sx={{
+                //   backgroundColor: theme.palette.primary.main,
+                //   "&:hover": {
+                //     backgroundColor: theme.palette.primary.hover,
+                //   },
+                //   "&.Mui-selected": {
+                //     backgroundColor: theme.palette.primary.main,
+                //   },
+                //   "&.Mui-doubleClicked": {
+                //     backgroundColor: theme.palette.primary.doubleClicked,
+                //   },
+                //   // "&:focus": {
+                //   //   outline: "none", // Removes the default focus ring
+                //   //   boxShadow: "none", // Removes the focus box-shadow if present
+                //   // },
+                // }}
+                onClick={() => showAll()}
+                style={{ border: "0" }}
+                color="primary"
+              //   variant={open ? "contained" : "outlined"}
+              >
+                <Icon icon="mdi:eye" />
+              </Button>
+
+               */}
+
+
 // color design tokens export
 export const tokens = (mode) => ({
   ...(mode === "dark"
