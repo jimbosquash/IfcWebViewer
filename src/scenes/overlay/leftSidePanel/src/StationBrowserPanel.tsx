@@ -22,6 +22,7 @@ import { ViewableTree } from "../../../../bim-components/modelViewer/src/viewabl
 import { IsolateButton, ToolBarButton } from "../../actionButtonPanel/src/IsolateButton";
 import { tokens } from "../../../../theme";
 import { Icon } from "@iconify/react";
+import { PanelBase } from "../../../../components/PanelBase";
 
 const treeName = ModelViewManager.stationTreeName;
 
@@ -285,18 +286,11 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
 
   return (
     <>
-      <div
-        style={{
-          alignContent: "center",
-          top: "0%",
-          left: 0,
-          zIndex: 50,
-          width: "100%",
-        }}
-      >
-        {/* fixed panel section */}
-
-        <ButtonGroup
+      <PanelBase
+        title="Work stations"
+        icon="mdi:file-tree-outline"
+        body="Building elements grouped by work station and building steps. Double click to select."
+        buttonBar={<ButtonGroup
           variant="text"
           style={{
             flexShrink: 0,
@@ -312,10 +306,10 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
             toolTip={"add or remove grouping by relevant assemblies"}
           />
           {/* <ToolBarButton
-            onClick={() => (treeWithAssemblies ? createStationTree() : createRelevantAssemblyTree())}
-            content={<Icon icon="material-symbols:step-over" />}
-            toolTip={'Step over - navigate across tree structure'}
-          /> */}
+                  onClick={() => (treeWithAssemblies ? createStationTree() : createRelevantAssemblyTree())}
+                  content={<Icon icon="material-symbols:step-over" />}
+                  toolTip={'Step over - navigate across tree structure'}
+                /> */}
           <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
 
           <ToolBarButton
@@ -334,11 +328,25 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
             }
           />
         </ButtonGroup>
+        }
+      >
+        <div
+          style={{
+            alignContent: "center",
+            top: "0%",
+            left: 0,
+            zIndex: 50,
+            width: "100%",
+          }}
+        >
+          {/* fixed panel section */}
 
-        <Box component="div" m="0px" maxHeight="100%" overflow="hidden" width="100%">
-          <MemoizedTreeTableRows onDoubleClick={handleDoubleClick} nodes={nodes} treeName={treeName} />
-        </Box>
-      </div>
+
+          <Box component="div" m="0px" maxHeight="100%" overflow="hidden" width="100%">
+            <MemoizedTreeTableRows onDoubleClick={handleDoubleClick} nodes={nodes} treeName={treeName} />
+          </Box>
+        </div>
+      </PanelBase>
     </>
   );
 });

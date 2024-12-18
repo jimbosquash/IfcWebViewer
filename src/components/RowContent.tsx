@@ -15,37 +15,70 @@ export interface RowContentProps {
 // RowContent component to display name, icon, and any chips passed
 export const RowContent: React.FC<RowContentProps> = ({ name, icon, chips }) => {
 
-    return (<Box component="div" display="flex" alignItems="center" sx={{ flexGrow: 1 }}>
-        {icon && <Icon icon={icon} style={{ marginLeft: "5px", fontSize: '14px' }} />}
-        <Typography
-            noWrap
-            color={'inherit'}
-            sx={{
-                flexGrow: 1,
-                flexShrink: 1,
-                minWidth: 0,
-                ...nonSelectableTextStyle,
-                ml: 1,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                backgroundColor: 'transparent',
-            }}
+    return (
+        <Box
+            component="div"
+            display="flex"
+            width="70%" // Full width of the container
+            justifyContent="flex-start" // Align content to the start
+            alignItems="center" // Center vertically
+            sx={{ flexGrow: 1 }}
         >
-            {name}
-        </Typography>
+            {/* Icon */}
+            {icon && (
+                <Icon
+                    icon={icon}
+                    style={{
+                        marginLeft: "3px",
+                        marginRight: "3px",
+                        fontSize: "14px",
+                        flexShrink: 0, // Prevent shrinking
+                    }}
+                />
+            )}
 
-        {/* Box for chips: takes full available space and aligns chips to the right */}
-        <Box component="div" display="flex" alignItems="center" justifyContent="flex-end" sx={{ flexGrow: 1 }}>
-            {chips?.map((chip, index) => (
-                <Box component="div" key={index} sx={{ ml: 1 }}>
-                    {" "}
-                    {/* Optional spacing between chips */}
-                    {chip}
-                </Box>
-            ))}
+            {/* Truncated Text */}
+            <Typography
+                noWrap
+                color="inherit"
+                sx={{
+                    flexShrink: 3,
+                    // flexGrow: 0, // Allow the text to take available space
+                    minWidth: 0, // Prevent text from forcing a minimum width
+                    ...nonSelectableTextStyle,
+                    // maxWidth: "5 0%",
+                    // marginLeft: 1, // Space between icon and text
+                    whiteSpace: "nowrap", // Ensure no wrapping
+                    overflow: "hidden", // Hide overflowing text
+                    textOverflow: "ellipsis", // Add ellipsis for overflow
+                    backgroundColor: "transparent", // Transparent background for clean look
+                }}
+            >
+                {name}
+            </Typography>
+
+            {/* Chips */}
+            <Box
+                component="div"
+                display="flex"
+                alignItems="center"
+                justifyContent="flex-end"
+                sx={{
+                    ...nonSelectableTextStyle,
+                    flexShrink: 0, // Prevent chips from shrinking
+                    marginLeft: "auto", // Push chips to the right
+                    marginRight: "4px", // Push chips to the right
+                }}
+            >
+                {chips?.map((chip, index) => (
+                    <Box component="div" key={index} sx={{ ml: 1, mt: 1, mb: 1 }}>
+                        {chip}
+                    </Box>
+                ))}
+            </Box>
         </Box>
-    </Box>)
+    );
+
 };
 
 export default RowContent;

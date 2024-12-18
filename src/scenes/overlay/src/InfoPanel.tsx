@@ -10,6 +10,7 @@ import { BuildingElement, GroupingType, SelectionGroup } from "../../../utilitie
 import { isolate, select } from "../../../utilities/BuildingElementUtilities";
 import { zoom, zoomAllorSelected } from "../../../utilities/CameraUtilities";
 import ModelFlipper from "../../../bim-components/modelFlipper";
+import { NotificationCenter, notificationType } from "../../../bim-components/notificationCenter";
 
 
 interface InfoPanelProps {
@@ -35,6 +36,7 @@ export const InfoPanel = () => {
     const viewManager = components.get(ModelViewManager);
     const hvacViewer = components.get(HVACViewer);
     const modelFlipper = components.get(ModelFlipper);
+    components.get(NotificationCenter).enabled;
     hvacViewer.enabled = true;
     viewManager.onSelectedGroupChanged.add(handleSelectedGroup);
     hvacViewer.onFoundElementsChanged.add(handleHvacFound);
@@ -51,10 +53,6 @@ export const InfoPanel = () => {
   const handleHvacFound = (data: BuildingElement[]) => {
     setShowHVACWarning(data.length > 0);
     setShowTip(data.length > 0);
-    const hvacViewer = components.get(HVACViewer);
-    // hvacViewer.showTags(data.length > 0);
-
-    // console.log("havac found", data.length);
   };
   const handleFlip = (data: boolean) => {
     setShowFlipWarning(data);
@@ -98,7 +96,10 @@ export const InfoPanel = () => {
       //show all
       components.get(ModelViewManager).update();
     }
+
     hvacIsolated = !hvacIsolated
+    components.get(NotificationCenter).onNotifcationTriggered.trigger({ notification: notificationType.installations, value: hvacIsolated ? "actived" : 'deactived' })
+
 
   }
 

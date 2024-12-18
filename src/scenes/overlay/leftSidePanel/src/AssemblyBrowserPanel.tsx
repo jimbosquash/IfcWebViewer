@@ -1,14 +1,15 @@
 import { Box, ButtonGroup } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
-import {  TreeNode } from "../../../../utilities/Tree";
-import {  IfcElement, SelectionGroup } from "../../../../utilities/types";
+import { TreeNode } from "../../../../utilities/Tree";
+import { IfcElement, SelectionGroup } from "../../../../utilities/types";
 import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import React from "react";
 import { TreeUtils } from "../../../../utilities/treeUtils";
 import MemoizedTreeTableRows from "./MemoizedTreeTableRows";
 import { convertToBuildingElement, setVisibility } from "../../../../utilities/BuildingElementUtilities";
 import { ViewableTree } from "../../../../bim-components/modelViewer/src/viewableTree";
+import { PanelBase } from "../../../../components/PanelBase";
 
 const treeID = ModelViewManager.assemblyTreeName;
 
@@ -23,9 +24,9 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
     (tree: ViewableTree<IfcElement>) => {
       if (!tree || !modelViewManager) return;
 
-      console.log("get existing tree, in event listener",tree,modelViewManager)
+      console.log("get existing tree, in event listener", tree, modelViewManager)
       if (!tree) return;
-      console.log('building elements for assembly tree',[...tree.root.children.values()])
+      console.log('building elements for assembly tree', [...tree.root.children.values()])
       setNodes([...tree.root.children.values()]);
     },
     [modelViewManager]
@@ -36,20 +37,20 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
     const existingTree = modelViewManager.getTree(treeID);
 
     if (existingTree !== undefined) {
-      console.log("get existing tree",existingTree)
+      console.log("get existing tree", existingTree)
       getPropertyTree(existingTree);
     }
 
   }, [components, getPropertyTree]);
 
-   // make visible on double click
-   const handleDoubleClick = useCallback((node: TreeNode<IfcElement>) => {
+  // make visible on double click
+  const handleDoubleClick = useCallback((node: TreeNode<IfcElement>) => {
     if (!node || !components) return;
     console.log('double click')
     const elements = convertToBuildingElement(TreeUtils.getChildrenNonNullData(node));
-    setVisibility(elements,components, true)
+    setVisibility(elements, components, true)
 
-    if (modelViewManager?.SelectedGroup?.groupName === node.name ) {
+    if (modelViewManager?.SelectedGroup?.groupName === node.name) {
       console.log("set selection ending early, selection has matching name");
       return;
     }
@@ -62,28 +63,34 @@ export const AssemblyBrowserPanel: React.FC = React.memo(() => {
     };
     modelViewManager.setSelectionGroup(selectedGroup, true, treeID, true);
   }, [components]);
-  
+
   return (
     <>
-      <div
-        style={{
-          alignContent: "center",
-          top: "0%",
-          left: 0,
-          zIndex: 50,
-          width: "100%",
-        }}
+      <PanelBase
+        title="Assemblies"
+        icon="mdi:file-tree-outline"
+        body="Building elements grouped by Assembly. Double click to select."
       >
-        {/* fixed panel section */}
+        <div
+          style={{
+            alignContent: "center",
+            // top: "0%",
+            // left: 0,
+            // zIndex: 50,
+            width: "100%",
+          }}
+        >
+          {/* fixed panel section */}
 
-        <ButtonGroup style={{ flexShrink: 0, marginTop: "18px", marginBottom: "10px", justifyContent: "center" }}>
-          
-        </ButtonGroup>
+          {/* <ButtonGroup style={{ flexShrink: 0, marginTop: "18px", marginBottom: "10px", justifyContent: "center" }}>
 
-        <Box component="div" m="0px" maxHeight="100%" overflow="hidden" width="100%">
-          <MemoizedTreeTableRows onDoubleClick={handleDoubleClick} nodes={nodes} treeName={treeID} />
-        </Box>
-      </div>
+        </ButtonGroup> */}
+
+          <Box component="div" m="0px" maxHeight="100%" overflow="hidden" width="100%">
+            <MemoizedTreeTableRows onDoubleClick={handleDoubleClick} nodes={nodes} treeName={treeID} />
+          </Box>
+        </div>
+      </PanelBase>
     </>
   );
 });

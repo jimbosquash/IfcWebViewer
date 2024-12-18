@@ -201,7 +201,19 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
         component="div"
         sx={{
           width: "100%",
-          ...getParentBoxTheme(variant)
+          maxWidth: "100%", // Prevent row from exceeding container width
+
+          justifyContent: "space-between",
+          overflow: "hidden",
+          cursor: "pointer",
+          display: "flex",
+          minHeight: "30px",
+
+          flexDirection: "column",
+          minWidth: 0,
+          boxSizing: "border-box", // Include padding in width
+          ...getParentBoxTheme(variant),
+
         }}
       >
         <Box
@@ -218,13 +230,19 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
             ...getRowTheme(variant),
             backgroundColor: getColor('background'),
             color: getColor('text'),
+            justifyContent: "flex-start",
+            overflow: "hidden",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            minheight: "30px",
           }}
         >
 
           {/* Visibility Toggle */}
           <IconButton
             size="small"
-            sx={{ color: "inherit" }}
+            sx={{ color: "inherit", flexShrink: 0 }} // Prevent icon from shrinking
             onClick={(e) => {
               if (node) {
                 handleToggleVisibility(node);
@@ -268,7 +286,7 @@ export const TreeTableRow: React.FC<TreeTableRowProps> = React.memo(
               mt: 2,
               width: "100%",
               flexGrow: 1,
-              overflowY: "auto",
+              overflowY: "hidden",
               overflowX: "hidden",
             }}
           >
@@ -298,12 +316,7 @@ const getRowTheme = (variant: "Floating" | "Flat") => ({
   transition: "all 0.1s ease",
   borderBottom: variant !== "Floating" ? "0.8px solid #ccc" : "",
   borderTop: variant !== "Floating" ? "0.8px solid #ccc" : "",
-  justifyContent: "space-between",
-  overflow: "hidden",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  minheight: "30px",
+
 });
 
 
@@ -316,14 +329,7 @@ const getParentBoxTheme = (variant: "Floating" | "Flat") => ({
   borderTop: variant !== "Floating" ? "0.8px solid #ccc" : "",
   // marginRight: variant === "Floating" ? "12px" : "",
   marginTop: variant === "Floating" ? "4px" : "",
-  justifyContent: "space-between",
-  overflow: "hidden",
-  cursor: "pointer",
-  display: "flex",
-  minHeight: "30px",
 
-  flexDirection: "column",
-  minWidth: 0,
 
 });
 

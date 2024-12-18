@@ -75,8 +75,7 @@ export const InstallationHelperPanel = () => {
             body="Installation elements grouped by their prefab property value. 
                 A prefab is a collection of elements is typically cables and hardware. 
                 This is helpful to know how to prepare cables step-by-step."
-        >
-            <ButtonGroup style={{ flexShrink: 0, marginTop: "18px", marginBottom: "10px", justifyContent: "center" }}>
+            buttonBar={<ButtonGroup style={{ flexShrink: 0, }}>
                 {hvacViewer.groupingOptions.map((type) => (
                     <Chip
                         key={type}
@@ -95,33 +94,26 @@ export const InstallationHelperPanel = () => {
                         }}
                     />
                 ))}
-            </ButtonGroup>
-
-            <Box component="div" m="0px"
-                style={{
-                    height: '100%',
-                    overflowY: 'visible'
-                }}
-                width="100%">
-                {prefabNodes &&
-                    Array.from(prefabNodes).map((data) => (
-                        <TreeTableRow
-                            onToggleVisibility={() => { console.log('vis toggle') }}
-                            onDoubleClick={() => { console.log('double click') }}
-                            onClick={(node) => {
-                                console.log('click')
-                                setSelectedNode(node)
-                            }}
-                            name={data.name}
-                            treeID={treeID}
-                            icon="ic:outline-power"
-                            node={data}
-                            key={data.id}
-                            variant="Flat"
-                            customRowContent={getRowContent(data)}
-                        />
-                    ))}
-            </Box>
+            </ButtonGroup>}
+        >
+            {prefabNodes &&
+                Array.from(prefabNodes).map((data) => (
+                    <TreeTableRow
+                        onToggleVisibility={() => { console.log('vis toggle') }}
+                        onDoubleClick={() => { console.log('double click') }}
+                        onClick={(node) => {
+                            console.log('click')
+                            setSelectedNode(node)
+                        }}
+                        name={data.name}
+                        treeID={treeID}
+                        icon="ic:outline-power"
+                        node={data}
+                        key={data.id}
+                        variant="Flat"
+                        customRowContent={getRowContent(data)}
+                    />
+                ))}
             {otherNodes && <HeaderWithDropdown onSelected={setSelectedNode} otherNodes={otherNodes} treeID={treeID} />}
         </PanelBase>
     );
@@ -165,11 +157,6 @@ export const HeaderWithDropdown: React.FC<HeaderWithDropdownProps> = ({
                 <Box
                     component="div"
                     m="0px"
-                    sx={{
-                        height: "100%",
-                        overflowY: "auto",
-                        width: "100%",
-                    }}
                 >
                     {otherNodes.map((data) => (
                         <TreeTableRow

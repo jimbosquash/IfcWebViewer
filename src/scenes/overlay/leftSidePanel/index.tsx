@@ -12,6 +12,8 @@ import { sidebarWidth } from "../rightSidePanel";
 import { ModelViewManager } from "../../../bim-components/modelViewer";
 import { PanelBase } from "../../../components/PanelBase";
 import InstallationHelperPanel from "./src/installationHelperPanel";
+import { HVACViewer } from "../../../bim-components/hvacViewer";
+import { NotificationCenter, notificationType } from "../../../bim-components/notificationCenter";
 
 const minWidth = 220;
 
@@ -39,16 +41,42 @@ export const LeftSidePanel: React.FC = () => {
     if (!components) return;
 
     const viewManager = components.get(ModelViewManager);
+    const hvacViewer = components.get(HVACViewer);
+    const notificationCenter = components.get(NotificationCenter);
     console.log("side panel listening");
+
+    notificationCenter.onNotifcationTriggered.add((data) => checkNotification(data.notification, data.value))
 
     viewManager.onTreeChanged.add(() => listenForTreeChange());
 
     return () => {
       // unlisten
       viewManager.onTreeChanged.remove(() => listenForTreeChange());
+      notificationCenter.onNotifcationTriggered.remove((data) => checkNotification(data.notification, data.value))
+
       console.log("side panel stop listening");
     };
   }, [components]);
+
+  const checkNotification = (notification: notificationType, value: any) => {
+    if (notification === notificationType.installations) {
+      if (value === 'actived') {
+        // go to hvac panel
+        handleIconClick(
+          <>
+            <InstallationHelperPanel />
+          </>,
+          "Installations"
+        )
+      }
+      else if (value === 'deactived') {
+        // go to last panel
+        handleIconClick(<ProjectOverviewPanel />, "overView");
+
+
+      }
+    }
+  }
 
   const listenForTreeChange = () => {
     if (!panelAutoOpen.current) {
@@ -298,6 +326,7 @@ export const LeftSidePanel: React.FC = () => {
             style={{
               flexGrow: 1,
               height: '100%',
+              overflowY: 'hidden'
             }}
           >
             {panelContent.content}
