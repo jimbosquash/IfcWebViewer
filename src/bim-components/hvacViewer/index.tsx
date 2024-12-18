@@ -126,10 +126,12 @@ export class HVACViewer extends OBC.Component {
   }
 
   filterInstallationElements(buildingElements: BuildingElement[]): BuildingElement[] {
-    console.log("managedTypes", this._managedTypes);
+    // console.log("managedTypes", this._managedTypes);
     let managedTypeElements = buildingElements.filter((el) =>
       this._managedTypes.find((partialType) => el.type.includes(partialType))
     );
+    if (managedTypeElements.length <= 0) return [];
+
     managedTypeElements = [
       ...managedTypeElements,
       ...buildingElements.filter((el) => GetPropertyByName(el, sustainerProperties.ProductCode)?.value.includes("TE")),

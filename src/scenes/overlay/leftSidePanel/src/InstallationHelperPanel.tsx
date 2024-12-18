@@ -34,8 +34,10 @@ export const InstallationHelperPanel = () => {
             handleHvacTreeUpdated()
         } else {
             //set up from whole file.
-            hvacViewer.setInstallationView(components?.get(ModelCache).buildingElements ?? [])
-            hvacViewer.highlightGroup(hvacViewer.prefabGroups?.getFirstOrUndefinedNode(n => n.id !== undefined)?.id ?? "")
+            const filteredElements = hvacViewer.filterInstallationElements(components?.get(ModelCache).buildingElements ?? [])
+            if (filteredElements.length > 0)
+                hvacViewer.setInstallationView(filteredElements)
+            //hvacViewer.highlightGroup(hvacViewer.prefabGroups?.getFirstOrUndefinedNode(n => n.id !== undefined)?.id ?? "")
         }
         hvacViewer.showTags(true)
         setSelected(hvacViewer.groupingType)
@@ -57,8 +59,10 @@ export const InstallationHelperPanel = () => {
     const handleHvacTreeUpdated = () => {
         if (hvacViewer.foundElements.length <= 0) {
             // look at whole file
-            hvacViewer.setInstallationView(components?.get(ModelCache).buildingElements ?? [])
-            hvacViewer.highlightGroup(hvacViewer.prefabGroups?.getFirstOrUndefinedNode(n => n.id !== undefined)?.id ?? "")
+            const filteredElements = hvacViewer.filterInstallationElements(components?.get(ModelCache).buildingElements ?? [])
+            if (filteredElements.length > 0)
+                hvacViewer.setInstallationView(filteredElements)
+            //hvacViewer.highlightGroup(hvacViewer.prefabGroups?.getFirstOrUndefinedNode(n => n.id !== undefined)?.id ?? "")
 
             return;
         }
