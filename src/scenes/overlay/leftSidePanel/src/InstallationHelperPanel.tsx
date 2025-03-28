@@ -22,6 +22,7 @@ export const InstallationHelperPanel = () => {
     const [otherNodes, setOtherNodes] = useState<TreeNode<IfcElement>[]>();
     const [SelectedNode, setSelectedNode] = useState<TreeNode<IfcElement>>();
     const [selected, setSelected] = useState<sustainerProperties | null>(null);
+    const [showTags, setShowTags] = useState<boolean>(false);
 
     const hvacViewer = useMemo(() => components?.get(HVACViewer), [components]);
 
@@ -41,6 +42,7 @@ export const InstallationHelperPanel = () => {
                 hvacViewer.setInstallationView(filteredElements)
             //hvacViewer.highlightGroup(hvacViewer.prefabGroups?.getFirstOrUndefinedNode(n => n.id !== undefined)?.id ?? "")
         }
+        // hvacViewer.showTags(showTags)
         hvacViewer.showTags(true)
         setSelected(hvacViewer.groupingType)
 

@@ -20,13 +20,14 @@ import { ModelViewManager } from "../../../../bim-components/modelViewer";
 import { useComponentsContext } from "../../../../context/ComponentsContext";
 import { SelectionGroup, KnownGroupType, BuildingElement, sustainerProperties } from "../../../../utilities/types";
 import { Icon } from "@iconify/react";
-import { tokens } from "../../../../theme";
+// import { tokens } from "../../../../theme";
 import { select } from "../../../../utilities/BuildingElementUtilities";
 // import { saveAs } from "file-saver";
 import Papa from "papaparse";
 import saveAs from "file-saver";
 import { ModelCache } from "../../../../bim-components/modelCache";
 import { getValueByKey } from "../../../../utilities/indexedDBUtils";
+import { tokens } from "../../../../theme";
 
 // listen to selected assembly and set its data when changed
 const AssemblyInfoPanel = () => {
