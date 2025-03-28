@@ -27,7 +27,7 @@ export class HVACViewer extends OBC.Component {
   private _markers: Mark[] = []; //Marks currently being used
   readonly onFoundElementsChanged = new OBC.Event<BuildingElement[]>(); // trigger when the selection group cointas elements of type in this._managedTypes collection.
   readonly onGroupTreeChanged = new OBC.Event<sustainerProperties>(); // trigger when the selection group cointas elements of type in this._managedTypes collection.
-  private _groupingType: sustainerProperties = sustainerProperties.PrefabNumber;
+  private _groupingType: sustainerProperties = sustainerProperties.ProductCode;
   private installationGroups: Tree<IfcElement> | undefined; // defined by the installation company through the 'Prefab preoperty'
   private _tagConfig: "name" | "prefab" = "prefab";
 
@@ -190,7 +190,8 @@ export class HVACViewer extends OBC.Component {
       if (this._tags) {
         this._tags.forEach(tag => {
           //create marker
-          const mark = ModelTagger.createMarkFromProps(viewManager.world ?? undefined, tag.text, tag.color, tag.position, tag.icon ?? undefined)
+          const tagText = "";// tag.text
+          const mark = ModelTagger.createMarkFromProps(viewManager.world ?? undefined, tagText, tag.color, tag.position, tag.icon ?? undefined)
           if (mark)
             this._markers.push(mark)
 

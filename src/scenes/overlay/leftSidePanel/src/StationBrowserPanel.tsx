@@ -316,9 +316,9 @@ export const StationBrowserPanel: React.FC = React.memo(() => {
             onClick={() => toggleTreeNavigation()}
             content={
               treeNavigation === "stepOver" ? (
-                <Icon icon="material-symbols:step-over" />
+                <Icon color="black" icon="material-symbols:step-over" />
               ) : (
-                <Icon icon="material-symbols:step-into" />
+                <Icon color="black" icon="material-symbols:step-into" />
               )
             }
             toolTip={
